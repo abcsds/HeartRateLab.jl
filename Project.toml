@@ -1,0 +1,13 @@
+name = "HeartRateLab"
+uuid = "ac0e5f2a-24d1-4b35-a8b3-775c05ea78ca"
+authors = ["Alberto Barradas <abcsds@gmail.com> and contributors"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1.6.7"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
