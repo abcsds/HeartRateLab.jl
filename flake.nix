@@ -6,8 +6,8 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     # Utilities for multi-platform, multi-output flakes
     flake-utils.url = "github:numtide/flake-utils";
-    # Optional: helper to import Manifest.toml (not enabled by default)
-    # julia2nix.url = "github:codedownio/julia2nix";
+    # helper to import Manifest.toml
+    julia2nix.url = "github:codedownio/julia2nix";
   };
 
   outputs = { self, nixpkgs, flake-utils, ... }:
@@ -18,25 +18,6 @@
       JULIA_DIST = "julia";
       JULIA_VERSION = "1.11";
       julia = pkgs.${JULIA_DIST};
-
-      # Wrapper script for the default app (Julia REPL)
-      juliaApp = pkgs.writeShellScriptBin "julia-repl" ''
-        #!${pkgs.runtimeShell}
-        exec ${julia}/bin/julia --project=. "$@"
-      '';
-
-      # Wrapper script for the test app
-      juliaTestApp = pkgs.writeShellScriptBin "julia-test" ''
-        #!${pkgs.runtimeShell}
-        exec ${julia}/bin/julia --project=. -e 'using Pkg; Pkg.test()' "$@"
-      '';
-
-      # Wrapper script for the act app
-      actApp = pkgs.writeShellScriptBin "act-run" ''
-        #!${pkgs.runtimeShell}
-        exec ${pkgs.act}/bin/act -W "./.github/workflows/CI.yml" -W "./.github/workflows/docs.yml" "$@"
-      '';
-
     in {
       ### 3. Build & Precompile ###
       packages.default = pkgs.stdenv.mkDerivation {
@@ -64,8 +45,27 @@
       };
 
       ### 4. Development "Apps" ###
-      # Define apps manually instead of using flake-utils.lib.mkApp
-      apps = {
+      # Define apps manually and include wrapper script definitions here
+      apps = let
+        # Wrapper script for the default app (Julia REPL)
+        juliaApp = pkgs.writeShellScriptBin "julia-repl" ''
+          #!${pkgs.runtimeShell}
+          exec ${julia}/bin/julia --project=. "$@"
+        '';
+
+        # Wrapper script for the test app
+        juliaTestApp = pkgs.writeShellScriptBin "julia-test" ''
+          #!${pkgs.runtimeShell}
+          exec ${julia}/bin/julia --project=. -e 'using Pkg; Pkg.test()' "$@"
+        '';
+
+        # Wrapper script for the act app
+        actApp = pkgs.writeShellScriptBin "act-run" ''
+          #!${pkgs.runtimeShell}
+          # Remove explicit -W flags, let act discover workflows automatically
+          exec ${pkgs.act}/bin/act "$@"
+        '';
+      in {
         default = {
           type = "app";
           program = "${juliaApp}/bin/julia-repl";
@@ -80,9 +80,9 @@
         };
       };
 
-      ### 5. Containerization ###
-      dockerImages.myImage = pkgs.dockerTools.buildImage {
-        name      = "julia-project";
+      ### 5. Containerization ### TODO
+      container = pkgs.dockerTools.buildImage {
+        name      = "julia";
         tag       = JULIA_VERSION;
         fromImage = "docker.io/library/julia:${JULIA_DIST}";
         workDir   = "/app";
@@ -94,30 +94,38 @@
           WorkingDir = "/app";
         };
       };
+      # my-container-image = pkgs.dockerTools.buildLayeredImage {
+      #   name = "julia";
+      #   tag = "1.11.3";
+      #   contents = [
+      #       pkgs.julia
+      #   ];
+      #   config = {
+      #       Cmd = "julia";
+      #   };
+      # };
 
       ### 7. Dev Shell ###
-      devShell = pkgs.mkShell {
+      # Use the modern devShells output
+      devShells.default = pkgs.mkShell {
         buildInputs = [ julia ];
         # To include Python in your environment, uncomment below:
         # buildInputs = [ julia python3 ];
       };
 
-      # ### Manifest.toml Import (Optional) ###
-      #
+      # ### Manifest.toml Import ### 
       # To pin exact Julia package versions from your Manifest.toml, uncomment and
       # configure the following overlay (requires inputs.julia2nix):
-      #
       # juliaEnv = import julia2nix {
       #   inherit pkgs;
       #   projectDir = ./.;
       # };
-      #
-      # Then wrap pkgs with an overlay:
+      
+      # # Then wrap pkgs with an overlay:
       # pkgs = import nixpkgs {
       #   inherit system;
       #   overlays = [ (self: super: { juliaEnv = juliaEnv; }) ];
       # };
-      #
-      # This adds ~20–30 lines but ensures exact package-version reproducibility.
+      
     });
 }
