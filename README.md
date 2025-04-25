@@ -79,4 +79,9 @@ https://github.com/abcsds/HeartRateVariability.jl Maintained fork of LiScI-Lab/H
 - *A set of tools for (online) HRV biofeedback.
 
 ### Reproducibility
-A vm.nix is provided. # TODO flake please.
+A Dockerfile and a flake.nix are provided to reproduce the development environment and workflow:
+```bash
+nix run .#build # build development environment docker image
+nix run .#test # run tests
+nix run # Open the julia REPL
+nix run .#act # Test github workflows
