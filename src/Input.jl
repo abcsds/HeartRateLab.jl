@@ -59,7 +59,7 @@ function read_wfdb(record::String, annotator::String)
     run(pipeline(`ann2rr -r "$record" -a "$annotator" -i s -c`; stdout=io))
     a = read_txt(temp)
     rm(temp)
-    return  round.(Int, a*1000)
+    return round.(Int, a*1000)
 end
 
 export read_xdf

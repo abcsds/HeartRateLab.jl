@@ -10,7 +10,7 @@ include("Preprocessing.jl")
 # end
 
 # export Input
-export read_xdf 
+export read_xdf
 export read_txt
 export read_wfdb
 export Preprocessing
