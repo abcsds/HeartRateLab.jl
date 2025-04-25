@@ -3,3 +3,6 @@
 *.jl.mem
 /docs/Manifest.toml
 /docs/build/
+.devenv
+wfdb-10.7.0
+LOG.md

@@ -1,13 +1,19 @@
 module HeartRateLab
-
-include("Preprocessing.jl")
 include("Input.jl")
-# include("Features.jl")
-# include("Models.jl")
+# include("Preprocessing.jl")
+# using Input: read_xdf, read_txt, read_wfdb
+# using Preprocessing: replace_zeros, replace_bio_outliers, replace_statistical_outliers, replace_ectopic_beats!, replace_ectopic_beats, strip_extremes, interpolate_nans!, interpolate_nans, interpolate, windowed
 
-# # export all functions
-# for f in names(registry)
+# export all functions
+# for f in names(Features.registry)
 #     eval(:(export $f))
 # end
+
+# export Input
+export read_xdf 
+export read_txt
+export read_wfdb
+export Preprocessing
+# export Preprocessing.preprocess
 
 end
