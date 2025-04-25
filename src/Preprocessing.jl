@@ -157,19 +157,19 @@ function interpolate_nans!(n::Array{Float64,1}; method::Symbol=:linear)
     # Select interpolation method
     if method == :constant
         itp = DataInterpolations.ConstantInterpolation(
-            x[valid_indices], valid_values; extrapolate=true
+            x[valid_indices], valid_values
         )
     elseif method == :linear
         itp = DataInterpolations.LinearInterpolation(
-            x[valid_indices], valid_values; extrapolate=true
+            x[valid_indices], valid_values
         )
     elseif method == :quadratic
         itp = DataInterpolations.QuadraticInterpolation(
-            x[valid_indices], valid_values; extrapolate=true
+            x[valid_indices], valid_values
         )
     elseif method == :cubic
         itp = DataInterpolations.CubicSpline(
-            x[valid_indices], valid_values; extrapolate=true
+            x[valid_indices], valid_values
         )
     else
         throw(ArgumentError("Unsupported interpolation method: $method"))
