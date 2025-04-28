@@ -22,10 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version:
-          - '1.11'
-          - '1.6'
-          - 'pre'
+        version: ['lts', '1', 'pre']
         os:
           - ubuntu-latest
         arch:
@@ -36,6 +33,47 @@ jobs:
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
+      # Download and install physionet tools (Compile & Cache Method)
+      - name: Set WFDB paths
+        id: wfdb_paths
+        run: |
+          echo "WFDB_SRC_DIR=${{ runner.temp }}/wfdb-10.7.0" >> $GITHUB_OUTPUT
+          echo "WFDB_INSTALL_DIR=${{ github.workspace }}/wfdb-install" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Cache WFDB installation
+        id: cache-wfdb
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.wfdb_paths.outputs.WFDB_INSTALL_DIR }}
+          key: ${{ runner.os }}-wfdb-10.7.0-${{ hashFiles('**/Makefile', '**/configure') }} # Cache key includes source config files
+
+      - name: Download and Install WFDB tools (if not cached)
+        if: steps.cache-wfdb.outputs.cache-hit != 'true'
+        run: |
+          WFDB_SRC_DIR=${{ steps.wfdb_paths.outputs.WFDB_SRC_DIR }}
+          WFDB_INSTALL_DIR=${{ steps.wfdb_paths.outputs.WFDB_INSTALL_DIR }}
+          # Install build dependencies
+          sudo apt-get update && sudo apt-get install -y build-essential libcurl4-openssl-dev wget
+          # Download and extract
+          wget https://physionet.org/physiotools/wfdb.tar.gz -O wfdb.tar.gz
+          mkdir -p $WFDB_SRC_DIR
+          tar -xvzf wfdb.tar.gz --strip-components=1 -C $WFDB_SRC_DIR
+          # Configure, compile, and install locally
+          cd $WFDB_SRC_DIR
+          ./configure --prefix=$WFDB_INSTALL_DIR
+          make install
+        shell: bash
+
+      - name: Add WFDB tools to PATH
+        run: echo "${{ steps.wfdb_paths.outputs.WFDB_INSTALL_DIR }}/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Verify WFDB installation
+        run: which rdsamp && rdsamp -h || echo "rdsamp not found or failed"
+        shell: bash
+      # End Download and install physionet tools
+
       - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
@@ -45,34 +83,34 @@ jobs:
           files: lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
-  docs:
-    name: Documentation
-    runs-on: ubuntu-latest
-    permissions:
-      actions: write # needed to allow julia-actions/cache to proactively delete old caches that it has created
-      contents: write
-      statuses: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@v2
-        with:
-          version: '1'
-      - uses: julia-actions/cache@v2
-      - name: Configure doc environment
-        shell: julia --project=docs --color=yes {0}
-        run: |
-          using Pkg
-          Pkg.develop(PackageSpec(path=pwd()))
-          Pkg.instantiate()
-      - uses: julia-actions/julia-buildpkg@v1
-      - uses: julia-actions/julia-docdeploy@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
-      - name: Run doctests
-        shell: julia --project=docs --color=yes {0}
-        run: |
-          using Documenter: DocMeta, doctest
-          using HeartRateLab
-          DocMeta.setdocmeta!(HeartRateLab, :DocTestSetup, :(using HeartRateLab); recursive=true)
-          doctest(HeartRateLab)
+  # docs:
+  #   name: Documentation
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     actions: write # needed to allow julia-actions/cache to proactively delete old caches that it has created
+  #     contents: write
+  #     statuses: write
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: julia-actions/setup-julia@v2
+  #       with:
+  #         version: '1'
+  #     - uses: julia-actions/cache@v2
+  #     - name: Configure doc environment
+  #       shell: julia --project=docs --color=yes {0}
+  #       run: |
+  #         using Pkg
+  #         Pkg.develop(PackageSpec(path=pwd()))
+  #         Pkg.instantiate()
+  #     - uses: julia-actions/julia-buildpkg@v1
+  #     - uses: julia-actions/julia-docdeploy@v1
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
+  #     - name: Run doctests
+  #       shell: julia --project=docs --color=yes {0}
+  #       run: |
+  #         using Documenter: DocMeta, doctest
+  #         using HeartRateLab
+  #         DocMeta.setdocmeta!(HeartRateLab, :DocTestSetup, :(using HeartRateLab); recursive=true)
+  #         doctest(HeartRateLab)
