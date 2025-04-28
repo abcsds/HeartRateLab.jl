@@ -10,7 +10,7 @@ XDF = "31bc19ec-0089-417f-990e-a2b5e7515868"
 
 [compat]
 DataInterpolations = "8.0.0"
-Statistics = "1.11.1"
+Statistics = "1.10.0"
 XDF = "0.2.0"
 julia = "1.6.7"
 
