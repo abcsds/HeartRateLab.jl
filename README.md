@@ -24,6 +24,8 @@ https://github.com/abcsds/hrv python tools for HRV online biofeedback using blue
 https://github.com/abcsds/VizHRV visualization tools for in-depth online HRV analysis.
 https://github.com/abcsds/HeartRateVariability.jl Maintained fork of LiScI-Lab/HeartRateVariability.jl providing the most comprehensive set of HRV feature extraction tools in julia.
 
+# Abstract
+Heart Rate Variability (HRV) analysis involves examining variations in heart Inter-Beat-Intervals (IBIs). These variations can be extracted using various features. The devices for measuring and recording IBIs are one of the most economic and widely available form of biosignal acquisition. Additionally, there exist experimental and clinical evidence that HRV features are related to the autonomic nervous system (ANS) and can be used to assess its state, providing a valuable insight into cognitive processes. However, available tools for HRV analysis are mainly focused on feature extraction as a numeric value, often neglect to model and visualize many features, and fail to communicate the underlying processes. In this work, we present a comprehensive set of tools for HRV analysis: The Free and Open Source (FOSS) package HeartRateLab. It leverages the power of julia's high performance computing capabilities, FOSS scientific computing libraries, modeling, machine learning, signal processing, and visualization tools to provide a complete set of features for HRV extraction, models for data-driven HRV analysis, and visualizations. The package is designed to be used in an offline setting, as a feature extraction library, but can also be used in online settings for teaching, communication, or HRV biofeedback.
 
 # Approach
 
