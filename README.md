@@ -87,3 +87,4 @@ nix run .#build # build development environment docker image
 nix run .#test # run tests
 nix run # Open the julia REPL
 nix run .#act # Test github workflows
+```

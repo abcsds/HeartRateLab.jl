@@ -1,23 +1,24 @@
 # Use the official julia 1.11 image as a base
-FROM julia:1.11.3-bullseye
+FROM julia:1.11-bookworm
 
 # Create a working directory within the container
 WORKDIR /workdir
 
-ENV DEBIAN_FRONTEND noninteractive
+# https://archive.physionet.org/physiotools/wfdb-linux-quick-start.shtml
 RUN apt-get update && \
-    apt-get -y install gcc make
+    apt-get -y install \
+    gcc \
+    make 
+    # libcurl4-openssl-dev \
+    # libexpat1-dev
 
-# Copy the Manifest to the working directory
-COPY Manifest.toml /workdir/
-
-# Instantiate the julia environment
-# RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.instantiate()'
-
-# TODO: requires a compiler
-ADD http://physionet.org/physiotools/wfdb.tar.gz wfdb.tar.gz
-RUN tar -xzf wfdb.tar.gz && rm wfdb.tar.gz
+ADD https://www.physionet.org/physiotools/archives/wfdb-10.7/wfdb-10.7.0.tar.gz wfdb-10.7.0.tar.gz
+RUN tar -xzf wfdb-10.7.0.tar.gz && rm wfdb-10.7.0.tar.gz
 RUN cd wfdb-10.7.0 && ./configure && make install && cd ..
 
-# Set the working directory to /workdir
-WORKDIR /workdir
+COPY Project.toml /workdir/
+
+# Instantiate the julia environment
+RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.instantiate()'
+
+ENTRYPOINT [ "bash", "-c", "-l", "/usr/local/julia/bin/julia --project=. -i" ]

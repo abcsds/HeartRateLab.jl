@@ -56,7 +56,7 @@ jobs:
           # Install build dependencies
           sudo apt-get update && sudo apt-get install -y build-essential libcurl4-openssl-dev wget
           # Download and extract
-          wget https://physionet.org/physiotools/wfdb.tar.gz -O wfdb.tar.gz
+          wget https://www.physionet.org/physiotools/archives/wfdb-10.7/wfdb-10.7.0.tar.gz -O wfdb.tar.gz
           mkdir -p $WFDB_SRC_DIR
           tar -xvzf wfdb.tar.gz --strip-components=1 -C $WFDB_SRC_DIR
           # Configure, compile, and install locally
@@ -70,7 +70,7 @@ jobs:
         shell: bash
 
       - name: Verify WFDB installation
-        run: which rdsamp && rdsamp -h || echo "rdsamp not found or failed"
+        run: which ann2rr && ann2rr -h && echo "WFDB tools installed successfully"
         shell: bash
       # End Download and install physionet tools
 

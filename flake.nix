@@ -28,22 +28,22 @@
           program = toString (pkgs.writeShellScript "enter-container" ''
             #!${pkgs.runtimeShell}
             # docker build . -t hrlab
-            docker run -it --rm -v .:/workdir  hrlab:latest julia --project=.  
+            docker run -it --network=host --rm --gpus all --name julia -v .:/workdir hrlab:latest "/usr/local/julia/bin/julia --project=."
           '');
         };
         build = {
           type = "app";
           program = toString (pkgs.writeShellScript "build" ''
             #!${pkgs.runtimeShell}
-            docker build . -t hrlab
-            docker run -it --rm -v .:/workdir hrlab:latest julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
+            docker build --network=host . -t hrlab
+            docker run -it --network=host --rm --gpus all -v .:/workdir hrlab:latest "/usr/local/julia/bin/julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'"
           '');
         };
         test = {
           type = "app";
           program = toString (pkgs.writeShellScript "test" ''
             #!${pkgs.runtimeShell}
-            docker run -it --rm -v ./:/workdir hrlab:latest julia --project=. -e 'using Pkg; Pkg.test()'
+            docker run -it --network=host --rm --gpus all -v .:/workdir hrlab:latest "/usr/local/julia/bin/julia --project=. -e 'using Pkg; Pkg.test()'"
           '');
         };
         act = {
