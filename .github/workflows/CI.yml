@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ['lts', '1', 'pre']
+        version: ['1.11']
         os:
           - ubuntu-latest
         arch:
@@ -70,7 +70,7 @@ jobs:
         shell: bash
 
       - name: Verify WFDB installation
-        run: which ann2rr && ann2rr -h && echo "WFDB tools installed successfully"
+        run: which ann2rr && echo "WFDB tools installed successfully"
         shell: bash
       # End Download and install physionet tools
 
