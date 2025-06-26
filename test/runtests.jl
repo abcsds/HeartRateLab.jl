@@ -1,6 +1,7 @@
 using HeartRateLab: HeartRateLab
 using Test
-using Statistics
+using StatsBase
+using DataFrames
 
 @testset "HeartRateLab.jl" begin
     @testset "Input" begin
@@ -23,7 +24,7 @@ using Statistics
             @test length(data) == 4193
         end
 
-        @testset "read_wfdb" begin
+        @testset "read_wfdb" begin  # TODO: broken for v1.6
             # Test reading WFDB files
             @testset "testdata/e1304" begin
                 record = "testdata/e1304"
@@ -224,11 +225,66 @@ using Statistics
                 )
                 @test isequal(
                     HeartRateLab.Preprocessing.windowed(
-                        v; window_size=3, stride=3, f=Statistics.mean
+                        v; window_size=3, stride=3, f=StatsBase.mean
                     ),
                     [2.0, 5.0, 8.0],
                 )
             end
         end
+    end
+    @testset "Features" begin
+        # Test the Features module
+        infile = "testdata/example.txt"
+        data = HeartRateLab.Input.read_txt(infile)
+        println("Data length: ", length(data))
+        println("Type of data: ", typeof(data))
+
+        feature_registry = HeartRateLab.Features.feature_registry
+        names = String[keys(feature_registry)...]
+        println("Feature set: ", names)
+
+        ds = HeartRateLab.Features.extract_feature_set(
+            data, features=keys(feature_registry)
+        )
+        @test ds isa DataFrames.DataFrame
+        @test ncol(ds) == length(feature_registry)
+
+        # @testset "Statistics" begin
+        #     # println("Extracted features: ", HeartRateLab.Features.extract_feature_set(data))
+        #     # @test HeartRateLab.Features.extract_feature_set(data) isa DataFrames.DataFrame
+        # end
+        # @testset "Frequency" begin
+        #     @testset "lomb_scargle" begin
+        #         # Test Lomb-Scargle transformation
+        #         n = [1000.0, 2000.0, 3000.0, 4000.0, 5000.0]
+        #         result = HeartRateLab.Features.Frequency.lomb_scargle(n)
+        #         @test result.freq ≈ [0.003, 0.004, 0.005, 0.006, 0.007]
+        #         @test result.power ≈ [0.1, 0.2, 0.3, 0.4, 0.5]
+        #     end
+
+        #     @testset "get_power" begin
+        #         # Test power calculation in frequency bands
+        #         freq = [0.01, 0.02, 0.03, 0.04, 0.05]
+        #         power = [1.0, 2.0, 3.0, 4.0, 5.0]
+        #         p = HeartRateLab.Features.Frequency.get_power(freq, power, 0.02, 0.04)
+        #         @test p ≈ Trapz.trapz([0.02, 0.03], [2.0, 3.0])
+        #     end
+
+        #     @testset "welch" begin
+        #         # Test Welch's method for spectral density estimation
+        #         n = rand(100)
+        #         pgram = HeartRateLab.Features.Frequency.welch(n; fs=4)
+        #         @test length(pgram.freq) > 0 && length(pgram.power) > 0
+        #     end
+
+        #     @testset "get_power_periodogram" begin
+        #         # Test power calculation from periodogram
+        #         n = rand(100)
+        #         pgram = HeartRateLab.Features.Frequency.welch(n; fs=4)
+        #         p = HeartRateLab.Features.Frequency.get_power(pgram, 0.02, 0.04)
+        #         @test p ≈ Trapz.trapz(pgram.freq[pgram.freq .>= 0.02 .& pgram.freq .< 0.04], 
+        #                               pgram.power[pgram.freq .>= 0.02 .& pgram.freq .< 0.04])
+        #     end
+        # end
     end
 end
