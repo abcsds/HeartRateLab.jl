@@ -1,7 +1,7 @@
 module Preprocessing
 
 using DataInterpolations: DataInterpolations
-using Statistics: Statistics
+using StatsBase: StatsBase
 
 """
     replace_zeros(n::Array{T,1}) where T<:Real
@@ -47,8 +47,8 @@ Returns:
 function replace_statistical_outliers(
     n::Array{T,1}; low::Float64=0.025, high::Float64=0.975
 ) where {T<:Real}
-    l = Statistics.quantile(n, low)
-    h = Statistics.quantile(n, high)
+    l = StatsBase.quantile(n, low)
+    h = StatsBase.quantile(n, high)
     return Float64[e<l || e>h ? NaN : e for e in n]
 end
 
@@ -73,7 +73,7 @@ function replace_ectopic_beats!(
     if method == :acar
         n_outliers = 0
         for i in 9:length(n)
-            μ_acar = Statistics.mean(filter(!isnan, n[(i - 8):i]))
+            μ_acar = StatsBase.mean(filter(!isnan, n[(i - 8):i]))
             abs(μ_acar - n[i]) >= threshold * μ_acar && (n[i]=NaN; n_outliers += 1)
         end
     elseif method == :karlsson
@@ -250,5 +250,17 @@ function windowed(
     end
     return views
 end
+"""
+    ms2bpm(n::Array{Float64,1})
 
+Converts milliseconds to beats per minute (BPM).
+
+Arguments:
+    n: the array of RR-intervals in milliseconds
+
+Returns:
+    the array of RR-intervals in BPM
+"""
+ms2bpm(n::Float64) = 60000 / n
+# ms2bpm(n::Array{Float64,1}) = 60000 ./ n
 end
