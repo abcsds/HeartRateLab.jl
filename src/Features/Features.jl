@@ -16,12 +16,8 @@ using DataFrames
 
 import ..Preprocessing: ms2bpm, windowed
 import .Frequency
-using Base.max: max
-using Base.min: min
-using Base.diff: diff
-using Base.length: length
-using Base.cumsum: cumsum
-using StatsBase: StatsBase
+import Base.min, Base.max, Base.diff, Base.length, Base.cumsum, Base.maximum, Base.minimum
+import StatsBase, StatsBase.mean, StatsBase.std, StatsBase.median
 using Memoization
 using MacroTools
 
