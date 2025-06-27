@@ -34,7 +34,7 @@
             # docker build . -t hrlab
             # TODO: activate the GPU support in the container
             # docker run -it --network=host --rm --gpus all --name julia -v .:/workdir hrlab:latest "/usr/local/julia/bin/julia --project=."
-            docker run -it --network=host --rm --name julia -v .:/workdir hrlab:latest "/usr/local/julia/bin/julia --project=."
+            docker run -it -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:ro --network=host --volume="$HOME/.Xauthority:/root/.Xauthority:rw" --rm --name julia -v .:/workdir hrlab:latest "/usr/local/julia/bin/julia --project=."
           '');
         };
         build = {
@@ -42,14 +42,14 @@
           program = toString (pkgs.writeShellScript "build" ''
             #!${pkgs.runtimeShell}
             docker build --network=host . -t hrlab
-            docker run -it --network=host --rm -v .:/workdir hrlab:latest "/usr/local/julia/bin/julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'"
+            docker run -it -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:ro --network=host --volume="$HOME/.Xauthority:/root/.Xauthority:rw" --rm -v .:/workdir hrlab:latest "/usr/local/julia/bin/julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'"
           '');
         };
         test = {
           type = "app";
           program = toString (pkgs.writeShellScript "test" ''
             #!${pkgs.runtimeShell}
-            docker run -it --network=host --rm -v .:/workdir hrlab:latest "/usr/local/julia/bin/julia --project=. -e 'using Pkg; Pkg.test()'"
+            docker run -it -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:ro --network=host --volume="$HOME/.Xauthority:/root/.Xauthority:rw" --rm -v .:/workdir hrlab:latest "/usr/local/julia/bin/julia --project=. -e 'using Pkg; Pkg.test()'"
           '');
         };
         act = {

@@ -13,14 +13,14 @@ using DataFrames
             # infile = "~/Documents/HRV/sub-P001/ses-S001/eeg/sub-P001_ses-S001_task-Default_run-001_eeg.xdf")
 
             infile = "testdata/example.xdf"
-            data = HeartRateLab.Input.read_xdf(infile)
+            data = HeartRateLab.read_xdf(infile)
             @test length(data) == 4193
         end
 
         @testset "read_txt" begin
             # Test reading text files
             infile = "testdata/example.txt"
-            data = HeartRateLab.Input.read_txt(infile)
+            data = HeartRateLab.read_txt(infile)
             @test length(data) == 4193
         end
 
@@ -28,17 +28,17 @@ using DataFrames
             # Test reading WFDB files
             @testset "testdata/e1304" begin
                 record = "testdata/e1304"
-                data = HeartRateLab.Input.read_wfdb(record, "atr")
+                data = HeartRateLab.read_wfdb(record, "atr")
                 @test length(data) == 7749
             end
             @testset "testdata/100" begin
                 record = "testdata/100"
-                data = HeartRateLab.Input.read_wfdb(record, "atr")
+                data = HeartRateLab.read_wfdb(record, "atr")
                 @test length(data) == 2272
             end
             @testset "testdata/16265" begin
                 record = "testdata/16265"
-                data = HeartRateLab.Input.read_wfdb(record, "atr")
+                data = HeartRateLab.read_wfdb(record, "atr")
                 @test length(data) == 99819
             end
         end
@@ -50,7 +50,7 @@ using DataFrames
             # Test replacing zeros with NaN
             @testset "Synthetic" begin
                 @test isequal(
-                    HeartRateLab.Preprocessing.replace_zeros([1, 2, 0, 4, 5, 0, 7]),
+                    HeartRateLab.replace_zeros([1, 2, 0, 4, 5, 0, 7]),
                     Float64[1.0, 2.0, NaN, 4.0, 5.0, NaN, 7.0],
                 )
             end
@@ -60,7 +60,7 @@ using DataFrames
             # Test replacing biological outliers with NaN
             @testset "synthetic" begin
                 @test isequal(
-                    HeartRateLab.Preprocessing.replace_bio_outliers([
+                    HeartRateLab.replace_bio_outliers([
                         400, 500, 200, 2000, 1000, 3000, 1500, 100
                     ]),
                     Float64[400.0, 500.0, NaN, 2000, 1000.0, NaN, 1500.0, NaN],
@@ -80,7 +80,7 @@ using DataFrames
                 goal = copy(a_dist)
                 goal[ridx] .= repeat([NaN], sum(ridx))
                 @test isequal(
-                    HeartRateLab.Preprocessing.replace_statistical_outliers(
+                    HeartRateLab.replace_statistical_outliers(
                         a_dist; low=0.25, high=0.75
                     ),
                     goal,
@@ -92,36 +92,36 @@ using DataFrames
             # Test replacing ectopic beats with NaN
             # TODO
             @testset "rr-interval-healthy-subjects" begin
-                hrv = HeartRateLab.Input.read_txt("testdata/example.txt")
+                hrv = HeartRateLab.read_txt("testdata/example.txt")
                 n = hrv[1:1000]
                 @test sum(isnan.(n))==0
                 @test sum(
                     isnan.(
-                        HeartRateLab.Preprocessing.replace_ectopic_beats(n; method=:malik)
+                        HeartRateLab.replace_ectopic_beats(n; method=:malik)
                     ),
                 )==0
                 @test sum(
                     isnan.(
-                        HeartRateLab.Preprocessing.replace_ectopic_beats(n; method=:kamath)
+                        HeartRateLab.replace_ectopic_beats(n; method=:kamath)
                     ),
                 )==0
                 @test sum(
                     isnan.(
-                        HeartRateLab.Preprocessing.replace_ectopic_beats(
+                        HeartRateLab.replace_ectopic_beats(
                             n; method=:acar, threshold=0.2
                         ),
                     ),
                 )==3
                 @test sum(
                     isnan.(
-                        HeartRateLab.Preprocessing.replace_ectopic_beats(
+                        HeartRateLab.replace_ectopic_beats(
                             n; method=:karlsson, threshold=0.2
                         ),
                     ),
                 )==499
                 @test sum(
                     isnan.(
-                        HeartRateLab.Preprocessing.replace_ectopic_beats(
+                        HeartRateLab.replace_ectopic_beats(
                             n; method=:custom, threshold=0.2
                         ),
                     ),
@@ -131,31 +131,31 @@ using DataFrames
                 @test sum(isnan.(n))==0
                 @test sum(
                     isnan.(
-                        HeartRateLab.Preprocessing.replace_ectopic_beats(n; method=:malik)
+                        HeartRateLab.replace_ectopic_beats(n; method=:malik)
                     ),
                 )==0
                 @test sum(
                     isnan.(
-                        HeartRateLab.Preprocessing.replace_ectopic_beats(n; method=:kamath)
+                        HeartRateLab.replace_ectopic_beats(n; method=:kamath)
                     ),
                 )==0
                 @test sum(
                     isnan.(
-                        HeartRateLab.Preprocessing.replace_ectopic_beats(
+                        HeartRateLab.replace_ectopic_beats(
                             n; method=:acar, threshold=0.2
                         ),
                     ),
                 )==8
                 @test sum(
                     isnan.(
-                        HeartRateLab.Preprocessing.replace_ectopic_beats(
+                        HeartRateLab.replace_ectopic_beats(
                             n; method=:karlsson, threshold=0.2
                         ),
                     ),
                 )==500
                 @test sum(
                     isnan.(
-                        HeartRateLab.Preprocessing.replace_ectopic_beats(
+                        HeartRateLab.replace_ectopic_beats(
                             n; method=:custom, threshold=0.2
                         ),
                     ),
@@ -167,7 +167,7 @@ using DataFrames
             # Test stripping extremes from the data
             @testset "synthetic" begin
                 n = [1.0e-10; rand(100)]
-                result = HeartRateLab.Preprocessing.strip_extremes(n)
+                result = HeartRateLab.strip_extremes(n)
                 @test length(result) == length(n) - count(iszero.(n))
             end
         end
@@ -176,25 +176,25 @@ using DataFrames
             # Test interpolating NaN values
             @testset "synthetic" begin
                 @test isequal(
-                    HeartRateLab.Preprocessing.interpolate_nans(
+                    HeartRateLab.interpolate_nans(
                         Float64[1, 2, NaN, 4, 5, NaN, 7.0]; method=:constant
                     ),
                     Float64[1.0, 2.0, 2.0, 4.0, 5.0, 5.0, 7.0],
                 )
                 @test isequal(
-                    HeartRateLab.Preprocessing.interpolate_nans(
+                    HeartRateLab.interpolate_nans(
                         Float64[1, 2, NaN, 4, 5, NaN, 7.0]; method=:linear
                     ),
                     Float64[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
                 )
                 @test isequal(
-                    HeartRateLab.Preprocessing.interpolate_nans(
+                    HeartRateLab.interpolate_nans(
                         Float64[1, 2, NaN, 4, 5, NaN, 7.0]; method=:quadratic
                     ),
                     Float64[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
                 )
                 @test isequal(
-                    HeartRateLab.Preprocessing.interpolate_nans(
+                    HeartRateLab.interpolate_nans(
                         Float64[1, 2, NaN, 4, 5, NaN, 7.0]; method=:cubic
                     ),
                     Float64[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
@@ -207,7 +207,7 @@ using DataFrames
             @testset "synthetic" begin
                 v = Float64[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                 @test isequal(
-                    HeartRateLab.Preprocessing.windowed(v; window_size=3),
+                    HeartRateLab.windowed(v; window_size=3),
                     [
                         [1.0, 2.0, 3.0],
                         [2.0, 3.0, 4.0],
@@ -220,11 +220,11 @@ using DataFrames
                     ],
                 )
                 @test isequal(
-                    HeartRateLab.Preprocessing.windowed(v; window_size=3, stride=3),
+                    HeartRateLab.windowed(v; window_size=3, stride=3),
                     [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]],
                 )
                 @test isequal(
-                    HeartRateLab.Preprocessing.windowed(
+                    HeartRateLab.windowed(
                         v; window_size=3, stride=3, f=StatsBase.mean
                     ),
                     [2.0, 5.0, 8.0],
@@ -235,7 +235,7 @@ using DataFrames
     @testset "Features" begin
         # Test the Features module
         infile = "testdata/example.txt"
-        data = HeartRateLab.Input.read_txt(infile)
+        data = HeartRateLab.read_txt(infile)
         println("Data length: ", length(data))
         println("Type of data: ", typeof(data))
 
@@ -248,43 +248,35 @@ using DataFrames
         )
         @test ds isa DataFrames.DataFrame
         @test ncol(ds) == length(feature_registry)
+        @testset "Frequency" begin
+            n = HeartRateLab.read_txt("testdata/example.txt")[1:50] # Compare with HeartRateVariability.jl
+            @testset "lomb_scargle" begin
+                # Test Lomb-Scargle transformation
+                pgram = HeartRateLab.Frequency.lomb_scargle(n)
+                @test pgram.freq ≈ 0.003:0.004360243301576228:0.39978214044343674
+                @test sum(abs.(pgram.power)) ≈ 1.0143225764346281e6
+            end
 
-        # @testset "Statistics" begin
-        #     # println("Extracted features: ", HeartRateLab.Features.extract_feature_set(data))
-        #     # @test HeartRateLab.Features.extract_feature_set(data) isa DataFrames.DataFrame
-        # end
-        # @testset "Frequency" begin
-        #     @testset "lomb_scargle" begin
-        #         # Test Lomb-Scargle transformation
-        #         n = [1000.0, 2000.0, 3000.0, 4000.0, 5000.0]
-        #         result = HeartRateLab.Features.Frequency.lomb_scargle(n)
-        #         @test result.freq ≈ [0.003, 0.004, 0.005, 0.006, 0.007]
-        #         @test result.power ≈ [0.1, 0.2, 0.3, 0.4, 0.5]
-        #     end
-
-        #     @testset "get_power" begin
-        #         # Test power calculation in frequency bands
-        #         freq = [0.01, 0.02, 0.03, 0.04, 0.05]
-        #         power = [1.0, 2.0, 3.0, 4.0, 5.0]
-        #         p = HeartRateLab.Features.Frequency.get_power(freq, power, 0.02, 0.04)
-        #         @test p ≈ Trapz.trapz([0.02, 0.03], [2.0, 3.0])
-        #     end
-
-        #     @testset "welch" begin
-        #         # Test Welch's method for spectral density estimation
-        #         n = rand(100)
-        #         pgram = HeartRateLab.Features.Frequency.welch(n; fs=4)
-        #         @test length(pgram.freq) > 0 && length(pgram.power) > 0
-        #     end
-
-        #     @testset "get_power_periodogram" begin
-        #         # Test power calculation from periodogram
-        #         n = rand(100)
-        #         pgram = HeartRateLab.Features.Frequency.welch(n; fs=4)
-        #         p = HeartRateLab.Features.Frequency.get_power(pgram, 0.02, 0.04)
-        #         @test p ≈ Trapz.trapz(pgram.freq[pgram.freq .>= 0.02 .& pgram.freq .< 0.04], 
-        #                               pgram.power[pgram.freq .>= 0.02 .& pgram.freq .< 0.04])
-        #     end
-        # end
+            @testset "get_power" begin
+                # Test power calculation in frequency bands
+                pgram = HeartRateLab.Frequency.lomb_scargle(n)
+                @test HeartRateLab.Frequency.get_power(pgram, 0.003, 0.4) ≈ 4401.271945010022
+            end
+            @testset "welch" begin
+                # Test Welch's method for spectral density estimation
+                pgram = HeartRateLab.Frequency.welch(n; method=:linear, fs=4)
+                @test HeartRateLab.Frequency.get_power(pgram, 0.003, 0.4) ≈ 1025.5980988017122
+                pgram = HeartRateLab.Frequency.welch(n; method=:quadratic, fs=4)
+                @test HeartRateLab.Frequency.get_power(pgram, 0.003, 0.4) ≈ 1041.7463216769288
+                pgram = HeartRateLab.Frequency.welch(n; method=:cubic, fs=4)
+                @test HeartRateLab.Frequency.get_power(pgram, 0.003, 0.4) ≈ 1043.3374467399701
+                pgram = HeartRateLab.Frequency.welch(n; method=:constant, fs=4)
+                @test HeartRateLab.Frequency.get_power(pgram, 0.003, 0.4) ≈ 1046.5361627009815
+            end
+            @testset "get_power_welch" begin
+                pgram = HeartRateLab.Frequency.welch(n; method=:quadratic)
+                @test HeartRateLab.Frequency.get_power(pgram, 0.003, 0.4) ≈ 1041.7463216769288
+            end
+        end
     end
 end

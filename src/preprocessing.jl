@@ -1,5 +1,3 @@
-module Preprocessing
-
 using DataInterpolations: DataInterpolations
 using StatsBase: StatsBase
 
@@ -192,13 +190,13 @@ function interpolate(n::Array{Float64,1}; method::Symbol=:linear, fs::Int=10)
         throw(ArgumentError("The array contains $(sum(isnan.(n))) NaN values."))
     t = cumsum(n) .- n[1]
     if method == :constant
-        itp = DataInterpolations.ConstantInterpolation(t, n; extrapolate=true)
+        itp = DataInterpolations.ConstantInterpolation(n, t)
     elseif method == :linear
-        itp = DataInterpolations.LinearInterpolation(t, n; extrapolate=true)
+        itp = DataInterpolations.LinearInterpolation(n, t)
     elseif method == :quadratic
-        itp = DataInterpolations.QuadraticInterpolation(t, n; extrapolate=true)
+        itp = DataInterpolations.QuadraticInterpolation(n, t)
     elseif method == :cubic
-        itp = DataInterpolations.CubicSpline(t, n; extrapolate=true)
+        itp = DataInterpolations.CubicSpline(n, t)
     else
         throw(ArgumentError("Unsupported interpolation method: $method"))
     end
@@ -234,7 +232,7 @@ function windowed(
             i in 1:stride:(length(n) - window_size + 1)
         ]
     elseif time == :ms
-        t = cumsum(n)
+        t = cumsum(n) .- n[1]
         max_t = t[end] # Record duration in ms
     else
         throw(ArgumentError("Unsupported time unit: $time"))
@@ -263,4 +261,3 @@ Returns:
 """
 ms2bpm(n::Float64) = 60000 / n
 # ms2bpm(n::Array{Float64,1}) = 60000 ./ n
-end

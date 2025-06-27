@@ -13,9 +13,8 @@ using DataFrames
 #     using Base.Threads
 #     # using Dagger: Dagger
 # end
-
-import ..Preprocessing: ms2bpm, windowed
-import .Frequency
+import ..ms2bpm, ..windowed
+import ..Frequency: lomb_scargle, welch, get_power, find_peak
 import Base.min, Base.max, Base.diff, Base.length, Base.cumsum, Base.maximum, Base.minimum
 import StatsBase, StatsBase.mean, StatsBase.std, StatsBase.median
 using Memoization
@@ -31,7 +30,7 @@ struct HRMeasurement
     duration::Float64 # in seconds
 end
 function HRMeasurement(data::Array{T,1} where {T<:Real}, fs::Int=config["fs"])
-    time = cumsum(data)[end]
+    time = cumsum(data)[end] - data[1] # total duration in milliseconds
     length::Int = Base.length(data)
     @info "HRMeasurement created with $(length) samples, total duration: $(time) ms, sampling frequency: $(fs) Hz."
     return HRMeasurement(data, length, time, fs, time / 1000) # duration in seconds
@@ -266,7 +265,7 @@ end
     Aliases: recording_duration
     Representation: true
     """
-    return Base.cumsum(n.data)[end] # Record duration in ms
+    return Base.cumsum(n.data)[end] - n.data[1] # Record duration in ms
 end
 
 # # Level 2 Alternate representations

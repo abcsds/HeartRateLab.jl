@@ -1,7 +1,26 @@
 module HeartRateLab
-include("Input.jl")
-include("Preprocessing.jl")
-include("Features/Features.jl")
+# input.jl
+using Base.Filesystem: mktemp
+using XDF: XDF
+
+include("input.jl")
+include("preprocessing.jl")
+include("Frequency.jl")
+# include("Nonlinear.jl")
+include("Features.jl")
+include("Models/Models.jl")
+# include("Visualization/Visualization.jl")
+
+# Test power calculation from periodogram
+# using Plots
+# n = read_txt("test/testdata/example.txt")[1:50] # Compare with HeartRateVariability.jl
+# p = plot(n);
+# display(p)
+# pgram = Frequency.welch(n; method=:quadratic)
+# p = plot(pgram.freq, pgram.power, xlabel="Frequency (Hz)", ylabel="Power", title="Welch Periodogram")
+# display(p)
+# display(plot(pgram.power))
+# Frequency.get_power(pgram, 0.003, 0.4)
 
 # infile = "test/testdata/example.txt"
 # data = HeartRateLab.Input.read_txt(infile)

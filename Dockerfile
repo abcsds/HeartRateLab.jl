@@ -18,6 +18,11 @@ RUN cd wfdb-10.7.0 && ./configure && make install && cd ..
 
 COPY Project.toml /workdir/
 
+# Environment Variable for X11 forwarding
+# ENV DISPLAY=:0
+ENV DISPLAY=${DISPLAY:-:0}
+ENV LD_LIBRARY_PATH="/run/opengl-driver/lib"
+
 # Instantiate the julia environment
 RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.instantiate()'
 
