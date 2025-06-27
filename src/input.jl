@@ -1,6 +1,4 @@
-module Input
-using Base.Filesystem: mktemp
-using XDF: XDF
+
 # TODO: LSL streams once Dagger streaming is stable: lsl and bluetooth
 
 """
@@ -62,8 +60,3 @@ function read_wfdb(record::String, annotator::String)
     return round.(Int, a*1000)
 end
 
-export read_xdf
-export read_txt
-export read_wfdb
-
-end # module Input

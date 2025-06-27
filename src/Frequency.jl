@@ -8,6 +8,7 @@ using LombScargle: LombScargle
 using Trapz: Trapz
 using DSP: DSP
 using StatsBase: StatsBase
+import ..interpolate
 
 """
     lomb_scargle(n::Array{Float64,1})
@@ -41,7 +42,7 @@ Returns:
 function welch(n::Array{Float64,1}; method::Symbol=:linear, fs::Int=4, kwargs...)
     method in [:constant, :linear, :quadratic, :cubic] ||
         throw(ArgumentError("Unsupported interpolation method: $method"))
-    s = Preprocessing.interpolate(n; method=method, fs=fs)
+    s = interpolate(n; method=method, fs=fs)
     s = s .- StatsBase.mean(s)
     # Default call:
     # welch_pgram(s::AbstractVector, n=div(length(s), 8), noverlap=div(n, 2); onesided=eltype(s)<:Real, nfft=nextfastfft(n), fs=1, window)
@@ -61,7 +62,7 @@ Returns:
 """
 function get_power(
     pgram::T, min, max
-) where {T<:Union{LombScargle.LombScargle,DSP.Periodograms.Periodogram}}
+) where {T<:Union{LombScargle.LombScargle.Periodogram,DSP.Periodograms.Periodogram}}
     freq = pgram.freq
     power = pgram.power
     index = findall(x -> x >= min && x < max, freq)
@@ -80,7 +81,7 @@ Arguments:
 Returns:
     The frequency of the peak within the specified range, or NaN if no peak is found
 """
-function find_peak(pgram::LombScargle.LombScargle, min, max)
+function find_peak(pgram::LombScargle.Periodogram, min, max)
     freq = pgram.freq
     power = pgram.power
     index = findall(x->x>=min && x<max, freq)
