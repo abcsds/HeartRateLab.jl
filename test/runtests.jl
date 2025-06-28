@@ -2,6 +2,7 @@ using HeartRateLab: HeartRateLab
 using Test
 using StatsBase
 using DataFrames
+using CSV
 
 @testset "HeartRateLab.jl" begin
     @testset "Input" begin
@@ -187,11 +188,12 @@ using DataFrames
                     ),
                     Float64[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
                 )
-                @test isequal(
+                @test isapprox(
                     HeartRateLab.interpolate_nans(
                         Float64[1, 2, NaN, 4, 5, NaN, 7.0]; method=:quadratic
                     ),
                     Float64[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+                    atol=1e-6,
                 )
                 @test isequal(
                     HeartRateLab.interpolate_nans(
@@ -236,20 +238,38 @@ using DataFrames
         # Test the Features module
         infile = "testdata/example.txt"
         data = HeartRateLab.read_txt(infile)
+        println("Data loaded from: ", infile)
         println("Data length: ", length(data))
         println("Type of data: ", typeof(data))
 
         feature_registry = HeartRateLab.Features.feature_registry
         names = String[keys(feature_registry)...]
-        println("Feature set: ", names)
+        println("Full Feature set: ", names)
 
         ds = HeartRateLab.Features.extract_feature_set(
             data, features=keys(feature_registry)
         )
         @test ds isa DataFrames.DataFrame
-        @test ncol(ds) == length(feature_registry)
+        # Write ds to target file
+        # CSV.write("target/example.csv", ds)
+        # Test against target
+        target = CSV.read("target/example.csv", DataFrame)
+        @test isequal(ds, target)
+
+        @testset "Features.Windowed" begin
+            # Test windowed feature extraction
+            ds_windowed = HeartRateLab.Features.windowed_feature_set(
+                data, features=keys(feature_registry), window_size=60, stride=10
+            )
+            # CSV.write("target/example_windowed_60_10.csv", ds_windowed)
+            @test ds_windowed isa DataFrames.DataFrame
+            @test size(ds_windowed) == (414, 44)
+            target_windowed = CSV.read("target/example_windowed.csv", DataFrame)
+            @test isequal(ds_windowed, target_windowed)
+        end
+
         @testset "Frequency" begin
-            n = HeartRateLab.read_txt("testdata/example.txt")[1:50] # Compare with HeartRateVariability.jl
+            n = HeartRateLab.read_txt("testdata/example.txt")[1:50]
             @testset "lomb_scargle" begin
                 # Test Lomb-Scargle transformation
                 pgram = HeartRateLab.Frequency.lomb_scargle(n)

@@ -228,7 +228,8 @@ function windowed(
 )
     if time == :beats
         return [
-            f(view(n, i:(i + window_size - 1))) for
+            # f(view(n, i:(i + window_size - 1))) for
+            f(n[i:(i + window_size -1 )]) for
             i in 1:stride:(length(n) - window_size + 1)
         ]
     elseif time == :ms
@@ -243,7 +244,8 @@ function windowed(
     for (i, (start, stop)) in enumerate(zip(window_starts, window_ends))
         idx = findall(x -> x >= start && x < stop, t)
         if !isempty(idx)
-            views[i] = f(view(n, idx))
+            # views[i] = f(view(n, idx))
+            views[i] = f(n[idx])
         end
     end
     return views
