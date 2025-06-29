@@ -71,8 +71,7 @@ function get_power(
 end
 
 """
-    find_peak(pgram::LombScargle.LombScargle, min, max)
-    find_peak(pgram::DSP.Periodograms.Periodogram, min, max)
+    find_peak(pgram::T, min, max)
 Finds the peak frequency in a given range from a periodogram.
 Arguments:
     pgram: The periodogram object containing frequency and power data
@@ -81,7 +80,7 @@ Arguments:
 Returns:
     The frequency of the peak within the specified range, or NaN if no peak is found
 """
-function find_peak(pgram::LombScargle.Periodogram, min, max)
+function find_peak(pgram::T, min, max) where {T<:Union{LombScargle.LombScargle.Periodogram,DSP.Periodograms.Periodogram}}
     freq = pgram.freq
     power = pgram.power
     index = findall(x->x>=min && x<max, freq)
