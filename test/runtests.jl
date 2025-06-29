@@ -247,7 +247,7 @@ using CSV
         println("Full Feature set: ", names)
 
         ds = HeartRateLab.Features.extract_feature_set(
-            data, features=keys(feature_registry)
+            data, features=String.(keys(feature_registry))
         )
         @test ds isa DataFrames.DataFrame
         # Write ds to target file
@@ -259,7 +259,7 @@ using CSV
         @testset "Features.Windowed" begin
             # Test windowed feature extraction
             ds_windowed = HeartRateLab.Features.windowed_feature_set(
-                data, features=keys(feature_registry), window_size=60, stride=10
+                data, features=String.(keys(feature_registry)), window_size=60, stride=10
             )
             # CSV.write("target/example_windowed_60_10.csv", ds_windowed)
             @test ds_windowed isa DataFrames.DataFrame

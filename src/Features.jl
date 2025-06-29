@@ -955,7 +955,7 @@ end
 
 function extract_feature_set(
     n::Array{Float64,1};
-    features::Base.KeySet=keys(feature_registry),
+    features::AbstractArray{String}=String.(keys(feature_registry)),
     config::Dict{String,Any}=config,
 )
     n = HRMeasurement(n)
@@ -975,7 +975,7 @@ function windowed_feature_set(
     window_size::Int=60, # Heart beats
     stride::Int=1,
     time::Symbol=:beats,
-    features::Base.KeySet=keys(feature_registry),
+    features::AbstractArray{String}=String.(keys(feature_registry)),
     config::Dict{String,Any}=config,
 )
     res = windowed(
