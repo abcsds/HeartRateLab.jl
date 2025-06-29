@@ -264,7 +264,7 @@ using CSV
             # CSV.write("target/example_windowed_60_10.csv", ds_windowed)
             @test ds_windowed isa DataFrames.DataFrame
             @test size(ds_windowed) == (414, 44)
-            target_windowed = CSV.read("target/example_windowed.csv", DataFrame)
+            target_windowed = CSV.read("target/example_windowed_60_10.csv", DataFrame)
             @test isequal(ds_windowed, target_windowed)
         end
 
