@@ -24,7 +24,8 @@ import DFA
 import EntropyHub
 using Hurst: hurst_exponent
 
-config = Dict{String,Any}("freq_method" => :lomb_scargle, "fs" => 10)
+# config = Dict{String,Any}("freq_method" => :lomb_scargle, "fs" => 10)
+config = Dict{String,Any}("freq_method" => :welch, "fs" => 10)
 
 struct HRMeasurement
     data::Array{T,1} where {T<:Real} # Inter-Beat-Intervals (IBIs) in milliseconds
