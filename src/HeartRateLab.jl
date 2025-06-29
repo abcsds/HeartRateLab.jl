@@ -6,7 +6,6 @@ using XDF: XDF
 include("input.jl")
 include("preprocessing.jl")
 include("Frequency.jl")
-# include("Nonlinear.jl")
 include("Features.jl")
 # include("Models/Models.jl")
 # include("Visualization/Visualization.jl")
