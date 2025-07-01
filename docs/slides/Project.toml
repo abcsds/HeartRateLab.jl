@@ -1,0 +1,4 @@
+[deps]
+GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
+HeartRateVariability = "0047d930-76bf-11ea-1377-bb3cda807e9f"
+IJulia = "7073ff75-c697-5162-941a-fcdaad2a7d2a"
