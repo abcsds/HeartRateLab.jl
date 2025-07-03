@@ -34,10 +34,10 @@ struct HRMeasurement
     fs::Int # sampling frequency in Hz
     duration::Float64 # in seconds
 end
-function HRMeasurement(data::Array{T,1} where {T<:Real}, fs::Int=config["fs"])
+function HRMeasurement(data::Array{T,1}, fs::Int=config["fs"]) where {T<:Real}
     time = cumsum(data)[end] - data[1] # total duration in milliseconds
     length::Int = Base.length(data)
-    @info "HRMeasurement created with $(length) samples, total duration: $(round(time/60_000, digits=2)) min."
+    # @info "HRMeasurement created with $(length) samples, total duration: $(round(time/60_000, digits=2)) min."
     return HRMeasurement(data, length, time, fs, time / 1000) # duration in seconds
 end
 struct HRFeature
@@ -149,20 +149,21 @@ end
     Arguments:
         - `n`: An array of Inter-Beat-Intervals in milliseconds.
     Domains: time, statistics
-    Aliases: mean, average
+    Aliases: average, mean_rr, mean_nn
     """
     return StatsBase.mean(n.data)
 end
 
-@register function std(n::HRMeasurement)
+@register function sdnn(n::HRMeasurement)
     """
-        std(n::HRMeasurement)
+        sdnn(n::HRMeasurement)
     Calculate the standard deviation of the array `n`. This is the `sdnn`.
     Domains: time, statistics
-    Aliases: std, sdnn
+    Aliases: std
     """
     return StatsBase.std(n.data)
 end
+sdnn(n::Array{T,1}) where {T<:Real} = function_registry["sdnn"](HRMeasurement(n))
 
 @register function median(n::HRMeasurement)
     """
@@ -238,7 +239,7 @@ end
     Aliases: recording_duration
     Representation: true
     """
-    return Base.cumsum(n.data)[end] - n.data[1] # Record duration in ms
+    return Base.cumsum(n.data)[end] # Record duration in ms
 end
 
 # Level 2 Alternate representations
@@ -264,9 +265,9 @@ end
     Returns:
         The standard deviation of the heart rate in BPM.
     Domains: time, statistics
-    Aliases: std_hr, sdnn_hr
+    Aliases: std_hr
     """
-    return ms2bpm(function_registry["std"](n))
+    return ms2bpm(function_registry["sdnn"](n))
 end
 @register function max_hr(n::HRMeasurement)
     """
@@ -306,7 +307,7 @@ end
     Domains: time, statistics
     Aliases: sdsd
     """
-    return function_registry["std"](function_registry["diff"](n))
+    return function_registry["sdnn"](function_registry["diff"](n))
 end
 @register function range(n::HRMeasurement)
     """

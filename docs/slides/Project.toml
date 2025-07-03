@@ -1,4 +1,8 @@
 [deps]
+DFA = "2556a7c9-976d-46bb-b923-66b4a6f0a5bd"
 GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
-HeartRateVariability = "0047d930-76bf-11ea-1377-bb3cda807e9f"
+HeartRateLab = "ac0e5f2a-24d1-4b35-a8b3-775c05ea78ca"
 IJulia = "7073ff75-c697-5162-941a-fcdaad2a7d2a"
+LSL = "57c3d5b1-721f-43a0-b20c-e9152d812276"
+SequentialSamplingModels = "0e71a2a6-2b30-4447-8742-d083a85e82d1"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
