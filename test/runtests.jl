@@ -237,8 +237,8 @@ using CSV
     @testset "Features" begin
         # Test the Features module
         infile = "testdata/example.txt"
-        data = HeartRateLab.read_txt(infile)
         println("Data loaded from: ", infile)
+        data = HeartRateLab.read_txt(infile)
         println("Data length: ", length(data))
         println("Type of data: ", typeof(data))
 
