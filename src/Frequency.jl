@@ -19,7 +19,7 @@ Arguments:
 Returns:
     the Lomb-Scargle periodogram object
 """
-function lomb_scargle(n::Array{Float64,1})
+function lomb_scargle(n::AbstractArray{Float64,1})
     t=cumsum(n) .- n[1]
     t=t ./ 1000
     plan=LombScargle.plan(
@@ -29,7 +29,7 @@ function lomb_scargle(n::Array{Float64,1})
 end
 
 """
-    welch(n::Array{Float64,1}; method::Symbol=:linear, fs::Int=4, kwargs...)
+    welch(n::AbstractArray{Float64,1}; method::Symbol=:linear, fs::Int=4, kwargs...)
 Calculates a Welch periodogram for the given array of NN-intervals.
 Arguments:
     n: the array that contains the NN-intervals
@@ -39,7 +39,7 @@ Arguments:
 Returns:
     the Welch periodogram object
 """
-function welch(n::Array{Float64,1}; method::Symbol=:linear, fs::Int=4, kwargs...)
+function welch(n::AbstractArray{Float64,1}; method::Symbol=:linear, fs::Int=4, kwargs...)
     method in [:constant, :linear, :quadratic, :cubic] ||
         throw(ArgumentError("Unsupported interpolation method: $method"))
     s = interpolate(n; method=method, fs=fs)
