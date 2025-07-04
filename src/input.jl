@@ -19,7 +19,8 @@ function read_xdf(infile::String)
     # Find the stream with "RR" in the name
     rr_idx = findfirst(x -> occursin("RR", x["name"]), data)
     #TODO: time management with the XDF timestamps
-    return Float64.(data[rr_idx]["data"])
+    # return Float64.(data[rr_idx]["data"])
+    return vec((data[rr_idx]["data"]))
 end
 
 """

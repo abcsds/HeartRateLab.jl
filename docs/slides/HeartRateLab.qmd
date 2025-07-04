@@ -26,6 +26,7 @@ format:
     colorlinks: true
   html:
     code-fold: true
+pdf-engine: pdflatex
 code-fold: true
 jupyter: julia-1.11
 bibliography: references.bib
@@ -42,15 +43,11 @@ bibliography: references.bib
     - Preprocessing
     - Feature Exploration
     - Dynamic Systems Modeling
-    - Bayesian Inference
     - Statistical Modeling
     - Deep Learning
     - Visualization
 - Problem Solving with the HeartRateLab
- - Teaching and Learning
- - Managing Expectations and Priors
- - Comparing, Contrasting, Validating, and Characterizing and Recording Outliers.
- - Modeling and Predicting
+
 :::
 
 ::: {.column width=50%}
@@ -65,7 +62,7 @@ bibliography: references.bib
     - Heart Rate Variability Biofeedback
     - Mindfulness and Contemplative Practices
     - Neurodiversity, ADHD, and Autism
-- Future Work # Contextualized as the Structured and Formal Management of Cognitive Tools and Resources.
+- Future Work
 :::
 
 ::::
@@ -95,15 +92,12 @@ Pkg.add(path="/home/beto/.julia/dev/HeartRateLab")
 Pkg.add(["StatsBase", "GLMakie", "SequentialSamplingModels"])
 Pkg.instantiate();
 Pkg.precompile();
-```
 
-```{julia}
 using StatsBase
 using GLMakie
 using DFA: DFA
 using HeartRateLab: HeartRateLab
 ```
-
 
 :::
 
@@ -127,41 +121,29 @@ using HeartRateLab: HeartRateLab
 
 :::
 
----
-
-<!-- # Reproducibility in Science
-
-- The Open Science Collaboration (2015) https://osf.io/82fth: 36% de los estudios replicados tuvieron resultados significativos, comparado con 97% de los estudios originales. @open2015
-
-The Many Labs Project (2014) https://osf.io/wx7ck/:  10 de 13 estudios replicados tuvieron resultados significativos, comparado con 13 de 13 estudios originales. @klein2013
- -->
 
 ## Cardiac Cycle and Heart Rate
 
-![Cardiac Cycle](./img/07_Hegasy_Cardiac_Cycle_Wiki_EN_CCBYSA.png)
-
-By Guido4 - Own work http://www.hegasy.de/, CC BY-SA 4.0, https://commons.wikimedia.org/w/index.php?curid=63765394
+![By Guido4 - Own work http://www.hegasy.de/, CC BY-SA 4.0, https://commons.wikimedia.org/w/index.php?curid=63765394](./img/07_Hegasy_Cardiac_Cycle_Wiki_EN_CCBYSA.png)
 
 ---
 
-![Cardiac Cycle](./img/Cardiac-Cycle-Animated.gif)
+![By DrJanaOfficial - Own work: Cardiac Cycle, Wiggers diagram derived from User:Xavax, CC BY-SA 4.0, https://commons.wikimedia.org/w/index.php?curid=54393545](./img/Cardiac-Cycle-Animated.gif)
 
-By DrJanaOfficial - Own work: Cardiac Cycle, Wiggers diagram derived from User:Xavax, CC BY-SA 4.0, https://commons.wikimedia.org/w/index.php?curid=54393545
 ---
 
 ## Sinoatrial and Atrioventricular Nodes
 
-![Sinoatrial and Atrioventricular Node](./img/SAAVNodes.png)
+![By J. Heuser - self made, based upon Image:Heart anterior view coronal section.jpg by Patrick J. Lynch (Patrick J. Lynch; illustrator; C. Carl Jaffe; MD; cardiologist Yale University Center for Advanced Instructional Media ), CC BY 2.5, https://commons.wikimedia.org/w/index.php?curid=1686121](./img/SAAVNodes.png)
 
-By J. Heuser - self made, based upon Image:Heart anterior view coronal section.jpg by Patrick J. Lynch (Patrick J. Lynch; illustrator; C. Carl Jaffe; MD; cardiologist Yale University Center for Advanced Instructional Media ), CC BY 2.5, https://commons.wikimedia.org/w/index.php?curid=1686121
 
 ## Sympathetic and Parasympathetic effects on the Heart
 
 :::: {.columns}
 
 ::: {.column width=50%}
-![MacDonald2020](/home/beto/.julia/dev/HeartRateLab/docs/slides/img/MacDonald2020.jpg)
-@macdonald2020
+![@macdonald2020](./img/MacDonald2020.jpg)
+
 :::
 
 ::: {.column width=50%}
@@ -177,9 +159,32 @@ By J. Heuser - self made, based upon Image:Heart anterior view coronal section.j
 
 ## Heart Rate Variability (HRV)
 
-![HRV](./img/Heart_rate_variability_(HRV).svg)
+![By YitzhakNat - Own work + ECG wave from, CC BY-SA 4.0, https://commons.wikimedia.org/w/index.php?curid=121207798](./img/Heart_rate_variability_(HRV).png)
 
-By YitzhakNat - Own work + ECG wave from, CC BY-SA 4.0, https://commons.wikimedia.org/w/index.php?curid=121207798
+
+# Interbeat Intervals
+:::: {.columns}
+::: {.column width=50%}
+```{julia}
+#| echo: true
+#| output: slide
+#| label: read-txt
+# infile = "/home/beto/.julia/dev/HeartRateLab/test/testdata/example.txt"
+# infile = "/home/beto/.julia/dev/HeartRateLab/test/testdata/e1304.txt"
+infile = "/home/beto/.julia/dev/HeartRateLab/docs/slides/example.xdf"
+data = HeartRateLab.read_xdf(infile)
+data = vec(data)
+println("Data loaded from: ", infile)
+println("Data length: $(length(data)) heartbeats")
+println("Type of data: ", typeof(data))
+
+```
+:::
+::: {.column width=50%}
+![Polar H10](./img/PolarH10.jpg)
+![Generic Heart Rate Monitor](./img/HRBand.png)
+:::
+::::
 
 ## HRV Measurements
 
@@ -199,24 +204,6 @@ By YitzhakNat - Own work + ECG wave from, CC BY-SA 4.0, https://commons.wikimedi
 ```{julia}
 #| echo: true
 #| output: slide
-#| label: read-txt
-infile = "/home/beto/.julia/dev/HeartRateLab/test/testdata/example.txt"
-data = HeartRateLab.read_txt(infile)
-println("Data loaded from: ", infile)
-println("Data length: $(length(data)) heartbeats")
-println("Type of data: ", typeof(data))
-
-```
-
-:::
-
-::::
-
----
-# Interbeat Intervals
-```{julia}
-#| echo: true
-#| output: slide
 #| label: inter-beat-intervals
 f = Figure(size=(600, 600));
 ax = Axis(f[1, 1], 
@@ -228,9 +215,13 @@ t = Observable(cumsum(n) ./ 1000) # to seconds
 # x = Observable(60000 ./ n) # to bpm
 x = Observable(n)
 stem!(ax, t, x, color=:blue)
-# scatter!(ax, t, x, color=:red, markersize=5)
-display(f)
+ylims!(ax, (minimum(n) - 20, maximum(n) + 20))
+f
 ```
+
+:::
+
+::::
 
 ## Heart Rate
 
@@ -238,7 +229,7 @@ display(f)
 #| echo: true
 #| output: slide
 #| label: heart-rate
-f = Figure(size=(600, 600));
+f = Figure(size=(1200, 600));
 ax = Axis(f[1, 1], 
     title="Heart Rate from Inter-Beat Intervals",
     xlabel="Heart Rate (bpm)",
@@ -246,8 +237,10 @@ ax = Axis(f[1, 1],
 n = data[1:50]
 t = Observable(cumsum(n) ./ 1000) # to seconds
 x = Observable(60000 ./ n) # to bpm
-lines!(ax, t, x, color=:blue, linewidth=2)
-display(f)
+lines!(ax, t, x, color=:teal, label="Continuous Heart Rate")
+hlines!(ax, mean(x[]), label="Mean Heart Rate", linestyle=:dash, color=:coral, linewidth=2)
+
+f
 ```
 
 ---
@@ -278,14 +271,14 @@ display(f)
 
 ::::
 
-### Visualization
+## An empirical random variable
 
 ```{julia}
 #| echo: true
 #| output: slide
 #| label: histogram
 # A histogram of the first 50 heartbeats
-f = Figure(size=(600, 600));
+f = Figure(size=(1200, 600));
 ax = Axis(f[1, 1], 
     title="Histogram of measured Heart Rate",
     xlabel="Heart Rate (bpm)",
@@ -293,58 +286,64 @@ ax = Axis(f[1, 1],
 n = data[1:50]
 t = Observable(cumsum(n) ./ 1000) # to seconds
 x = Observable(60000 ./ n) # to bpm
-hist!(ax, x, bins=20, color=:teal)
+hist!(ax, x, color=:teal)
 vlines!(ax, mean(x[]), color=:red, linewidth=2, label="Mean")
 
-display(f)
+f
 ```
 
 ## RMSSD
 
 :::: {.columns}
-
-::: {.column width=50%}
-
+::: {.column width=80%}
 ```{julia}
 #| echo: true
 #| output: slide
 #| label: diff
-f = Figure(size=(600, 600));
-ax = Axis(f[1, 1], 
-    title="Difference of Sequential Heart Rates",
-    xlabel="Time (s)",
-    ylabel="Heart Rate (bpm)")
 n = data[1:50]
 t = Observable(cumsum(n) ./ 1000) # to seconds
 x = Observable([0; diff(n)])
 x_above_zero = Observable(clamp.(x[], 0, Inf))
 x_below_zero = Observable(clamp.(x[], -Inf, 0))
 zero_line = Observable(zeros(length(x[])))
-lines!(ax, t, x, color=:teal)
+f = Figure(size=(1600, 600));
+ax1 = Axis(f[1, 1], 
+    title="Difference of Sequential IBIs",
+    xlabel="Time (s)",
+    ylabel="ΔTime (ms)")
+lines!(ax1, t, x, color=:teal, label="ΔRR[n, n+1]")
 # Band above zero
 # band(x, ylower, yupper; kwargs...)
-band!(ax, t, zero_line, x_above_zero, 
+band!(ax1, t, zero_line, x_above_zero, 
     color=:teal, alpha=0.5)
-band!(ax, t, zero_line, x_below_zero, 
+band!(ax1, t, zero_line, x_below_zero, 
     color=:coral, alpha=0.5)
-scatter!(ax, t, x, color=:red, markersize=5)
+scatter!(ax1, t, x, color=:red, markersize=5)
 
-lines!(ax, t, n .- mean(n), color=:blue, linewidth=2, label="Heart Rate")
-display(f)
+ax2 = Axis(f[1, 2], 
+    title="RMSSD",
+    xlabel="Time (s)",
+    ylabel="RMSSD (ms²)")
+lines!(ax2, t, x, color=:teal, alpha=0.5)
+band!(ax2, t, zero_line, x_above_zero, color=:teal, alpha=0.25)
+band!(ax2, t, zero_line, x_below_zero, color=:coral, alpha=0.25)
+scatter!(ax2, t, x, color=:red, markersize=5, alpha=0.5)
+lines!(ax2, t, n .- mean(n), color=:blue, linewidth=3, label="Detrended RR-interval signal")
+
+f
 ```
-
 :::
 
-::: {.column width=50%}
+::: {.column width=20%}
 ```{julia}
 #| echo: true
 #| output: slide
 #| label: rmssd
-println("SDNN: ", StatsBase.std(x[]))
-println("RMSSD: ", StatsBase.std(n))
+println("SDNN: ", round(StatsBase.std(x[]), digits=2))
+println("RMSSD: ", round(StatsBase.std(n), digits=2))
 ```
-:::
 
+:::
 ::::
 
 ## Frequency Domain
@@ -354,15 +353,14 @@ println("RMSSD: ", StatsBase.std(n))
 ::: {.column width=50%}
 
 ::: {}
-TODO
-<!-- - Power Spectral Density (PSD) over four frequency bands:
+- Power Spectral Density (PSD) over four frequency bands:
     - Very Low Frequency (VLF): 0.003-0.04 Hz
     - Low Frequency (LF): 0.04-0.15 Hz
     - High Frequency (HF): 0.15-0.4 Hz
     - Ultra Low Frequency (ULF): < 0.003 Hz
 - Absolute and relative power
 - Peak frequencies
-- Proportions and ratios (LF/HF, VLF/LF, etc.) -->
+- Proportions and ratios (LF/HF, VLF/LF, etc.)
 :::
 
 :::
@@ -372,7 +370,7 @@ TODO
 ```{julia}
 using HeartRateLab.Frequency: welch, get_power, find_peak
 pgram = welch(data)
-f = Figure(size=(1200, 600));
+f = Figure(size=(600, 600));
 ax = Axis(f[1, 1], 
     title="Power Spectral Density",
     xlabel="Frequency (Hz)",
@@ -388,10 +386,9 @@ vspan!(ax, 0.04, 0.15, color=:green, alpha=0.2)
 vspan!(ax, 0.003, 0.04, color=:orange, alpha=0.2)
 # ULF
 vspan!(ax, 0, 0.003, color=:purple, alpha=0.2)
-# peak_freq = find_peak(pgram.freq, pgram.power)
-# lines!(ax, [peak_freq peak_freq], 
-#     [0 maximum(pgram.psd)], color=:red, linestyle=:dash)
-display(f)
+# peak_freq = find_peak(pgram, 0.003, 0.4)
+# vlines!(ax, peak_freq, color=:red, linewidth=2, label="P: $(round(peak_freq, digits=3)) Hz")
+f
 ```
 
 :::
@@ -410,7 +407,7 @@ display(f)
     - ccsi
 - Histogram Based:
     - Triangular Index
-    - Tinn
+    - Triangular Interpolation of NN intervals (TINN)
 :::
 
 ::: {.column width=50%}
@@ -432,7 +429,7 @@ x = [data[i] for i in 1:length(data)-1]
 y = [data[i+1] for i in 1:length(data)-1]
 sd1 = sqrt(StatsBase.var((x - y) / sqrt(2)))
 sd2 = sqrt(StatsBase.var((x + y) / sqrt(2)))
-f = Figure(size=(600, 600));
+f = Figure(size=(1200, 600));
 ax = Axis(f[1, 1], 
     title="Poincaré Plot",
     xlabel="RR(n) (ms)",
@@ -449,7 +446,7 @@ f[1,2] = Legend(f, ax, "Poincaré Plot",
     bgcolor=:white,
     framecolor=:black)
 
-display(f)
+f
 ```
 :::
 
@@ -458,6 +455,7 @@ display(f)
 ## Nonlinear Domain
 
 :::: {.columns}
+
 ::: {.column width=50%}
 - Approximate Entropy (ApEn)
 - Sample Entropy (SampEn)
@@ -467,8 +465,6 @@ display(f)
 :::
 
 ::: {.column width=50%}
-:::
-
 ```{julia}
 #| echo: true
 #| output: slide
@@ -477,7 +473,7 @@ display(f)
 scales, fluc = DFA.dfa(data, boxmax=64, boxmin=4, boxratio=2, overlap=0.0)
 log_scales1 = log10.(scales)
 log_fluc1 = log10.(fluc)
-f = Figure(size=(600, 600));
+f = Figure(size=(1200, 600));
 ax1 = Axis(f[1, 1], 
     title="Log-scale Fluctuation 4-64",
     xlabel="log10(Scale)",
@@ -488,7 +484,7 @@ intercept1, α1 = DFA.polyfit(log_scales1, log_fluc1)
 x = range(minimum(log_scales1), maximum(log_scales1), length=100)
 y = intercept1 .+ α1 .* x
 lines!(ax1, x, y, color=:red, linewidth=1, linestyle=:dash)
-# display(f)
+# f
 
 scales, fluc = DFA.dfa(data, boxmax=16, boxmin=4, boxratio=2, overlap=0.0)
 log_scales2 = log10.(scales)
@@ -505,20 +501,30 @@ y = intercept2 .+ α2 .* x
 lines!(ax2, x, y, color=:red, linewidth=1, linestyle=:dash)
 linkxaxes!(ax1, ax2)
 linkyaxes!(ax1, ax2)
-display(f)
+f
 ```
+:::
 ::::
 
 ## The HeartRateLab
 
+:::: {.columns}
+::: {.column width=50%}
+![The HeartRateLab (placeholder logo)](./img/HRLLogoPlaceholder.png)
+:::
+::: {.column width=50%}
 ```{julia}
 ds = HeartRateLab.Features.extract_feature_set(
     data, features=["vlf", "rmssd"]
 )
 ```
+:::
+::::
 
 ## Preprocessing
 
+:::: {.columns}
+::: {.column width=50%}
 - Replace Zeros
 - Replace biological outliers (200 to 3000 ms) and breaks
 - Replace statistical outliers (Z(0.025, 0.975))
@@ -528,6 +534,9 @@ ds = HeartRateLab.Features.extract_feature_set(
     - Malik
     - Kamath
     - Custom absolute threshold (0.2)
+:::
+
+::: {.column width=50%}
 - Signal interpolation:
     - Constant
     - Linear
@@ -537,38 +546,43 @@ ds = HeartRateLab.Features.extract_feature_set(
     - Sliding window
     - Overlapping windows
     - Non-overlapping windows
-
+:::
+::::
 
 ---
 
+:::: {.columns}
+::: {.column width=50%}
 ```{julia}
 #| echo: true
 #| output: slide
 #| label: data-preprocess
-f = Figure(size=(1200, 600));
+f = Figure(size=(800, 600));
 ax = Axis(f[1, 1], 
     title="Raw Data",
     xlabel="Time (s)",
-    ylabel="Inter-Beat Interval (ms)")
+    ylabel="Inter-Beat Interval (ms)",
+    )
 n = data[1:50]
 x = Observable(n)
 t = Observable(cumsum(n) ./ 1000) # to seconds
 stem!(ax, t, x, color=:red)
-display(f)
+ylims!(ax, (minimum(n) - 20, maximum(n) + 20))
+f
 ```
+:::
 
----
-
+::: {.column width=50%}
 ```{julia}
 #| echo: true
 #| output: slide
 #| label: outlier-detection
-f = Figure(size=(1200, 600));
+f = Figure(size=(800, 600));
 ax = Axis(f[1, 1], 
     title="Raw Data",
     xlabel="Time (s)",
     ylabel="Inter-Beat Interval (ms)")
-n = data[1:500]
+n = data[1:end]
 x = Observable(n)
 t = Observable(cumsum(n) ./ 1000) # to seconds
 lines!(ax, t, x)
@@ -576,21 +590,26 @@ scatter!(ax, t, x, color=:red, markersize=5)
 
 # Detect outliers
 # xn = HeartRateLab.replace_ectopic_beats(n, method=:karlsson)
-xn = HeartRateLab.replace_ectopic_beats(n, method=:acar, threshold=0.18)
+xn = HeartRateLab.replace_ectopic_beats(n, method=:acar, threshold=0.20)
 x = Observable(xn)
 scatter!(ax, t, x, color=:blue, markersize=5, label="Ectopic Beats Removed")
 
-display(f)
+f
 ```
+:::
+::::
 
 ## Feature Extraction
 
 ```{julia}
 names = String[keys(HeartRateLab.Features.feature_registry)...]
-println("Full Feature set: ", names)
+# println("Full Feature set: ", names)
+for name in sort(names)
+    println(" - ", name)
+end
 ```
 
----
+## Numeric Derivative
 
 ```{julia}
 #| echo: true
@@ -601,7 +620,7 @@ ax = Axis(f[1, 1],
     title="Difference of Sequential Inter-Beat Intervals",
     xlabel="Time (s)",
     ylabel="Inter-Beat Interval (ms)")
-n = data[1:500]
+n = data[1:end]
 t = Observable(cumsum(n) ./ 1000) # to seconds
 x = Observable([0; diff(n)])
 x_above_zero = Observable(clamp.(x[], 0, Inf))
@@ -615,10 +634,10 @@ band!(ax, t, zero_line, x_above_zero,
 band!(ax, t, zero_line, x_below_zero, 
     color=:coral, alpha=0.5)
 scatter!(ax, t, x, color=:red, markersize=5)
-display(f)
+f
 ```
 
----
+## Rolling Window Features
 
 ```{julia}
 #| echo: true
@@ -636,10 +655,10 @@ ax = Axis(f[1, 1],
 x = ds_windowed.rmssd
 t = 1:length(x)
 lines!(ax, t, x, color=:blue)
-display(f)
+f
 ```
 
-## Windowed Feature Extraction
+## With different resolutions
 
 ```{julia}
 #| echo: true
@@ -656,7 +675,7 @@ ax = Axis(f[2, 1],
 x = ds_windowed.rmssd
 t = 1:length(x)
 lines!(ax, t, x, color=:blue)
-display(f)
+f
 ```
 
 ---
@@ -666,24 +685,24 @@ display(f)
 #| output: slide
 #| label: windowed-long
 ds_windowed = HeartRateLab.Features.windowed_feature_set(
-    data, features=["vlf", "rmssd"], window_size=120, stride=30
+    data, features=["vlf", "rmssd"], window_size=120, stride=10
 )
 
 ax = Axis(f[3, 1], 
-    title="RMSSD through Time WS=120, S=30",
+    title="RMSSD through Time WS=120, S=10",
     xlabel="Time (s)",
     ylabel="RMSSD (ms²)")
 x = ds_windowed.rmssd
 t = 1:length(x)
 lines!(ax, t, x, color=:blue)
-display(f)
+f
 ```
 
 ## Windowed Frequency Analysis
 
 ```{julia}
 using HeartRateLab.Frequency: lomb_scargle
-ds_windowed = HeartRateLab.windowed(data, window_size=120, stride=60)
+ds_windowed = HeartRateLab.windowed(data, window_size=60, stride=5)
 freq = lomb_scargle(ds_windowed[1]).freq
 y_values = 1:length(ds_windowed)
 X = []
@@ -706,7 +725,7 @@ end
 X = hcat(X...) # Windows by Frequency
 y_values = 1:size(X, 2) # Window Index
 freq = freq[1:Int(min_size)] # Crop frequency to the minimum size
-f = Figure(size=(1200, 600));
+f = Figure(size=(1600, 800));
 ax = Axis3(f[1, 1], 
     title="Windowed Power Spectral Density",
     xlabel="Window Index",
@@ -728,6 +747,8 @@ f
 
 ## Statistical Analysis of single recordings
 
+:::: {.columns}
+::: {.column width=50%}
 ```{julia}
 feature_registry = HeartRateLab.Features.feature_registry
 feature_set = String.(keys(feature_registry))
@@ -735,10 +756,15 @@ println("Feature set: ")
 for f in feature_set
     println(" - ", f)
 end
+```
+:::
+
+::: {.column width=50%}
+```{julia}
 ds_windowed = HeartRateLab.Features.windowed_feature_set(
     data, features=["rmssd", "vlf"], window_size=60, stride=10
 )
-f = Figure(size=(1200, 600));
+f = Figure(size=(600, 600));
 ax = Axis(f[1, 1],
     title="Windowed RMSSD histogram",
     xlabel="Time (s)",
@@ -761,10 +787,10 @@ f[1, 2] = Legend(f, ax, "Windowed RMSSD Histogram",
     fontsize=10,
     bgcolor=:white,
     framecolor=:black)  
-display(f)
+f
 ```
-
----
+:::
+::::
 
 
 ## Dynamic Systems
@@ -780,15 +806,15 @@ display(f)
 ::: {.column width=50%}
 
 
-![Van der Pol Oscillator](./img/Phase_portrait_(Van_der_Pol_oscillator).jpg)
-By Ashraful - Own work using Matlab program., CC BY-SA 3.0, https://commons.wikimedia.org/w/index.php?curid=116710259
+![Van der Pol Oscillator, By Ashraful - Own work using Matlab program., CC BY-SA 3.0, https://commons.wikimedia.org/w/index.php?curid=116710259
+](./img/Phase_portrait_(Van_der_Pol_oscillator).jpg)
 
 :::
 ::::
 
 ## Leaky Integrate-and-Fire Model (LIF)
 
-![LIF](./img/LIFEPFL.png)
+![Leaky Integrate and Fire time plot @gerstner2014](./img/LIFEPFL.png)
 
 ---
 
@@ -874,7 +900,7 @@ f
 
 :::: {.columns}
 ::: {.column width=50%}
-![VisualBayes](https://upload.wikimedia.org/wikipedia/commons/c/c9/Bayes_theorem_visual_proof.svg)
+![Pictorial proof of Bayes' theorem By Cmglee - Own work, CC BY-SA 4.0, https://commons.wikimedia.org/w/index.php?curid=143581610](./img/VisualBayes.png)
 
 Parameter Estimation:
 
@@ -909,16 +935,12 @@ end
 
 # # Run inference
 chain = sample(lba(data), NUTS(), 50)
-```
-:::
-::::
 
----
-
-```julia
 using StatsPlots
 Plots.plot(chain)
 ```
+:::
+::::
 
 ## Deep Learning
 
@@ -1034,12 +1056,15 @@ opt = ADAM(0.001)
 # Train the VAE
 train_vae(vae, data, epochs, batch_size, opt)
 ```
+:::
+::::
 
 ## Visualization
 
 All visualizations in this notebook can be generated live.
 
 ```{julia}
+#| eval: false
 #| echo: true
 #| output: slide
 #| label: random-var
@@ -1067,7 +1092,9 @@ fig
 
 What have we used the HeartRateLab for?
 
-## Teaching and Learning
+:::: {.columns}
+::: {.column width=33%}
+### Teaching and Learning
 
 - Communication and Visualization
 - Test-driven problems
@@ -1075,68 +1102,55 @@ What have we used the HeartRateLab for?
 - Material belongs to the students
 - Students can run the code and see the results
 - Online demos aid visual understanding
+:::
 
-## Managing Expectations and Priors
+::: {.column width=33%}
+### Managing Expectations and Priors
 
 - Open Data Sets become the basis for our Normative Datasets
 - For every study, a graph of related studies can be selected from a superset to compare and contrast the results.
 - Given similar studies, we can design experiments with quantified expectations (Bayesian priors).
 - We can identify outliers and unexpected results comparing against: normative datasets, normative studies, and our own experimental and laboratory priors.
+:::
 
-## Modeling and Predicting
+::: {.column width=33%}
+### Modeling and Predicting
 
 - Models can be tested against normative datasets.
 - Their accuracy and precision can be quantified.
 - Artificial models encourage model-thinking: no true model, but useful models.
 - The Dao that can be named is not the eternal Dao.
+:::
+::::
 
 ##  What do we do with the HeartRateLab?
 
+::::: {.columns}
+::: {.column width=33%}
     - Arousal and Relaxation
     - Cognitive Mental Workload
     - Attention and Dual-Tasking
     - Attentional Networks
+:::
+::: {.column width=33%}
     - *Facial Expression Observation
     - *Ocular Rivalry and Concious Perception
     - *Cognitive Flexibility
+:::
+::: {.column width=33%}
     - Heart Rate Variability Biofeedback
     - Mindfulness and Contemplative Practices
     - Neurodiversity, ADHD, and Autism
+:::
 - Future Work 
 
-# Structured and Formal Management of Cognitive Tools and Resources.
+## Structured and Formal Management of Cognitive Tools and Resources.
 
-:::: {.columns}
-
-::: {.column width=50%}
-```{mermaid}
-%%| fig-width: 6.5
-graph TD
-    A(Latent Variable) --> B[Observation 1]
-    A --> C[Observation 2]
-```
-:::
-
-::: {.column width=50%}
-```{mermaid}
-%%| fig-width: 30
-graph TD
-    A(High Cognitive Workload) --> B[Sympathetic Activation]
-    A --> C[Lower Response Times]
-    B --> D[Low RMSSD]
-    C --> D
-```
-:::
-
-::::
 ## Tools and Resources
 ![ResearchRabbit](https://images.squarespace-cdn.com/content/v1/5dee82c56fcd7b0290640db5/1628479532521-VKCC2DKYPJ7W20MN3W0C/Picture3.png)
 
 
-![cynefin](./cynefin.png)
-
-img: @snowden2007
-
+![The cynefin framework @snowden2007](./img/cynefin.png)
 
 ::: {.columns}
 

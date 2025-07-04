@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" height="100%" viewBox="-210 -840 980 980">
+ <title>Bayes theorem visual proof</title>
+ <desc>Pictorial proof of Bayes' theorem by CMG Lee.</desc>
+ <style type="text/css">
+svg  { font-family:'Liberation Sans',Helvetica,Arial,sans-serif; font-size:60px; text-anchor:middle;
+       fill:#000000; stroke:#000000; stroke-width:2; }
+text { stroke:none; }
+.a   { stroke:#cc8800; }
+.b   { stroke:#0066ff; }
+.end { text-anchor:end; }
+ </style>
+ <defs>
+  <path id="hatch" d="M -4,8 l 16,-16 v 8 l -16,16" fill="none" stroke-width="3"/>
+  <g id="hatch_rev"><use xlink:href="#hatch" transform="matrix(1,0 0,-1 0,8)"/></g>
+  <mask id="mask_a">
+   <use xlink:href="#hatch_rev" stroke="#ffffff"/>
+  </mask>
+  <pattern id="pattern_a" patternUnits="userSpaceOnUse" width="8" height="8">
+   <use class="a" xlink:href="#hatch" opacity="0.3"/>
+  </pattern>
+  <pattern id="pattern_b" patternUnits="userSpaceOnUse" width="8" height="8">
+   <use class="b" xlink:href="#hatch_rev" opacity="0.3"/>
+  </pattern>
+  <pattern id="pattern_i" patternUnits="userSpaceOnUse" width="8" height="8">
+   <use class="a" xlink:href="#hatch" opacity="0.3"/>
+   <use class="b" xlink:href="#hatch_rev" opacity="0.3"/>
+   <use stroke="#66cc99" xlink:href="#hatch" mask="url(#mask_a)"/>
+  </pattern>
+  <rect id="u" x="-45" y="-30" width="90" height="60" fill="#eeeeee" stroke="#999999"/>
+  <path id="a" class="a" d="M 25,0 L 13,-24 H -13 L -25,0 L -13,24 H 13 Z" fill="url(#pattern_a)"/>
+  <circle id="b" class="b" cx="0" cy="0" r="25" fill="url(#pattern_b)"/>
+  <g id="i">
+   <path class="b" d="M 0,-20 A 25,25 0 0 0 0,20 L 10,0 Z" fill="url(#pattern_i)"/>
+   <path class="a" d="M 0,-20 L 10,0 L 0,20" fill="none"/>
+  </g>
+  <path id="_" d="M -50,0 H 50" stroke="#000000"/>
+  <path id="x" d="M -30,30 L 30,-30" stroke="#ff00cc"/>
+ </defs>
+ <circle cx="0" cy="0" r="99999" fill="#ffffff"/>
+ <g transform="scale(4)" stroke-width="1">
+  <use xlink:href="#u" stroke-width="0.5"/>
+  <use xlink:href="#a" transform="translate(-15,0)"/>
+  <use xlink:href="#b" transform="translate( 15,0)"/>
+  <use xlink:href="#i"/>
+ </g>
+ <text transform="translate(-155,-95)" x="0" y="0.7ex" font-size="50">U</text>
+ <text transform="translate( -65,-70)" x="0" y="0.7ex">A</text>
+ <text transform="translate(  60,-70)" x="0" y="0.7ex">B</text>
+ <!--
+ <text transform="translate(   0,  0)" x="0" y="0.7ex">&#8745;<tspan x="0" dy="-1.5ex"
+  >A</tspan><tspan x="0" dy="3ex">B</tspan></text>
+ -->
+ <text transform="translate(310, 65)" x="0" y="0.7ex"><tspan>P(B|A) =</tspan><tspan x="280" dy="-1ex">P(B)·P(A|B)</tspan><tspan x="280">_________</tspan><tspan x="280" dy="2ex">P(A)</tspan></text>
+ <text transform="translate(310,-65)" x="0" y="0.7ex"><tspan>P(A|B) =</tspan><tspan x="280" dy="-1ex">P(A)·P(B|A)</tspan><tspan x="280">_________</tspan><tspan x="280" dy="2ex">P(B)</tspan></text>
+ <g transform="translate(260,-770)">
+  <g transform="translate(0,0)">
+   <text class="end" transform="translate(-70,0)" x="0" y="0.7ex">P(A) =</text>
+   <use xlink:href="#_"/>
+   <use xlink:href="#a" transform="translate(0,-35)"/>
+   <use xlink:href="#u" transform="translate(0, 40)"/>
+  </g>
+  <g transform="translate(400,0)">
+   <text class="end" transform="translate(-70,0)" x="0" y="0.7ex">, P(B|A) =</text>
+   <use xlink:href="#_"/>
+   <use xlink:href="#i" transform="translate(0,-35)"/>
+   <use xlink:href="#a" transform="translate(0, 40)"/>
+  </g>
+  <g transform="translate(0,150)">
+   <text class="end" transform="translate(-70,0)" x="0" y="0.7ex">P(B) =</text>
+   <use xlink:href="#_"/>
+   <use xlink:href="#b" transform="translate(0,-35)"/>
+   <use xlink:href="#u" transform="translate(0, 40)"/>
+  </g>
+  <g transform="translate(400,150)">
+   <text class="end" transform="translate(-70,0)" x="0" y="0.7ex">, P(A|B) =</text>
+   <use xlink:href="#_"/>
+   <use xlink:href="#i" transform="translate(0,-35)"/>
+   <use xlink:href="#b" transform="translate(0, 40)"/>
+  </g>
+  <g transform="translate(0,300)">
+   <text class="end" transform="translate(-70,0)" x="0" y="0.7ex">P(A)·P(B|A) =</text>
+   <text transform="translate(100,0)" x="0" y="0.7ex">×</text>
+   <text transform="translate(310,0)" x="0" y="0.7ex">=</text>
+   <use xlink:href="#_"/>
+   <use xlink:href="#a" transform="translate(  0,-35)"/>
+   <use xlink:href="#u" transform="translate(  0, 40)"/>
+   <use xlink:href="#x" transform="translate(  0,-35)"/>
+   <use xlink:href="#x" transform="translate(200, 40)"/>
+   <use xlink:href="#_" transform="translate(200,  0)"/>
+   <use xlink:href="#i" transform="translate(200,-35)"/>
+   <use xlink:href="#a" transform="translate(200, 40)"/>
+   <use xlink:href="#_" transform="translate(400,  0)"/>
+   <use xlink:href="#i" transform="translate(400,-35)"/>
+   <use xlink:href="#u" transform="translate(400, 40)"/>
+  </g>
+  <g transform="translate(0,450)">
+   <text class="end" transform="translate(-70,0)" x="0" y="0.7ex">P(B)·P(A|B) =</text>
+   <text transform="translate(100,0)" x="0" y="0.7ex">×</text>
+   <text transform="translate(310,0)" x="0" y="0.7ex">=</text>
+   <use xlink:href="#_"/>
+   <use xlink:href="#b" transform="translate(  0,-35)"/>
+   <use xlink:href="#u" transform="translate(  0, 40)"/>
+   <use xlink:href="#x" transform="translate(  0,-35)"/>
+   <use xlink:href="#x" transform="translate(200, 40)"/>
+   <use xlink:href="#_" transform="translate(200,  0)"/>
+   <use xlink:href="#i" transform="translate(200,-35)"/>
+   <use xlink:href="#b" transform="translate(200, 40)"/>
+   <use xlink:href="#_" transform="translate(400,  0)"/>
+   <use xlink:href="#i" transform="translate(400,-35)"/>
+   <use xlink:href="#u" transform="translate(400, 40)"/>
+  </g>
+  <g transform="translate(0,580)">
+   <text class="end" transform="translate(-70,0)" x="0" y="0.7ex">=</text>
+   <text text-anchor="start" transform="translate(-50,0)" x="0" y="0.7ex">P(A)·P(B|A) ,  i.e.</text>
+  </g>
+ </g>
+</svg>
