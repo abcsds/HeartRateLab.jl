@@ -879,7 +879,7 @@ version = "8.5.1+0"
 
 [[deps.HeartRateLab]]
 deps = ["DFA", "DSP", "DataFrames", "DataInterpolations", "Distributed", "EntropyHub", "GLMakie", "Hurst", "LSL", "LombScargle", "MacroTools", "Memoization", "Plots", "StatsBase", "Trapz", "XDF"]
-git-tree-sha1 = "4b2c98f4ec790c1ab7d3b2bde8861c2ab6f67315"
+git-tree-sha1 = "a2ac1124df159c46bcb009cce24367dff2602a8c"
 repo-rev = "main"
 repo-url = "/home/beto/.dotfiles/julia/julia.symlink/dev/HeartRateLab"
 uuid = "ac0e5f2a-24d1-4b35-a8b3-775c05ea78ca"

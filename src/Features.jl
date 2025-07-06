@@ -957,7 +957,7 @@ end
 end
 
 function extract_feature_set(
-    n::Array{Float64,1};
+    n::AbstractArray{Float64,1};
     features::AbstractArray{String}=String.(keys(feature_registry)),
     config::Dict{String,Any}=config,
 )
@@ -974,7 +974,7 @@ function extract_feature_set(
 end
 
 function windowed_feature_set(
-    n::Array{Float64,1};
+    n::AbstractArray{Float64,1};
     window_size::Int=60, # Heart beats
     stride::Int=1,
     time::Symbol=:beats,

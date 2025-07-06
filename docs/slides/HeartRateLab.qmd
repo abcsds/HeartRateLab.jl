@@ -14,9 +14,16 @@ format:
     width: 1920
     height: 1080
     margin: 0.1
+    preview-links: auto
+    # logo: img/Neurociencias_Color.png
+    logo: img/TU_Graz.png
+    css: styles.css
     # hash: true
     # separator: '^\n---\n'
     # verticalSeparator: '^\n--\n'
+    chalkboard: 
+      buttons: true
+    # footer: '[https://{{< meta prerelease-subdomain >}}quarto.org](https://{{< meta prerelease-subdomain >}}quarto.org)'
   beamer: 
     aspectratio: 169
     theme: "default"
@@ -107,20 +114,25 @@ using HeartRateLab: HeartRateLab
 
 ## Introduction
 
-::: incremental
+:::: {.columns}
 
+::: {.column width=50%}
 - Cardiac Cycle and Heart Rate
 - Heart Rate Variability (HRV)
 - Factors that influence HRV
 - Correlations found in HRV studies
 - Applications of HRV in research and practice
-- Software providers for HRV analysis
-    - PyCardio
-    - PyNeuroKit2
-    - Kubios
-
 :::
 
+::: {.column width=50%}
+::: incremental
+- Existing HRV analysis tools
+    - [PyCardio](https://javierfm27.github.io/)
+    - [PyNeuroKit2](https://github.com/neuropsychology/NeuroKit/tree/master/neurokit2/hrv)
+    - [Kubios](https://www.kubios.com/)
+:::
+:::
+::::
 
 ## Cardiac Cycle and Heart Rate
 
@@ -132,12 +144,15 @@ using HeartRateLab: HeartRateLab
 
 ---
 
-## Sinoatrial and Atrioventricular Nodes
+![Cardiac Cycle](./img/CardiacCycle.gif)
+
+
+## Sinoatrial and Atrioventricular Nodes 
 
 ![By J. Heuser - self made, based upon Image:Heart anterior view coronal section.jpg by Patrick J. Lynch (Patrick J. Lynch; illustrator; C. Carl Jaffe; MD; cardiologist Yale University Center for Advanced Instructional Media ), CC BY 2.5, https://commons.wikimedia.org/w/index.php?curid=1686121](./img/SAAVNodes.png)
 
 
-## Sympathetic and Parasympathetic effects on the Heart
+## Sympathetic and Parasympathetic effects on the Heart {.data-visibility="hidden"}
 
 :::: {.columns}
 
@@ -172,13 +187,21 @@ using HeartRateLab: HeartRateLab
 # infile = "/home/beto/.julia/dev/HeartRateLab/test/testdata/example.txt"
 # infile = "/home/beto/.julia/dev/HeartRateLab/test/testdata/e1304.txt"
 infile = "/home/beto/.julia/dev/HeartRateLab/docs/slides/example.xdf"
-data = HeartRateLab.read_xdf(infile)
-data = vec(data)
+matrix = HeartRateLab.read_xdf(infile)
+# TURN THIS MATRIX INTO AN ARRAY!
+data = Float64.(HeartRateLab.read_xdf(infile))
+# data = vec(data)
+# data = reshape(data, length(data))
+# data = Array(data)
+# a = Array{Float64}(undef, length(data))
+# a = [i for i in data]
+
 println("Data loaded from: ", infile)
 println("Data length: $(length(data)) heartbeats")
 println("Type of data: ", typeof(data))
 
 ```
+
 :::
 ::: {.column width=50%}
 ![Polar H10](./img/PolarH10.jpg)
@@ -190,7 +213,7 @@ println("Type of data: ", typeof(data))
 
 :::: {.columns}
 
-::: {.column width=50%}
+::: {.column width=40%}
 
 - Time and Statistical Domain
 - Frequency Domain
@@ -199,17 +222,17 @@ println("Type of data: ", typeof(data))
 
 :::
 
-::: {.column width=50%}
+::: {.column width=60%}
 
 ```{julia}
 #| echo: true
 #| output: slide
 #| label: inter-beat-intervals
-f = Figure(size=(600, 600));
+f = Figure(size=(1200, 600));
 ax = Axis(f[1, 1], 
     title="Raw Data",
     xlabel="Time (s)",
-    ylabel="Heart Rate (bpm)")
+    ylabel="IBI (ms)")
 n = data[1:50]
 t = Observable(cumsum(n) ./ 1000) # to seconds
 # x = Observable(60000 ./ n) # to bpm
@@ -223,13 +246,39 @@ f
 
 ::::
 
-## Heart Rate
+---
+
+
+## IBIS are inversely proportional to Heart Rate
+
+```{julia}
+#| echo: true
+#| output: slide
+#| label: ibis-vs-hr
+f = Figure(size=(1400, 600));
+ax1 = Axis(f[1, 1], 
+    title="Heart Rate",
+    xlabel="Time (s)",
+    ylabel="Heart Rate (bpm)")
+n = data[1:50]
+t = Observable(cumsum(n) ./ 1000) # to seconds
+x = Observable(60000 ./ n) # to bpm
+lines!(ax1, t, x, color=:blue, label="Heart Rate")
+ax2 = Axis(f[1, 2], 
+    title="Inter-Beat Intervals",
+    xlabel="Time (s)",
+    ylabel="IBI (ms)")
+lines!(ax2, t, n, color=:red, label="IBI")
+f
+```
+
+---
 
 ```{julia}
 #| echo: true
 #| output: slide
 #| label: heart-rate
-f = Figure(size=(1200, 600));
+f = Figure(size=(1600, 600));
 ax = Axis(f[1, 1], 
     title="Heart Rate from Inter-Beat Intervals",
     xlabel="Heart Rate (bpm)",
@@ -242,8 +291,6 @@ hlines!(ax, mean(x[]), label="Mean Heart Rate", linestyle=:dash, color=:coral, l
 
 f
 ```
-
----
 
 ## Time Domain
 
@@ -273,24 +320,35 @@ f
 
 ## An empirical random variable
 
+::: {.centered}
 ```{julia}
 #| echo: true
 #| output: slide
 #| label: histogram
 # A histogram of the first 50 heartbeats
-f = Figure(size=(1200, 600));
-ax = Axis(f[1, 1], 
+f = Figure(size=(1400, 600));
+ax1 = Axis(f[1, 1], 
     title="Histogram of measured Heart Rate",
     xlabel="Heart Rate (bpm)",
     ylabel="Frequency")
 n = data[1:50]
 t = Observable(cumsum(n) ./ 1000) # to seconds
 x = Observable(60000 ./ n) # to bpm
-hist!(ax, x, color=:teal)
-vlines!(ax, mean(x[]), color=:red, linewidth=2, label="Mean")
+hist!(ax1, x, color=:teal, bins=40)
+vlines!(ax1, mean(x[]), color=:red, linewidth=2, label="Mean")
+
+ax2 = Axis(f[1, 2], 
+    title="Boxplot of measured Heart Rate",
+    xlabel="Heart Rate (bpm)",
+    ylabel="Frequency")
+# Makie.boxplot!(ax2, x, color=:teal, label="Heart Rate Boxplot"; orientation=:horizontal)
+density!(ax2, x, color=:coral, label="Distribution Density")
+vlines!(ax2, mean(x[]), color=:red, linewidth=2, label="Mean")
 
 f
 ```
+
+:::
 
 ## RMSSD
 
@@ -321,14 +379,21 @@ band!(ax1, t, zero_line, x_below_zero,
 scatter!(ax1, t, x, color=:red, markersize=5)
 
 ax2 = Axis(f[1, 2], 
-    title="RMSSD",
+    title="IBIs and its Numeric Derivative",
     xlabel="Time (s)",
-    ylabel="RMSSD (ms²)")
+    ylabel="ΔTime (ms)")
 lines!(ax2, t, x, color=:teal, alpha=0.5)
 band!(ax2, t, zero_line, x_above_zero, color=:teal, alpha=0.25)
 band!(ax2, t, zero_line, x_below_zero, color=:coral, alpha=0.25)
 scatter!(ax2, t, x, color=:red, markersize=5, alpha=0.5)
-lines!(ax2, t, n .- mean(n), color=:blue, linewidth=3, label="Detrended RR-interval signal")
+
+ax3 = Axis(f[1, 2], 
+    xlabel="Time (s)",
+    ylabel="RR-interval (ms)",
+    yticklabelcolor=:blue,
+    yaxisposition=:right
+    )
+lines!(ax3, t, n, color=:blue, linewidth=3, label="Detrended RR-interval signal")
 
 f
 ```
@@ -339,8 +404,8 @@ f
 #| echo: true
 #| output: slide
 #| label: rmssd
-println("SDNN: ", round(StatsBase.std(x[]), digits=2))
-println("RMSSD: ", round(StatsBase.std(n), digits=2))
+println("SDNN: ", round(StatsBase.std(n), digits=2))
+println("RMSSD: ", round(StatsBase.std(x[]), digits=2))
 ```
 
 :::
@@ -354,10 +419,10 @@ println("RMSSD: ", round(StatsBase.std(n), digits=2))
 
 ::: {}
 - Power Spectral Density (PSD) over four frequency bands:
-    - Very Low Frequency (VLF): 0.003-0.04 Hz
-    - Low Frequency (LF): 0.04-0.15 Hz
-    - High Frequency (HF): 0.15-0.4 Hz
-    - Ultra Low Frequency (ULF): < 0.003 Hz
+    - High Frequency (HF): 9-24 BPM (0.15-0.4 Hz)
+    - Low Frequency (LF): 2.4-9 BPM (0.04-0.15 Hz)
+    - Very Low Frequency (VLF): .18-2.4 BPM (0.003-0.04 Hz)
+    - Ultra Low Frequency (ULF): < .18 BPM (< 0.003 Hz) 
 - Absolute and relative power
 - Peak frequencies
 - Proportions and ratios (LF/HF, VLF/LF, etc.)
@@ -370,7 +435,7 @@ println("RMSSD: ", round(StatsBase.std(n), digits=2))
 ```{julia}
 using HeartRateLab.Frequency: welch, get_power, find_peak
 pgram = welch(data)
-f = Figure(size=(600, 600));
+f = Figure(size=(1200, 600));
 ax = Axis(f[1, 1], 
     title="Power Spectral Density",
     xlabel="Frequency (Hz)",
@@ -398,7 +463,7 @@ f
 ## Geometric Domain
 
 :::: {.columns}
-::: {.column width=50%}
+::: {.column width=40%}
 - Poincaré Plot
     - SD1: Short-term variability
     - SD2: Long-term variability
@@ -410,7 +475,7 @@ f
     - Triangular Interpolation of NN intervals (TINN)
 :::
 
-::: {.column width=50%}
+::: {.column width=60%}
 ```{julia}
 #| echo: true
 #| output: slide
@@ -601,13 +666,132 @@ f
 
 ## Feature Extraction
 
-```{julia}
-names = String[keys(HeartRateLab.Features.feature_registry)...]
-# println("Full Feature set: ", names)
-for name in sort(names)
-    println(" - ", name)
-end
+```{mermaid}
+
+%% {init: {"flowchart": {"curve":"stepBefore"}} }%%
+flowchart TB
+  Raw
+  %% Level 1: Base Statistics & Representations
+  subgraph subGraph0["Level 1: Base Statistics & Representations"]
+    mean((mean))
+    sdnn((sdnn))
+    median((median))
+    max((max))
+    min((min))
+    diff((diff))
+    length((length))
+    duration((duration))
+  end
+
+  %% Level 2: HR & Time Domain
+  subgraph subGraph1["Level 2: HR & Time Domain"]
+    mean_hr([mean_hr])
+    std_hr([std_hr])
+    max_hr([max_hr])
+    min_hr([min_hr])
+    sdsd([sdsd])
+    range([range])
+    rmssd([rmssd])
+    sdann([sdann])
+    pnn50([pnn50])
+    pnn20([pnn20])
+    cvsd([cvsd])
+    rRR([rRR])
+  end
+
+  %% Frequency
+  subgraph subGraph2["Frequency Domain"]
+    pgram((Frequency Periodogram))
+    max_t([max_t])
+    ulf([ulf])
+    vlf([vlf])
+    lf([lf])
+    hf([hf])
+    tp([tp])
+    lf_peak([lf_peak])
+    hf_peak([hf_peak])
+    lf_hf_ratio([lf_hf_ratio])
+    lf_relative([lf_relative])
+    hf_relative([hf_relative])
+    lf_percentage([lf_percentage])
+    hf_percentage([hf_percentage])
+  end
+
+    %% Geometric
+    subgraph subGraph3["Geometric Features"]
+        px((px))
+        py((py))
+        histogram((histogram))
+        sd1([sd1])
+        sd2([sd2])
+        sd2_sd1([sd2/sd1])
+        sd1_sd2_area([sd1_sd2_area])
+        cvi([cvi])
+        ccsi([ccsi])
+        triangular_index([triangular_index])
+        tinn([tinn])
+    end
+
+    %% Nonlinear
+    subgraph subGraph4["Nonlinear Features"]
+        apen((apen))
+        sampen((sampen))
+        hurst((hurst))
+        renyi((renyi))
+        renyi0([renyi0])
+        renyi1([renyi1])
+        renyi2([renyi2])
+        dfa((dfa))
+        dfa1([dfa1])
+        dfa2([dfa2])
+    end
+
+    %% Node linkages 
+    RawData --> median & mean & sdnn & max & min & diff & length & duration & pgram & px & py & renyi & dfa & hurst & apen & sampen & histogram
+    mean --> mean_hr & sdann & cvsd
+    sdnn --> std_hr & sdsd
+    max --> max_hr & range
+    min --> min_hr & range
+    diff --> sdsd & rmssd & pnn50 & pnn20 & rRR
+    length --> pnn50 & pnn20 & triangular_index
+    sdsd --> cvsd
+    duration --> max_t
+    max_t --> ulf
+    pgram --> ulf & vlf & lf & hf & tp & lf_peak & hf_peak
+    lf --> lf_hf_ratio & lf_relative
+    hf --> lf_hf_ratio & hf_relative
+    tp --> lf_relative & hf_relative
+    lf_relative --> lf_percentage
+    hf_relative --> hf_percentage
+    px --> sd1 & sd2
+    py --> sd1 & sd2
+    sd1 --> sd2_sd1 & sd1_sd2_area & cvi & ccsi
+    sd2 --> sd2_sd1 & sd1_sd2_area & cvi & ccsi
+    histogram --> triangular_index & tinn
+    renyi --> renyi0 & renyi1 & renyi2
+    dfa --> dfa1 & dfa2
+
+  %% Color themes by class
+  classDef basic fill:#cde4f7,stroke:#333,stroke-width:2px;
+  classDef time fill:#efe7fa,stroke:#888,stroke-width:2px;
+  classDef freq fill:#ecf3e6,stroke:#888,stroke-width:2px;
+  classDef geom fill:#fdf4e3,stroke:#888,stroke-width:2px;
+  classDef nl fill:#e3f7f3,stroke:#888,stroke-width:2px;
+  classDef leaf fill:#f2f2f2,stroke:#bbb,stroke-width:1px,stroke-dasharray: 3 2;
+
+  class mean,sdnn,median,max,min,diff,length,duration basic;
+  class mean_hr,std_hr,max_hr,min_hr,sdsd,range,rmssd,sdann,pnn50,pnn20,cvsd,rRR time;
+  class pgram,max_t,ulf,vlf,lf,hf,tp,lf_peak,hf_peak,lf_hf_ratio,lf_relative,hf_relative,lf_percentage,hf_percentage freq;
+  class px,py,histogram,sd1,sd2,sd2_sd1,sd1_sd2_area,cvi,ccsi,triangular_index,tinn geom;
+  class apen,sampen,hurst,renyi,renyi0,renyi1,renyi2,dfa,dfa1,dfa2 nl;
+  class n1,n2 leaf;
+
+  %% Bolder title
+  linkStyle default stroke-width:1.3px,opacity:0.85;
 ```
+[^mermaid]
+
+[^mermaid]: This diagram was created using [Mermaid](https://www.mermaidchart.com/app/projects/6610a32b-227b-43a9-b1fa-b89efed43c9a/diagrams/dcfcaeb2-4ede-4954-afd6-3518e25ddb14/version/v0.1/edit)
 
 ## Numeric Derivative
 
@@ -819,6 +1003,10 @@ f
 ---
 
 ```{julia}
+#| echo: true
+#| output: slide
+#| label: lif
+#| code-fold: false
 using DifferentialEquations
 using Random
 using Plots
@@ -882,7 +1070,7 @@ IBIs = HeartRateLab.replace_bio_outliers(IBIs)
 #     ylabel="IBI (s)",
 #     title="Interbeat Intervals (IBIs)",
 # )
-f = Figure(size=(1200, 600));
+f = Figure(size=(1600, 800));
 ax = Axis(f[1, 1],
     title="Simulated Heart Rate",
     xlabel="Time (s)",
@@ -916,6 +1104,7 @@ Parameter Estimation:
 #| echo: true
 #| output: slide
 #| label: bayesian-inference
+#| code-fold: false
 using Turing
 using SequentialSamplingModels: LBA
 
@@ -1094,63 +1283,76 @@ What have we used the HeartRateLab for?
 
 :::: {.columns}
 ::: {.column width=33%}
+:::{.fragment}
 ### Teaching and Learning
 
 - Communication and Visualization
-- Test-driven problems
-- Encourages student engagement
+- Test-driven feature definition
+- Ranges and normal values of features are part of our tests
+- Open source encourages student engagement
 - Material belongs to the students
 - Students can run the code and see the results
 - Online demos aid visual understanding
 :::
+:::
 
 ::: {.column width=33%}
+::: {.fragment}
 ### Managing Expectations and Priors
 
 - Open Data Sets become the basis for our Normative Datasets
 - For every study, a graph of related studies can be selected from a superset to compare and contrast the results.
 - Given similar studies, we can design experiments with quantified expectations (Bayesian priors).
-- We can identify outliers and unexpected results comparing against: normative datasets, normative studies, and our own experimental and laboratory priors.
+- We can identify outliers in different populations, and under different conditions.
+:::
 :::
 
 ::: {.column width=33%}
+::: {.fragment}
 ### Modeling and Predicting
 
 - Models can be tested against normative datasets.
 - Their accuracy and precision can be quantified.
 - Artificial models encourage model-thinking: no true model, but useful models.
 - The Dao that can be named is not the eternal Dao.
+
+:::
 :::
 ::::
 
 ##  What do we do with the HeartRateLab?
 
-::::: {.columns}
+:::: {.columns}
 ::: {.column width=33%}
-    - Arousal and Relaxation
-    - Cognitive Mental Workload
-    - Attention and Dual-Tasking
-    - Attentional Networks
+- Arousal and Relaxation
+- Cognitive Mental Workload
+- Attention and Dual-Tasking
+- Attentional Networks
 :::
 ::: {.column width=33%}
-    - *Facial Expression Observation
-    - *Ocular Rivalry and Concious Perception
-    - *Cognitive Flexibility
+- Facial Expression Observation
+- Ocular Rivalry and Concious Perception
+- Cognitive Flexibility
 :::
 ::: {.column width=33%}
-    - Heart Rate Variability Biofeedback
-    - Mindfulness and Contemplative Practices
-    - Neurodiversity, ADHD, and Autism
+- Heart Rate Variability Biofeedback
+- Mindfulness and Contemplative Practices
+- Neurodiversity, ADHD, and Autism
 :::
-- Future Work 
+:::: 
 
 ## Structured and Formal Management of Cognitive Tools and Resources.
+
+
 
 ## Tools and Resources
 ![ResearchRabbit](https://images.squarespace-cdn.com/content/v1/5dee82c56fcd7b0290640db5/1628479532521-VKCC2DKYPJ7W20MN3W0C/Picture3.png)
 
+---
 
 ![The cynefin framework @snowden2007](./img/cynefin.png)
+
+---
 
 ::: {.columns}
 
