@@ -16,7 +16,8 @@ format:
     margin: 0.1
     preview-links: auto
     # logo: img/Neurociencias_Color.png
-    logo: img/TU_Graz.png
+    # logo: img/TU_Graz.png
+    logo: img/logos.png
     css: styles.css
     # hash: true
     # separator: '^\n---\n'
@@ -93,12 +94,12 @@ Slides in this presentation are written in [Quarto](https://quarto.org/), a lite
 using Pkg;
 # Pkg.add("HypothesisTests")
 Pkg.activate("./docs/slides")
-Pkg.add(url="https://github.com/abcsds/LSL.jl")
-Pkg.add(url="https://github.com/abcsds/DFA.jl")
-Pkg.add(path=".")
-Pkg.add(["StatsBase", "GLMakie", "SequentialSamplingModels"])
-Pkg.instantiate();
-Pkg.precompile();
+# Pkg.add(url="https://github.com/abcsds/LSL.jl")
+# Pkg.add(url="https://github.com/abcsds/DFA.jl")
+# Pkg.add(path=".")
+# Pkg.add(["StatsBase", "GLMakie", "SequentialSamplingModels"])
+# Pkg.instantiate();
+# Pkg.precompile();
 
 using StatsBase
 using GLMakie
@@ -128,7 +129,9 @@ using HeartRateLab: HeartRateLab
 ::: incremental
 - Existing HRV analysis tools
     - [PyCardio](https://javierfm27.github.io/)
+    - [PyHRV](https://github.com/PGomes92/pyhrv)
     - [PyNeuroKit2](https://github.com/neuropsychology/NeuroKit/tree/master/neurokit2/hrv)
+    - [HeartRateVariablitiy.jl](https://github.com/LiScI-Lab/HeartRateVariability.jl)
     - [Kubios](https://www.kubios.com/)
 :::
 :::
@@ -152,7 +155,7 @@ using HeartRateLab: HeartRateLab
 ![By J. Heuser - self made, based upon Image:Heart anterior view coronal section.jpg by Patrick J. Lynch (Patrick J. Lynch; illustrator; C. Carl Jaffe; MD; cardiologist Yale University Center for Advanced Instructional Media ), CC BY 2.5, https://commons.wikimedia.org/w/index.php?curid=1686121](./img/SAAVNodes.png)
 
 
-## Sympathetic and Parasympathetic effects on the Heart {.data-visibility="hidden"}
+## Sympathetic and Parasympathetic effects on the Heart {data-visibility="hidden"}
 
 :::: {.columns}
 
@@ -187,25 +190,20 @@ using HeartRateLab: HeartRateLab
 # infile = "./test/testdata/example.txt"
 # infile = "./test/testdata/e1304.txt"
 infile = "./docs/slides/example.xdf"
-matrix = HeartRateLab.read_xdf(infile)
-# TURN THIS MATRIX INTO AN ARRAY!
 data = Float64.(HeartRateLab.read_xdf(infile))
-# data = vec(data)
-# data = reshape(data, length(data))
-# data = Array(data)
-# a = Array{Float64}(undef, length(data))
-# a = [i for i in data]
 
 println("Data loaded from: ", infile)
 println("Data length: $(length(data)) heartbeats")
 println("Type of data: ", typeof(data))
 
 ```
+![Generic Heart Rate Monitor](./img/HRBand.png)
 
 :::
 ::: {.column width=50%}
+
 ![Polar H10](./img/PolarH10.jpg)
-![Generic Heart Rate Monitor](./img/HRBand.png)
+
 :::
 ::::
 
@@ -251,6 +249,7 @@ f
 
 ## IBIS are inversely proportional to Heart Rate
 
+::: {.center-xy}
 ```{julia}
 #| echo: true
 #| output: slide
@@ -271,6 +270,7 @@ ax2 = Axis(f[1, 2],
 lines!(ax2, t, n, color=:red, label="IBI")
 f
 ```
+:::
 
 ---
 
@@ -282,8 +282,28 @@ f = Figure(size=(1600, 600));
 ax = Axis(f[1, 1], 
     title="Heart Rate from Inter-Beat Intervals",
     xlabel="Heart Rate (bpm)",
-    ylabel="Frequency")
+    ylabel="Time (s)")
 n = data[1:50]
+t = Observable(cumsum(n) ./ 1000) # to seconds
+x = Observable(60000 ./ n) # to bpm
+lines!(ax, t, x, color=:teal, label="Continuous Heart Rate")
+hlines!(ax, mean(x[]), label="Mean Heart Rate", linestyle=:dash, color=:coral, linewidth=2)
+
+f
+```
+
+---
+
+```{julia}
+#| echo: true
+#| output: slide
+#| label: heart-rate2
+f = Figure(size=(1600, 600));
+ax = Axis(f[1, 1], 
+    title="Heart Rate from Inter-Beat Intervals",
+    xlabel="Heart Rate (bpm)",
+    ylabel="Time (s)")
+n = data
 t = Observable(cumsum(n) ./ 1000) # to seconds
 x = Observable(60000 ./ n) # to bpm
 lines!(ax, t, x, color=:teal, label="Continuous Heart Rate")
@@ -320,7 +340,7 @@ f
 
 ## An empirical random variable
 
-::: {.centered}
+::: {.centered-xy}
 ```{julia}
 #| echo: true
 #| output: slide
@@ -338,7 +358,7 @@ hist!(ax1, x, color=:teal, bins=40)
 vlines!(ax1, mean(x[]), color=:red, linewidth=2, label="Mean")
 
 ax2 = Axis(f[1, 2], 
-    title="Boxplot of measured Heart Rate",
+    title="Estimated distribution of measured Heart Rate",
     xlabel="Heart Rate (bpm)",
     ylabel="Frequency")
 # Makie.boxplot!(ax2, x, color=:teal, label="Heart Rate Boxplot"; orientation=:horizontal)
@@ -349,6 +369,35 @@ f
 ```
 
 :::
+
+## Numeric Derivative
+
+```{julia}
+#| echo: true
+#| output: slide
+#| label: sequential-differences
+f = Figure(size=(1200, 600));
+ax = Axis(f[1, 1], 
+    title="Difference of Sequential Inter-Beat Intervals",
+    xlabel="Time (s)",
+    ylabel="Inter-Beat Interval (ms)")
+n = data[1:end]
+t = Observable(cumsum(n) ./ 1000) # to seconds
+x = Observable([0; diff(n)])
+x_above_zero = Observable(clamp.(x[], 0, Inf))
+x_below_zero = Observable(clamp.(x[], -Inf, 0))
+zero_line = Observable(zeros(length(x[])))
+lines!(ax, t, x, color=:teal)
+# Band above zero
+# band(x, ylower, yupper; kwargs...)
+band!(ax, t, zero_line, x_above_zero, 
+    color=:teal, alpha=0.5)
+band!(ax, t, zero_line, x_below_zero, 
+    color=:coral, alpha=0.5)
+scatter!(ax, t, x, color=:red, markersize=5)
+f
+```
+
 
 ## RMSSD
 
@@ -476,7 +525,7 @@ f
 :::
 
 ::: {.column width=60%}
-```{julia}
+```{julia code-line-numbers="10,11"}
 #| echo: true
 #| output: slide
 #| label: poincare
@@ -497,8 +546,8 @@ sd2 = sqrt(StatsBase.var((x + y) / sqrt(2)))
 f = Figure(size=(1200, 600));
 ax = Axis(f[1, 1], 
     title="Poincaré Plot",
-    xlabel="RR(n) (ms)",
-    ylabel="RR(n+1) (ms)")
+    xlabel="ΔRR(n) (ms)",
+    ylabel="ΔRR(n+1) (ms)")
 scatter!(ax, x, y, markersize=5, label="ΔRR[i, i+1]")
 cx = mean(x)
 cy = mean(y)
@@ -535,7 +584,7 @@ f
 #| output: slide
 #| label: dfa
 
-scales, fluc = DFA.dfa(data, boxmax=64, boxmin=4, boxratio=2, overlap=0.0)
+scales, fluc = DFA.dfa(data, boxmin=4, boxmax=64, boxratio=2, overlap=0.0)
 log_scales1 = log10.(scales)
 log_fluc1 = log10.(fluc)
 f = Figure(size=(1200, 600));
@@ -551,7 +600,7 @@ y = intercept1 .+ α1 .* x
 lines!(ax1, x, y, color=:red, linewidth=1, linestyle=:dash)
 # f
 
-scales, fluc = DFA.dfa(data, boxmax=16, boxmin=4, boxratio=2, overlap=0.0)
+scales, fluc = DFA.dfa(data, boxmin=4, boxmax=16, boxratio=2, overlap=0.0)
 log_scales2 = log10.(scales)
 log_fluc2 = log10.(fluc)
 ax2 = Axis(f[1, 2], 
@@ -571,6 +620,29 @@ f
 :::
 ::::
 
+--- 
+
+```{julia}
+scales, fluc = DFA.dfa(data, boxmin=16, boxmax=64, boxratio=2, overlap=0.0)
+log_scales3 = log10.(scales)
+log_fluc3 = log10.(fluc)
+ax3 = Axis(f[1, 3],
+    title="Log-scale Fluctuation 16-64",
+    xlabel="log10(Scale)",
+    ylabel="log10(Fluctuation)",
+)
+intercept3, α3 = DFA.polyfit(log_scales3, log_fluc3)
+x = range(minimum(log_scales3), maximum(log_scales3), length=100)
+y = intercept3 .+ α3 .* x
+lines!(ax3, x, y, color=:red, linewidth=1, linestyle=:dash)
+linkxaxes!(ax1, ax2)
+linkyaxes!(ax1, ax2)
+linkxaxes!(ax1, ax3)
+linkyaxes!(ax1, ax3)
+f
+```
+
+
 ## The HeartRateLab
 
 :::: {.columns}
@@ -589,19 +661,29 @@ ds = HeartRateLab.Features.extract_feature_set(
 ## Preprocessing
 
 :::: {.columns}
-::: {.column width=50%}
+
+::: {.column width=30%}
+- Input from TXT: EliteHRV, Kubios
+- Input as WFDB: PhysioNet
+- Input as XDF: sub ms precision, markers
+- Live input from LSL:
+  - Synchronized signals and data
+  - Combine with myraid of other devices
+:::
+
+::: {.column width=30%}
 - Replace Zeros
 - Replace biological outliers (200 to 3000 ms) and breaks
 - Replace statistical outliers (Z(0.025, 0.975))
 - Ectopic beat detection:
-    - ACAR
-    - Karlsson
-    - Malik
-    - Kamath
+    - ACAR @acar2000
+    - Karlsson @karlsson2012
+    - Malik @malik1996
+    - Kamath @kamath1995
     - Custom absolute threshold (0.2)
 :::
 
-::: {.column width=50%}
+::: {.column width=30%}
 - Signal interpolation:
     - Constant
     - Linear
@@ -670,7 +752,7 @@ f
 
 %% {init: {"flowchart": {"curve":"stepBefore"}} }%%
 flowchart TB
-  Raw
+  RawData
   %% Level 1: Base Statistics & Representations
   subgraph subGraph0["Level 1: Base Statistics & Representations"]
     mean((mean))
@@ -793,33 +875,6 @@ flowchart TB
 
 [^mermaid]: This diagram was created using [Mermaid](https://www.mermaidchart.com/app/projects/6610a32b-227b-43a9-b1fa-b89efed43c9a/diagrams/dcfcaeb2-4ede-4954-afd6-3518e25ddb14/version/v0.1/edit)
 
-## Numeric Derivative
-
-```{julia}
-#| echo: true
-#| output: slide
-#| label: sequential-differences
-f = Figure(size=(1200, 600));
-ax = Axis(f[1, 1], 
-    title="Difference of Sequential Inter-Beat Intervals",
-    xlabel="Time (s)",
-    ylabel="Inter-Beat Interval (ms)")
-n = data[1:end]
-t = Observable(cumsum(n) ./ 1000) # to seconds
-x = Observable([0; diff(n)])
-x_above_zero = Observable(clamp.(x[], 0, Inf))
-x_below_zero = Observable(clamp.(x[], -Inf, 0))
-zero_line = Observable(zeros(length(x[])))
-lines!(ax, t, x, color=:teal)
-# Band above zero
-# band(x, ylower, yupper; kwargs...)
-band!(ax, t, zero_line, x_above_zero, 
-    color=:teal, alpha=0.5)
-band!(ax, t, zero_line, x_below_zero, 
-    color=:coral, alpha=0.5)
-scatter!(ax, t, x, color=:red, markersize=5)
-f
-```
 
 ## Rolling Window Features
 
@@ -869,11 +924,11 @@ f
 #| output: slide
 #| label: windowed-long
 ds_windowed = HeartRateLab.Features.windowed_feature_set(
-    data, features=["vlf", "rmssd"], window_size=120, stride=10
+    data, features=["vlf", "rmssd"], window_size=120, stride=5
 )
 
 ax = Axis(f[3, 1], 
-    title="RMSSD through Time WS=120, S=10",
+    title="RMSSD through Time WS=120, S=5",
     xlabel="Time (s)",
     ylabel="RMSSD (ms²)")
 x = ds_windowed.rmssd
@@ -885,6 +940,9 @@ f
 ## Windowed Frequency Analysis
 
 ```{julia}
+#| echo: true
+#| output: slide
+#| label: windowed-freq
 using HeartRateLab.Frequency: lomb_scargle
 ds_windowed = HeartRateLab.windowed(data, window_size=60, stride=5)
 freq = lomb_scargle(ds_windowed[1]).freq
@@ -934,6 +992,9 @@ f
 :::: {.columns}
 ::: {.column width=50%}
 ```{julia}
+#| echo: true
+#| output: slide
+#| label: feature-registry
 feature_registry = HeartRateLab.Features.feature_registry
 feature_set = String.(keys(feature_registry))
 println("Feature set: ")
@@ -945,6 +1006,9 @@ end
 
 ::: {.column width=50%}
 ```{julia}
+#| echo: true
+#| output: slide
+#| label: feature-confidence
 ds_windowed = HeartRateLab.Features.windowed_feature_set(
     data, features=["rmssd", "vlf"], window_size=60, stride=10
 )
@@ -1009,7 +1073,6 @@ f
 #| code-fold: false
 using DifferentialEquations
 using Random
-using Plots
 
 # Parameters for the HRV model
 params = (
@@ -1052,9 +1115,13 @@ fire_callback = DiscreteCallback(fire_condition, hrv_fire!)
 hrv_problem = ODEProblem(hrv_dynamics, V0, tspan, params)
 ```
 
----
+## Solving ODEs
 
 ```{julia}
+#| echo: true
+#| output: slide
+#| label: lif-solution
+#| code-fold: false
 hrv_solution = solve(hrv_problem, Tsit5(); callback=fire_callback)
 
 # Interbeat intervals (IBIs) in milliseconds
@@ -1062,14 +1129,6 @@ IBIs = diff(spike_times) * 1000.0
 IBIs = HeartRateLab.replace_bio_outliers(IBIs)
 
 # Plot the results
-# stem!(
-#     spike_times[1:(end - 1)],
-#     IBIs;
-#     marker=:circle,
-#     xlabel="Time (s)",
-#     ylabel="IBI (s)",
-#     title="Interbeat Intervals (IBIs)",
-# )
 f = Figure(size=(1600, 800));
 ax = Axis(f[1, 1],
     title="Simulated Heart Rate",
@@ -1110,7 +1169,7 @@ using SequentialSamplingModels: LBA
 
 # Generate synthetic data
 Random.seed!(42)
-dist = LBA(ν=[3.0], A=.8, k=.2, τ=.3) 
+dist = LBA(ν=[3.0], A=.8, k=.2, τ=.3)
 n_trials = 100
 data = rand(dist, n_trials)
 
@@ -1126,7 +1185,7 @@ end
 chain = sample(lba(data), NUTS(), 50)
 
 using StatsPlots
-Plots.plot(chain)
+StatsPlots.plot(chain)
 ```
 :::
 ::::
@@ -1137,6 +1196,8 @@ Plots.plot(chain)
 ::: {.column width=50%}
 - Flux.jl
 - Variational Autoencoders
+
+![A Variational Autoencoder](img/vae)
 :::
 
 ::: {.column width=50%}
@@ -1145,6 +1206,7 @@ Plots.plot(chain)
 #| eval: false
 #| output: slide
 #| label: vae
+#| code-fold: false
 using Flux
 using Statistics
 using Random
