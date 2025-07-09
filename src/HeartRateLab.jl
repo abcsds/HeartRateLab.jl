@@ -8,7 +8,7 @@ include("preprocessing.jl")
 include("Frequency.jl")
 include("Features.jl")
 # include("Models/Models.jl")
-# include("Visualization/Visualization.jl")
+include("Visualization/Visualization.jl")
 
 # Test power calculation from periodogram
 # using Plots
