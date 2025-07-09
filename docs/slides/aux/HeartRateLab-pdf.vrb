@@ -1,0 +1,346 @@
+\begin{block}{Time Domain}
+\phantomsection\label{time-domain}
+\begin{columns}[T]
+\begin{column}{0.5\linewidth}
+\begin{itemize}
+\tightlist
+\item
+  Mean
+\item
+  Standard Deviation (SDNN)
+\item
+  Median
+\item
+  Extrema and Range
+\item
+  BPM representations
+\end{itemize}
+\end{column}
+
+\begin{column}{0.5\linewidth}
+\begin{itemize}
+\tightlist
+\item
+  SDSD
+\item
+  RMSSD
+\item
+  SDANN
+\item
+  PNN50, PNN20 and percentages
+\item
+  CVSD
+\item
+  rRR
+\end{itemize}
+\end{column}
+\end{columns}
+
+\begin{block}{Visualization}
+\phantomsection\label{visualization}
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# A histogram of the first 50 heartbeats}
+\NormalTok{f }\OperatorTok{=} \FunctionTok{Figure}\NormalTok{(size}\OperatorTok{=}\NormalTok{(}\FloatTok{600}\NormalTok{, }\FloatTok{600}\NormalTok{));}
+\NormalTok{ax }\OperatorTok{=} \FunctionTok{Axis}\NormalTok{(f[}\FloatTok{1}\NormalTok{, }\FloatTok{1}\NormalTok{], }
+\NormalTok{    title}\OperatorTok{=}\StringTok{"Histogram of measured Heart Rate"}\NormalTok{,}
+\NormalTok{    xlabel}\OperatorTok{=}\StringTok{"Heart Rate (bpm)"}\NormalTok{,}
+\NormalTok{    ylabel}\OperatorTok{=}\StringTok{"Frequency"}\NormalTok{)}
+\NormalTok{n }\OperatorTok{=}\NormalTok{ data[}\FloatTok{1}\OperatorTok{:}\FloatTok{50}\NormalTok{]}
+\NormalTok{t }\OperatorTok{=} \FunctionTok{Observable}\NormalTok{(}\FunctionTok{cumsum}\NormalTok{(n) }\OperatorTok{./} \FloatTok{1000}\NormalTok{) }\CommentTok{\# to seconds}
+\NormalTok{x }\OperatorTok{=} \FunctionTok{Observable}\NormalTok{(}\FloatTok{60000} \OperatorTok{./}\NormalTok{ n) }\CommentTok{\# to bpm}
+\FunctionTok{hist!}\NormalTok{(ax, x, bins}\OperatorTok{=}\FloatTok{20}\NormalTok{, color}\OperatorTok{=:}\NormalTok{teal)}
+\FunctionTok{vlines!}\NormalTok{(ax, }\FunctionTok{mean}\NormalTok{(x[]), color}\OperatorTok{=:}\NormalTok{red, linewidth}\OperatorTok{=}\FloatTok{2}\NormalTok{, label}\OperatorTok{=}\StringTok{"Mean"}\NormalTok{)}
+
+\FunctionTok{display}\NormalTok{(f)}
+\end{Highlighting}
+\end{Shaded}
+
+\phantomsection\label{histogram}
+\begin{verbatim}
+GLMakie.Screen(...)
+\end{verbatim}
+\end{block}
+\end{block}
+
+\begin{block}{RMSSD}
+\phantomsection\label{rmssd}
+\begin{columns}[T]
+\begin{column}{0.5\linewidth}
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{f }\OperatorTok{=} \FunctionTok{Figure}\NormalTok{(size}\OperatorTok{=}\NormalTok{(}\FloatTok{600}\NormalTok{, }\FloatTok{600}\NormalTok{));}
+\NormalTok{ax }\OperatorTok{=} \FunctionTok{Axis}\NormalTok{(f[}\FloatTok{1}\NormalTok{, }\FloatTok{1}\NormalTok{], }
+\NormalTok{    title}\OperatorTok{=}\StringTok{"Difference of Sequential Heart Rates"}\NormalTok{,}
+\NormalTok{    xlabel}\OperatorTok{=}\StringTok{"Time (s)"}\NormalTok{,}
+\NormalTok{    ylabel}\OperatorTok{=}\StringTok{"Heart Rate (bpm)"}\NormalTok{)}
+\NormalTok{n }\OperatorTok{=}\NormalTok{ data[}\FloatTok{1}\OperatorTok{:}\FloatTok{50}\NormalTok{]}
+\NormalTok{t }\OperatorTok{=} \FunctionTok{Observable}\NormalTok{(}\FunctionTok{cumsum}\NormalTok{(n) }\OperatorTok{./} \FloatTok{1000}\NormalTok{) }\CommentTok{\# to seconds}
+\NormalTok{x }\OperatorTok{=} \FunctionTok{Observable}\NormalTok{([}\FloatTok{0}\NormalTok{; }\FunctionTok{diff}\NormalTok{(n)])}
+\NormalTok{x\_above\_zero }\OperatorTok{=} \FunctionTok{Observable}\NormalTok{(}\FunctionTok{clamp}\NormalTok{.(x[], }\FloatTok{0}\NormalTok{, }\ConstantTok{Inf}\NormalTok{))}
+\NormalTok{x\_below\_zero }\OperatorTok{=} \FunctionTok{Observable}\NormalTok{(}\FunctionTok{clamp}\NormalTok{.(x[], }\OperatorTok{{-}}\ConstantTok{Inf}\NormalTok{, }\FloatTok{0}\NormalTok{))}
+\NormalTok{zero\_line }\OperatorTok{=} \FunctionTok{Observable}\NormalTok{(}\FunctionTok{zeros}\NormalTok{(}\FunctionTok{length}\NormalTok{(x[])))}
+\FunctionTok{lines!}\NormalTok{(ax, t, x, color}\OperatorTok{=:}\NormalTok{teal)}
+\CommentTok{\# Band above zero}
+\CommentTok{\# band(x, ylower, yupper; kwargs...)}
+\FunctionTok{band!}\NormalTok{(ax, t, zero\_line, x\_above\_zero, }
+\NormalTok{    color}\OperatorTok{=:}\NormalTok{teal, alpha}\OperatorTok{=}\FloatTok{0.5}\NormalTok{)}
+\FunctionTok{band!}\NormalTok{(ax, t, zero\_line, x\_below\_zero, }
+\NormalTok{    color}\OperatorTok{=:}\NormalTok{coral, alpha}\OperatorTok{=}\FloatTok{0.5}\NormalTok{)}
+\FunctionTok{scatter!}\NormalTok{(ax, t, x, color}\OperatorTok{=:}\NormalTok{red, markersize}\OperatorTok{=}\FloatTok{5}\NormalTok{)}
+
+\FunctionTok{lines!}\NormalTok{(ax, t, n }\OperatorTok{.{-}} \FunctionTok{mean}\NormalTok{(n), color}\OperatorTok{=:}\NormalTok{blue, linewidth}\OperatorTok{=}\FloatTok{2}\NormalTok{, label}\OperatorTok{=}\StringTok{"Heart Rate"}\NormalTok{)}
+\FunctionTok{display}\NormalTok{(f)}
+\end{Highlighting}
+\end{Shaded}
+
+\phantomsection\label{diff}
+\begin{verbatim}
+GLMakie.Screen(...)
+\end{verbatim}
+\end{column}
+
+\begin{column}{0.5\linewidth}
+\phantomsection\label{rmssd}
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{println}\NormalTok{(}\StringTok{"SDNN: "}\NormalTok{, StatsBase.}\FunctionTok{std}\NormalTok{(x[]))}
+\FunctionTok{println}\NormalTok{(}\StringTok{"RMSSD: "}\NormalTok{, StatsBase.}\FunctionTok{std}\NormalTok{(n))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+SDNN: 28.789234098878005
+RMSSD: 90.31642560848984
+\end{verbatim}
+\end{column}
+\end{columns}
+\end{block}
+
+\begin{block}{Frequency Domain}
+\phantomsection\label{frequency-domain}
+\begin{columns}[T]
+\begin{column}{0.5\linewidth}
+TODO
+\end{column}
+
+\begin{column}{0.5\linewidth}
+\begin{verbatim}
+GLMakie.Screen(...)
+\end{verbatim}
+\end{column}
+\end{columns}
+\end{block}
+
+\begin{block}{Geometric Domain}
+\phantomsection\label{geometric-domain}
+\begin{columns}[T]
+\begin{column}{0.5\linewidth}
+\begin{itemize}
+\tightlist
+\item
+  Poincaré Plot
+
+  \begin{itemize}
+  \tightlist
+  \item
+    SD1: Short-term variability
+  \item
+    SD2: Long-term variability
+  \item
+    SD1/SD2 ratio, area
+  \item
+    cvi
+  \item
+    ccsi
+  \end{itemize}
+\item
+  Histogram Based:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Triangular Index
+  \item
+    Tinn
+  \end{itemize}
+\end{itemize}
+\end{column}
+
+\begin{column}{0.5\linewidth}
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{function} \FunctionTok{getellipsepoints}\NormalTok{(cx, cy, rx, ry, θ)}
+\NormalTok{    t }\OperatorTok{=} \FunctionTok{range}\NormalTok{(}\FloatTok{0}\NormalTok{, }\FloatTok{2}\OperatorTok{*}\ConstantTok{pi}\NormalTok{, length}\OperatorTok{=}\FloatTok{100}\NormalTok{)}
+\NormalTok{    ellipse\_x\_r }\OperatorTok{=}\NormalTok{ @. rx }\OperatorTok{*} \FunctionTok{cos}\NormalTok{(t)}
+\NormalTok{    ellipse\_y\_r }\OperatorTok{=}\NormalTok{ @. ry }\OperatorTok{*} \FunctionTok{sin}\NormalTok{(t)}
+\NormalTok{    R }\OperatorTok{=}\NormalTok{ [}\FunctionTok{cos}\NormalTok{(θ) }\FunctionTok{sin}\NormalTok{(θ); }\FunctionTok{{-}sin}\NormalTok{(θ) }\FunctionTok{cos}\NormalTok{(θ)]}
+\NormalTok{    r\_ellipse }\OperatorTok{=}\NormalTok{ [ellipse\_x\_r ellipse\_y\_r] }\OperatorTok{*}\NormalTok{ R}
+\NormalTok{    x }\OperatorTok{=}\NormalTok{ @. cx }\OperatorTok{+}\NormalTok{ r\_ellipse[}\OperatorTok{:}\NormalTok{,}\FloatTok{1}\NormalTok{]}
+\NormalTok{    y }\OperatorTok{=}\NormalTok{ @. cy }\OperatorTok{+}\NormalTok{ r\_ellipse[}\OperatorTok{:}\NormalTok{,}\FloatTok{2}\NormalTok{]}
+\NormalTok{    (x,y)}
+\KeywordTok{end}
+\NormalTok{x }\OperatorTok{=}\NormalTok{ [data[i] for i }\KeywordTok{in} \FloatTok{1}\OperatorTok{:}\FunctionTok{length}\NormalTok{(data)}\OperatorTok{{-}}\FloatTok{1}\NormalTok{]}
+\NormalTok{y }\OperatorTok{=}\NormalTok{ [data[i}\OperatorTok{+}\FloatTok{1}\NormalTok{] for i }\KeywordTok{in} \FloatTok{1}\OperatorTok{:}\FunctionTok{length}\NormalTok{(data)}\OperatorTok{{-}}\FloatTok{1}\NormalTok{]}
+\NormalTok{sd1 }\OperatorTok{=} \FunctionTok{sqrt}\NormalTok{(StatsBase.}\FunctionTok{var}\NormalTok{((x }\OperatorTok{{-}}\NormalTok{ y) }\OperatorTok{/} \FunctionTok{sqrt}\NormalTok{(}\FloatTok{2}\NormalTok{)))}
+\NormalTok{sd2 }\OperatorTok{=} \FunctionTok{sqrt}\NormalTok{(StatsBase.}\FunctionTok{var}\NormalTok{((x }\OperatorTok{+}\NormalTok{ y) }\OperatorTok{/} \FunctionTok{sqrt}\NormalTok{(}\FloatTok{2}\NormalTok{)))}
+\NormalTok{f }\OperatorTok{=} \FunctionTok{Figure}\NormalTok{(size}\OperatorTok{=}\NormalTok{(}\FloatTok{600}\NormalTok{, }\FloatTok{600}\NormalTok{));}
+\NormalTok{ax }\OperatorTok{=} \FunctionTok{Axis}\NormalTok{(f[}\FloatTok{1}\NormalTok{, }\FloatTok{1}\NormalTok{], }
+\NormalTok{    title}\OperatorTok{=}\StringTok{"Poincaré Plot"}\NormalTok{,}
+\NormalTok{    xlabel}\OperatorTok{=}\StringTok{"RR(n) (ms)"}\NormalTok{,}
+\NormalTok{    ylabel}\OperatorTok{=}\StringTok{"RR(n+1) (ms)"}\NormalTok{)}
+\FunctionTok{scatter!}\NormalTok{(ax, x, y, markersize}\OperatorTok{=}\FloatTok{5}\NormalTok{, label}\OperatorTok{=}\StringTok{"ΔRR[i, i+1]"}\NormalTok{)}
+\NormalTok{cx }\OperatorTok{=} \FunctionTok{mean}\NormalTok{(x)}
+\NormalTok{cy }\OperatorTok{=} \FunctionTok{mean}\NormalTok{(y)}
+\NormalTok{ellipse\_x, ellipse\_y }\OperatorTok{=} \FunctionTok{getellipsepoints}\NormalTok{(cx, cy, sd2, sd1, }\ConstantTok{π}\OperatorTok{/}\FloatTok{4}\NormalTok{)}
+\FunctionTok{lines!}\NormalTok{(ax, ellipse\_x, ellipse\_y, linewidth}\OperatorTok{=}\FloatTok{2}\NormalTok{, label}\OperatorTok{=}\StringTok{"Variance Ellipse"}\NormalTok{, color}\OperatorTok{=:}\NormalTok{coral)}
+\NormalTok{f[}\FloatTok{1}\NormalTok{,}\FloatTok{2}\NormalTok{] }\OperatorTok{=} \FunctionTok{Legend}\NormalTok{(f, ax, }\StringTok{"Poincaré Plot"}\NormalTok{,}
+\NormalTok{    position}\OperatorTok{=:}\NormalTok{bottomright, }
+\NormalTok{    title}\OperatorTok{=}\StringTok{"Poincaré Plot Legend"}\NormalTok{,}
+\NormalTok{    fontsize}\OperatorTok{=}\FloatTok{10}\NormalTok{,}
+\NormalTok{    bgcolor}\OperatorTok{=:}\NormalTok{white,}
+\NormalTok{    framecolor}\OperatorTok{=:}\NormalTok{black)}
+
+\FunctionTok{display}\NormalTok{(f)}
+\end{Highlighting}
+\end{Shaded}
+
+\phantomsection\label{poincare}
+\begin{verbatim}
+GLMakie.Screen(...)
+\end{verbatim}
+\end{column}
+\end{columns}
+\end{block}
+
+\begin{block}{Nonlinear Domain}
+\phantomsection\label{nonlinear-domain}
+\begin{columns}[T]
+\begin{column}{0.5\linewidth}
+\begin{itemize}
+\tightlist
+\item
+  Approximate Entropy (ApEn)
+\item
+  Sample Entropy (SampEn)
+\item
+  Hurst Exponent
+\item
+  Renyi Entropy
+\item
+  Detrended Fluctuation Analysis (α1, α2)
+\end{itemize}
+\end{column}
+
+\begin{column}{0.5\linewidth}
+\end{column}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{scales, fluc }\OperatorTok{=}\NormalTok{ DFA.}\FunctionTok{dfa}\NormalTok{(data, boxmax}\OperatorTok{=}\FloatTok{64}\NormalTok{, boxmin}\OperatorTok{=}\FloatTok{4}\NormalTok{, boxratio}\OperatorTok{=}\FloatTok{2}\NormalTok{, overlap}\OperatorTok{=}\FloatTok{0.0}\NormalTok{)}
+\NormalTok{log\_scales1 }\OperatorTok{=} \FunctionTok{log10}\NormalTok{.(scales)}
+\NormalTok{log\_fluc1 }\OperatorTok{=} \FunctionTok{log10}\NormalTok{.(fluc)}
+\NormalTok{f }\OperatorTok{=} \FunctionTok{Figure}\NormalTok{(size}\OperatorTok{=}\NormalTok{(}\FloatTok{600}\NormalTok{, }\FloatTok{600}\NormalTok{));}
+\NormalTok{ax1 }\OperatorTok{=} \FunctionTok{Axis}\NormalTok{(f[}\FloatTok{1}\NormalTok{, }\FloatTok{1}\NormalTok{], }
+\NormalTok{    title}\OperatorTok{=}\StringTok{"Log{-}scale Fluctuation 4{-}64"}\NormalTok{,}
+\NormalTok{    xlabel}\OperatorTok{=}\StringTok{"log10(Scale)"}\NormalTok{,}
+\NormalTok{    ylabel}\OperatorTok{=}\StringTok{"log10(Fluctuation)"}\NormalTok{,}
+\NormalTok{)}
+\FunctionTok{scatter!}\NormalTok{(ax1, log\_scales1, log\_fluc1, color}\OperatorTok{=:}\NormalTok{blue, markersize}\OperatorTok{=}\FloatTok{5}\NormalTok{)}
+\NormalTok{intercept1, α}\FloatTok{1} \OperatorTok{=}\NormalTok{ DFA.}\FunctionTok{polyfit}\NormalTok{(log\_scales1, log\_fluc1)}
+\NormalTok{x }\OperatorTok{=} \FunctionTok{range}\NormalTok{(}\FunctionTok{minimum}\NormalTok{(log\_scales1), }\FunctionTok{maximum}\NormalTok{(log\_scales1), length}\OperatorTok{=}\FloatTok{100}\NormalTok{)}
+\NormalTok{y }\OperatorTok{=}\NormalTok{ intercept1 }\OperatorTok{.+}\NormalTok{ α}\FloatTok{1} \OperatorTok{.*}\NormalTok{ x}
+\FunctionTok{lines!}\NormalTok{(ax1, x, y, color}\OperatorTok{=:}\NormalTok{red, linewidth}\OperatorTok{=}\FloatTok{1}\NormalTok{, linestyle}\OperatorTok{=:}\NormalTok{dash)}
+\CommentTok{\# display(f)}
+
+\NormalTok{scales, fluc }\OperatorTok{=}\NormalTok{ DFA.}\FunctionTok{dfa}\NormalTok{(data, boxmax}\OperatorTok{=}\FloatTok{16}\NormalTok{, boxmin}\OperatorTok{=}\FloatTok{4}\NormalTok{, boxratio}\OperatorTok{=}\FloatTok{2}\NormalTok{, overlap}\OperatorTok{=}\FloatTok{0.0}\NormalTok{)}
+\NormalTok{log\_scales2 }\OperatorTok{=} \FunctionTok{log10}\NormalTok{.(scales)}
+\NormalTok{log\_fluc2 }\OperatorTok{=} \FunctionTok{log10}\NormalTok{.(fluc)}
+\NormalTok{ax2 }\OperatorTok{=} \FunctionTok{Axis}\NormalTok{(f[}\FloatTok{1}\NormalTok{, }\FloatTok{2}\NormalTok{], }
+\NormalTok{    title}\OperatorTok{=}\StringTok{"Log{-}scale Fluctuation 4{-}16"}\NormalTok{,}
+\NormalTok{    xlabel}\OperatorTok{=}\StringTok{"log10(Scale)"}\NormalTok{,}
+\NormalTok{    ylabel}\OperatorTok{=}\StringTok{"log10(Fluctuation)"}\NormalTok{,}
+\NormalTok{)}
+\FunctionTok{scatter!}\NormalTok{(ax2, }\FunctionTok{log10}\NormalTok{.(scales), }\FunctionTok{log10}\NormalTok{.(fluc), color}\OperatorTok{=:}\NormalTok{blue, markersize}\OperatorTok{=}\FloatTok{5}\NormalTok{)}
+\NormalTok{intercept2, α}\FloatTok{2} \OperatorTok{=}\NormalTok{ DFA.}\FunctionTok{polyfit}\NormalTok{(log\_scales2, log\_fluc2)}
+\NormalTok{x }\OperatorTok{=} \FunctionTok{range}\NormalTok{(}\FunctionTok{minimum}\NormalTok{(log\_scales2), }\FunctionTok{maximum}\NormalTok{(log\_scales2), length}\OperatorTok{=}\FloatTok{100}\NormalTok{)}
+\NormalTok{y }\OperatorTok{=}\NormalTok{ intercept2 }\OperatorTok{.+}\NormalTok{ α}\FloatTok{2} \OperatorTok{.*}\NormalTok{ x}
+\FunctionTok{lines!}\NormalTok{(ax2, x, y, color}\OperatorTok{=:}\NormalTok{red, linewidth}\OperatorTok{=}\FloatTok{1}\NormalTok{, linestyle}\OperatorTok{=:}\NormalTok{dash)}
+\FunctionTok{linkxaxes!}\NormalTok{(ax1, ax2)}
+\FunctionTok{linkyaxes!}\NormalTok{(ax1, ax2)}
+\FunctionTok{display}\NormalTok{(f)}
+\end{Highlighting}
+\end{Shaded}
+
+\phantomsection\label{dfa}
+\begin{verbatim}
+GLMakie.Screen(...)
+\end{verbatim}
+\end{columns}
+\end{block}
+
+\begin{block}{The HeartRateLab}
+\phantomsection\label{the-heartratelab}
+\begin{tabular}{r|cc}
+    & rmssd & vlf\\
+    \hline
+    & Float64 & Float64\\
+    \hline
+    1 & 1842.66 & 1102.69 \\
+\end{tabular}
+\end{block}
+
+\begin{block}{Preprocessing}
+\phantomsection\label{preprocessing}
+\begin{itemize}
+\tightlist
+\item
+  Replace Zeros
+\item
+  Replace biological outliers (200 to 3000 ms) and breaks
+\item
+  Replace statistical outliers (Z(0.025, 0.975))
+\item
+  Ectopic beat detection:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    ACAR
+  \item
+    Karlsson
+  \item
+    Malik
+  \item
+    Kamath
+  \item
+    Custom absolute threshold (0.2)
+  \end{itemize}
+\item
+  Signal interpolation:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Constant
+  \item
+    Linear
+  \item
+    Quadratic
+  \item
+    Cubic
+  \end{itemize}
+\item
+  Windowed analysis:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Sliding window
+  \item
+    Overlapping windows
+  \item
+    Non-overlapping windows
+  \end{itemize}
+\end{itemize}
+\end{block}
