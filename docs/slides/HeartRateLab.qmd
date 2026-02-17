@@ -1197,7 +1197,7 @@ StatsPlots.plot(chain)
 - Flux.jl
 - Variational Autoencoders
 
-![A Variational Autoencoder](img/vae)
+![A Variational Autoencoder](img/vae.png)
 :::
 
 ::: {.column width=50%}
