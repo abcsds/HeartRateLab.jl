@@ -458,4 +458,128 @@ function eval_distributional(
     return DataFrame(results)
 end
 
+"""
+    eval_scalar(real::DataFrame, ensemble::DataFrame; features=nothing) -> DataFrame
+
+Compare scalar statistics (means and errors) between real and ensemble data.
+
+For each feature, computes mean of real observations and ensemble samples,
+then calculates absolute and relative errors.
+
+# Arguments
+- `real::DataFrame`: Real feature observations (one or more rows)
+- `ensemble::DataFrame`: Ensemble feature samples (typically many rows)
+- `features=nothing`: Specific features to compare. If nothing, uses common columns
+
+# Returns
+- `DataFrame`: One row per feature with columns: feature, real_mean, sim_mean, abs_error, rel_error
+
+# Details
+
+**Metrics:**
+- `real_mean`: Mean of real feature observations
+- `sim_mean`: Mean of ensemble feature samples
+- `abs_error`: |real_mean - sim_mean| (absolute difference)
+- `rel_error`: abs_error / (abs(real_mean) + 1e-8) (relative error, epsilon-normalized)
+
+**Interpretation:**
+- Small errors (< 0.05) indicate excellent model fit
+- Medium errors (0.05-0.15) indicate good model fit
+- Large errors (> 0.15) indicate model needs improvement
+
+**Use Cases:**
+- Quick overall quality metric (complement to p-values)
+- Identifying which features are biased
+- Benchmarking against baseline models
+
+# Examples
+
+```julia
+real_windows = windowed_feature_set(data; window_size=300, overlap=150)
+ensemble_features = extract_ensemble_features(ensemble)
+
+errors = eval_scalar(real_windows, ensemble_features)
+
+# Find most biased features
+sort!(errors, :rel_error)
+println(errors[1:5, :])  # Top 5 most biased
+```
+"""
+function eval_scalar(
+    real::DataFrame,
+    ensemble::DataFrame;
+    features=nothing
+)::DataFrame
+
+    # Determine features to compare
+    if features === nothing
+        features = intersect(names(real), names(ensemble))
+    end
+
+    # Handle empty case
+    if isempty(features)
+        return DataFrame(
+            feature=String[],
+            real_mean=Float64[],
+            sim_mean=Float64[],
+            abs_error=Float64[],
+            rel_error=Float64[]
+        )
+    end
+
+    # Compute metrics
+    results = []
+
+    for feature_name in features
+        try
+            # Get values
+            real_vals = real[!, feature_name]
+            ensemble_vals = ensemble[!, feature_name]
+
+            # Filter NaN
+            real_valid = filter(!isnan, real_vals)
+            ensemble_valid = filter(!isnan, ensemble_vals)
+
+            # Skip if insufficient data
+            if isempty(real_valid) || isempty(ensemble_valid)
+                continue
+            end
+
+            # Compute means
+            real_mean = mean(real_valid)
+            sim_mean = mean(ensemble_valid)
+
+            # Compute errors
+            abs_error = abs(real_mean - sim_mean)
+            rel_error = abs_error / (abs(real_mean) + 1e-8)
+
+            # Store result
+            push!(results, (
+                feature = feature_name,
+                real_mean = real_mean,
+                sim_mean = sim_mean,
+                abs_error = abs_error,
+                rel_error = rel_error
+            ))
+
+        catch e
+            # Skip features that fail
+            continue
+        end
+    end
+
+    # Convert to DataFrame
+    if isempty(results)
+        return DataFrame(
+            feature=String[],
+            real_mean=Float64[],
+            sim_mean=Float64[],
+            abs_error=Float64[],
+            rel_error=Float64[]
+        )
+    end
+
+    return DataFrame(results)
+end
+
 end  # Evaluation

@@ -4,6 +4,91 @@ using Test, DataFrames, Random
 # Set working directory to test directory for relative paths
 cd(@__DIR__)
 
+@testset "Evaluation — Scalar Comparison (eval_scalar)" begin
+    # Create test data: real features vs ensemble features
+    Random.seed!(42)
+
+    real_features = DataFrame(
+        mean_ibi = [800.0],
+        rmssd = [40.0],
+        pnn50 = [25.0]
+    )
+
+    ensemble_features = DataFrame(
+        mean_ibi = 800 .+ randn(50) .* 20,
+        rmssd = 40 .+ randn(50) .* 15,
+        pnn50 = 25 .+ randn(50) .* 10
+    )
+
+    @testset "Basic scalar metrics" begin
+        result = eval_scalar(real_features, ensemble_features)
+
+        @test isa(result, DataFrame)
+        @test nrow(result) == 3  # One row per feature
+        @test ncol(result) >= 5  # feature, real_mean, sim_mean, error columns minimum
+
+        # Check required columns
+        @test "feature" in names(result)
+        @test any(contains("mean"), names(result))  # Some mean column
+        @test any(contains("error"), names(result))  # Some error column
+    end
+
+    @testset "Error metrics are valid" begin
+        result = eval_scalar(real_features, ensemble_features)
+
+        # Absolute errors should be non-negative
+        @test all(result.abs_error .>= 0)
+
+        # Relative errors should be 0-1 for normalized features
+        @test all(result.rel_error .>= 0)
+    end
+
+    @testset "Feature selection" begin
+        selected = [:mean_ibi, :rmssd]
+        result = eval_scalar(real_features, ensemble_features; features=selected)
+
+        @test nrow(result) == 2
+        @test all(result.feature .∈ Ref(selected))
+    end
+
+    @testset "Multiple real observations" begin
+        multi_real = DataFrame(
+            feat = [800.0, 810.0, 795.0, 820.0]
+        )
+
+        multi_ensemble = DataFrame(
+            feat = 805 .+ randn(100) .* 25
+        )
+
+        result = eval_scalar(multi_real, multi_ensemble)
+        @test nrow(result) == 1
+        @test "real_mean" in names(result)
+        @test "sim_mean" in names(result)
+    end
+
+    @testset "Output structure" begin
+        result = eval_scalar(real_features, ensemble_features)
+
+        # Should have feature names as strings
+        @test all(isa(f, String) for f in result.feature)
+
+        # All numeric columns should be numeric
+        for col in names(result)
+            if col != "feature"
+                @test all(isa(v, Number) for v in result[!, col])
+            end
+        end
+    end
+
+    @testset "Handles NaN values" begin
+        real_with_nan = DataFrame(feature1 = [1.0], feature2 = [NaN])
+        ensemble_with_nan = DataFrame(feature1 = randn(20), feature2 = fill(NaN, 20))
+
+        result = eval_scalar(real_with_nan, ensemble_with_nan)
+        @test nrow(result) >= 1
+    end
+end
+
 @testset "Evaluation — Distributional Comparison (eval_distributional)" begin
     # Create test data: real features (1 window) vs ensemble features
     Random.seed!(42)
