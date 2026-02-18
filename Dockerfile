@@ -17,6 +17,7 @@ RUN tar -xzf wfdb-10.7.0.tar.gz && rm wfdb-10.7.0.tar.gz
 RUN cd wfdb-10.7.0 && ./configure && make install && cd ..
 
 COPY Project.toml /workdir/
+COPY Manifest.toml /workdir/
 
 # Environment Variable for X11 forwarding
 # ENV DISPLAY=:0
