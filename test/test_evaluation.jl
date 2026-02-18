@@ -4,6 +4,89 @@ using Test, DataFrames, Random
 # Set working directory to test directory for relative paths
 cd(@__DIR__)
 
+@testset "Evaluation — Distance Metrics (eval_distance)" begin
+    # Create test data
+    Random.seed!(42)
+
+    real_features = DataFrame(
+        f1 = [800.0],
+        f2 = [40.0],
+        f3 = [25.0],
+        f4 = [2.5]
+    )
+
+    ensemble_features = DataFrame(
+        f1 = 800 .+ randn(50) .* 20,
+        f2 = 40 .+ randn(50) .* 15,
+        f3 = 25 .+ randn(50) .* 10,
+        f4 = 2.5 .+ randn(50) .* 0.5
+    )
+
+    @testset "Basic Euclidean distance" begin
+        result = eval_distance(real_features, ensemble_features; metric=:euclidean)
+
+        @test isa(result, NamedTuple)
+        @test haskey(result, :distance)
+        @test result.distance >= 0
+    end
+
+    @testset "Different distance metrics" begin
+        for metric in [:euclidean, :mahalanobis]
+            result = eval_distance(real_features, ensemble_features; metric=metric)
+            @test isa(result, NamedTuple)
+            @test result.distance >= 0
+        end
+    end
+
+    @testset "Feature contributions" begin
+        result = eval_distance(real_features, ensemble_features; metric=:euclidean)
+
+        if haskey(result, :feature_contributions)
+            contrib = result.feature_contributions
+            @test isa(contrib, Dict) || isa(contrib, NamedTuple)
+            @test length(contrib) > 0
+        end
+    end
+
+    @testset "Feature selection" begin
+        selected = [:f1, :f2]
+        result = eval_distance(real_features, ensemble_features; metric=:euclidean, features=selected)
+
+        @test result.distance >= 0
+    end
+
+    @testset "Multiple real observations" begin
+        multi_real = DataFrame(
+            f1 = [800.0, 810.0, 795.0],
+            f2 = [40.0, 42.0, 38.0]
+        )
+
+        multi_ensemble = DataFrame(
+            f1 = 805 .+ randn(100) .* 25,
+            f2 = 41 .+ randn(100) .* 15
+        )
+
+        result = eval_distance(multi_real, multi_ensemble; metric=:euclidean)
+        @test result.distance >= 0
+    end
+
+    @testset "Handles NaN values" begin
+        real_with_nan = DataFrame(f1 = [1.0], f2 = [NaN])
+        ensemble_with_nan = DataFrame(f1 = randn(20), f2 = fill(NaN, 20))
+
+        result = eval_distance(real_with_nan, ensemble_with_nan; metric=:euclidean)
+        @test isa(result, NamedTuple)
+    end
+
+    @testset "Distance metrics are interpretable" begin
+        result = eval_distance(real_features, ensemble_features; metric=:euclidean)
+
+        # Distance should be finite and non-negative
+        @test isfinite(result.distance)
+        @test result.distance >= 0
+    end
+end
+
 @testset "Evaluation — Scalar Comparison (eval_scalar)" begin
     # Create test data: real features vs ensemble features
     Random.seed!(42)

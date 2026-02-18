@@ -582,4 +582,171 @@ function eval_scalar(
     return DataFrame(results)
 end
 
+"""
+    eval_distance(real::DataFrame, ensemble::DataFrame; metric=:mahalanobis, features=nothing) -> NamedTuple
+
+Compute feature-space distance between real and ensemble data.
+
+Measures how far apart real observations and ensemble samples are in
+multi-dimensional feature space using different distance metrics.
+
+# Arguments
+- `real::DataFrame`: Real feature observations (one or more rows)
+- `ensemble::DataFrame`: Ensemble feature samples (typically many rows)
+- `metric=:mahalanobis`: Distance metric: `:mahalanobis`, `:euclidean`
+- `features=nothing`: Specific features to use. If nothing, uses common columns
+
+# Returns
+- `NamedTuple`: (distance=Float64, metric=Symbol, feature_contributions=Dict)
+
+# Details
+
+**Distance Metrics:**
+- `:euclidean` — Standard L2 distance: √(Σ(x-y)²)
+  - Simple, interpretable
+  - Sensitive to scale differences
+
+- `:mahalanobis` — Accounts for covariance structure: √((x-y)ᵀΣ⁻¹(x-y))
+  - Accounts for feature correlations
+  - Scale-invariant
+  - More robust
+
+**Feature Contributions:**
+- Each feature's contribution to total distance
+- Identifies which features drive the difference
+- Useful for debugging model misspecification
+
+**Interpretation:**
+- Small distance (0-1) = good model fit
+- Medium distance (1-5) = acceptable fit
+- Large distance (>5) = poor model fit
+- Depends on feature scaling and number of features
+
+# Examples
+
+```julia
+result = eval_distance(real_features, ensemble_features; metric=:mahalanobis)
+
+println("Distance: \$(result.distance)")
+println("Metric: \$(result.metric)")
+sort!(result.feature_contributions, rev=true) |> display  # Top contributors
+```
+"""
+function eval_distance(
+    real::DataFrame,
+    ensemble::DataFrame;
+    metric::Symbol=:mahalanobis,
+    features=nothing
+)::NamedTuple
+
+    # Validate metric
+    if !(metric in [:euclidean, :mahalanobis])
+        throw(ArgumentError("metric must be :euclidean or :mahalanobis, got :$metric"))
+    end
+
+    # Determine features
+    if features === nothing
+        features = intersect(names(real), names(ensemble))
+    end
+
+    # Extract and prepare data
+    real_vals = Matrix(real[:, features])
+    ensemble_vals = Matrix(ensemble[:, features])
+
+    # Filter rows with all NaN
+    real_valid_rows = [any(!isnan, row) for row in eachrow(real_vals)]
+    ensemble_valid_rows = [any(!isnan, row) for row in eachrow(ensemble_vals)]
+
+    real_vals = real_vals[real_valid_rows, :]
+    ensemble_vals = ensemble_vals[ensemble_valid_rows, :]
+
+    if isempty(real_vals) || isempty(ensemble_vals)
+        return (distance=NaN, metric=metric, feature_contributions=Dict())
+    end
+
+    # Replace remaining NaN with column mean
+    for j in 1:size(real_vals, 2)
+        real_col = real_vals[:, j]
+        valid_real = real_col[.!isnan.(real_col)]
+        if !isempty(valid_real)
+            real_mean = mean(valid_real)
+            for i in 1:size(real_vals, 1)
+                if isnan(real_vals[i, j])
+                    real_vals[i, j] = real_mean
+                end
+            end
+        end
+
+        ens_col = ensemble_vals[:, j]
+        valid_ens = ens_col[.!isnan.(ens_col)]
+        if !isempty(valid_ens)
+            ens_mean = mean(valid_ens)
+            for i in 1:size(ensemble_vals, 1)
+                if isnan(ensemble_vals[i, j])
+                    ensemble_vals[i, j] = ens_mean
+                end
+            end
+        end
+    end
+
+    # Compute real mean vector
+    real_mean = vec(mean(real_vals; dims=1))
+
+    # Compute ensemble mean vector
+    ensemble_mean = vec(mean(ensemble_vals; dims=1))
+
+    # Compute difference vector
+    diff = real_mean .- ensemble_mean
+
+    # Compute distance based on metric
+    if metric == :euclidean
+        # Standard Euclidean distance
+        distance = sqrt(sum(diff .^ 2))
+
+        # Feature contributions: squared differences
+        contributions = Dict(
+            features[i] => diff[i]^2
+            for i in 1:length(features)
+        )
+
+    elseif metric == :mahalanobis
+        # Mahalanobis distance
+        try
+            # Compute covariance from ensemble
+            centered = ensemble_vals .- ensemble_mean'
+            cov_matrix = (centered' * centered) / (size(ensemble_vals, 1) - 1)
+
+            # Add small regularization for numerical stability
+            cov_matrix += I(size(cov_matrix, 1)) * 1e-6
+
+            # Compute inverse
+            cov_inv = inv(cov_matrix)
+
+            # Mahalanobis distance
+            distance = sqrt(diff' * cov_inv * diff)[1]
+
+            # Feature contributions: weighted squared differences
+            weighted_diff = cov_inv * diff
+            contributions = Dict(
+                features[i] => (diff[i] * weighted_diff[i])
+                for i in 1:length(features)
+            )
+
+        catch e
+            # If covariance inversion fails, fall back to Euclidean
+            distance = sqrt(sum(diff .^ 2))
+            contributions = Dict(
+                features[i] => diff[i]^2
+                for i in 1:length(features)
+            )
+        end
+    end
+
+    return (
+        distance=Float64(distance),
+        metric=metric,
+        feature_contributions=contributions
+    )
+end
+
 end  # Evaluation
