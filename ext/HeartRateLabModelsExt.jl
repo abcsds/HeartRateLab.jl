@@ -232,11 +232,27 @@ function fit(model::LIF, data::Vector{Float64};
              optimizer::Symbol=:LBFGS,
              max_iter::Int=1000,
              abstol::Float64=1e-6,
+             chains::Int=4,
+             samples::Int=1000,
              rng=Random.default_rng())
 
-    if method != :gradient
-        error("LIF only supports :gradient fitting in this version")
+    if method == :gradient
+        return _fit_lif_gradient(model, data, optimizer, max_iter, abstol, rng)
+    elseif method == :bayesian
+        return _fit_lif_bayesian(model, data, chains, samples, rng)
+    else
+        error("LIF fitting method $method not supported. Use :gradient or :bayesian")
     end
+end
+
+"""
+    _fit_lif_gradient(model, data, optimizer, max_iter, abstol, rng)
+
+Internal function for gradient-based LIF fitting.
+"""
+function _fit_lif_gradient(model::LIF, data::Vector{Float64},
+                          optimizer::Symbol, max_iter::Int, abstol::Float64,
+                          rng=Random.default_rng())
 
     # Get parameter space
     ps = parameter_space(model)
@@ -318,12 +334,162 @@ function fit(model::LIF, data::Vector{Float64};
 
     return ModelFitResult(
         model,
-        method,
+        :gradient,
         best_params,
         nothing,  # No posterior for gradient fitting
         diagnostics,
         data
     )
+end
+
+"""
+    _fit_lif_bayesian(model, data, chains, samples, rng)
+
+Internal function for Bayesian LIF fitting using Turing.jl.
+
+Implements Bayesian inference over LIF parameters using MCMC sampling.
+"""
+function _fit_lif_bayesian(model::LIF, data::Vector{Float64},
+                          chains::Int=4, samples::Int=1000,
+                          rng=Random.default_rng())
+
+    # Get parameter space
+    ps = parameter_space(model)
+
+    # Compute target statistics from real data
+    target_stats = compute_summary_stats(data)
+
+    # Define Turing model for Bayesian inference
+    @model function lif_model(target_stats, data_length)
+        # Prior distributions
+        τ ~ ps.τ.prior
+        I_base ~ ps.I_base.prior
+        threshold ~ ps.threshold.prior
+        noise_amp ~ ps.noise_amp.prior
+
+        # Simulate from parameters
+        params = (τ=τ, I_base=I_base, threshold=threshold, noise_amp=noise_amp)
+        try
+            synthetic = simulate(model, params, data_length)
+            synth_stats = compute_summary_stats(synthetic)
+
+            # Likelihood: normal distribution centered on target stats
+            # Standard deviation controls how closely synthetic stats match
+            sigma = 10.0  # Standard deviation in feature space
+            for i in 1:length(target_stats)
+                target_stats[i] ~ Normal(synth_stats[i], sigma)
+            end
+        catch
+            # If simulation fails, reject the sample
+            Turing.@addlogprob! -Inf
+        end
+    end
+
+    # Sample from posterior
+    mcmc_model = lif_model(target_stats, length(data))
+
+    # Run MCMC with HMC or NUTS sampler
+    try
+        # Use NUTS sampler for efficient sampling
+        sampler = Turing.NUTS()
+        chain = sample(mcmc_model, sampler, (samples, chains); rng=rng, progress=false)
+
+        # Extract posterior samples
+        τ_samples = vec(chain[:τ].values)
+        I_base_samples = vec(chain[:I_base].values)
+        threshold_samples = vec(chain[:threshold].values)
+        noise_amp_samples = vec(chain[:noise_amp].values)
+
+        # Compute posterior mean as best estimate
+        best_params = (
+            τ = mean(τ_samples),
+            I_base = mean(I_base_samples),
+            threshold = mean(threshold_samples),
+            noise_amp = mean(noise_amp_samples)
+        )
+
+        # Create posterior samples structure
+        posterior = Dict(
+            "τ" => τ_samples,
+            "I_base" => I_base_samples,
+            "threshold" => threshold_samples,
+            "noise_amp" => noise_amp_samples
+        )
+
+        # Create diagnostics from MCMC
+        diagnostics = Dict(
+            "method" => "NUTS (Turing.jl)",
+            "chains" => chains,
+            "samples_per_chain" => samples,
+            "total_samples" => length(τ_samples),
+            "rhat_tau" => compute_rhat(τ_samples, chains),
+            "rhat_I_base" => compute_rhat(I_base_samples, chains),
+            "rhat_threshold" => compute_rhat(threshold_samples, chains),
+            "rhat_noise_amp" => compute_rhat(noise_amp_samples, chains)
+        )
+
+        return ModelFitResult(
+            model,
+            :bayesian,
+            best_params,
+            posterior,
+            diagnostics,
+            data
+        )
+
+    catch e
+        # Fallback: if MCMC fails, return empty result
+        @warn "Bayesian fitting failed: $e. Falling back to prior mean."
+
+        prior_mean = (
+            τ = (ps.τ.lower + ps.τ.upper) / 2,
+            I_base = (ps.I_base.lower + ps.I_base.upper) / 2,
+            threshold = (ps.threshold.lower + ps.threshold.upper) / 2,
+            noise_amp = (ps.noise_amp.lower + ps.noise_amp.upper) / 2
+        )
+
+        return ModelFitResult(
+            model,
+            :bayesian,
+            prior_mean,
+            nothing,
+            Dict("error" => "MCMC sampling failed: $e"),
+            data
+        )
+    end
+end
+
+"""
+    compute_rhat(samples::Vector, n_chains::Int)
+
+Compute Gelman-Rubin convergence diagnostic (R-hat) for MCMC samples.
+
+R-hat > 1.05 suggests non-convergence; R-hat ≈ 1.0 indicates convergence.
+"""
+function compute_rhat(samples::Vector, n_chains::Int)
+    n_samples = div(length(samples), n_chains)
+
+    # Compute within-chain variance
+    W = 0.0
+    for chain_idx in 1:n_chains
+        chain_start = (chain_idx - 1) * n_samples + 1
+        chain_end = chain_idx * n_samples
+        chain_samples = samples[chain_start:chain_end]
+        chain_var = var(chain_samples)
+        W += chain_var
+    end
+    W /= n_chains
+
+    # Compute between-chain variance
+    chain_means = [mean(samples[((i-1)*n_samples + 1):(i*n_samples)]) for i in 1:n_chains]
+    overall_mean = mean(samples)
+    B = n_samples * var(chain_means)
+
+    # Compute R-hat
+    var_plus = (W * (n_samples - 1) + B) / n_samples
+    rhat = sqrt(var_plus / W)
+
+    return rhat
 end
 
 """
