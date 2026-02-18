@@ -7,7 +7,8 @@ include("input.jl")
 include("preprocessing.jl")
 include("Frequency.jl")
 include("Features.jl")
-# include("Models/Models.jl")
+include("Models.jl")
+# include("Models/Models.jl")  # TODO: implement model implementations in Phase 3
 include("Visualization/Visualization.jl")
 
 # Test power calculation from periodogram

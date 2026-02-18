@@ -45,11 +45,12 @@ struct HRFeature
     func::Function
     alias::Array{String}
     domains::Array{String}
+    minimum_length::Int
 end
 function HRFeature(
-    name::String, func::Function; alias::Array{String}, domains::Array{String}
+    name::String, func::Function; alias::Array{String}, domains::Array{String}, minimum_length::Int=10
 )
-    return HRFeature(name, func, alias, domains)
+    return HRFeature(name, func, alias, domains, minimum_length)
 end
 feature_registry = Dict{String,HRFeature}()
 representation_registry = Dict{String,HRFeature}()
@@ -77,7 +78,7 @@ macro register(expr::Expr)
             $(f)() = nothing
         end
     end
-    domains, aliases, representation = parse_docstring(docstr)
+    domains, aliases, representation, minimum_length = parse_docstring(docstr)
 
     # Return the memoized function definition
     # with standard documentation conventions
@@ -96,14 +97,14 @@ macro register(expr::Expr)
         end
         if !($representation)
             feature_registry[$(function_name)] = HRFeature(
-                $(function_name), $(f), $(aliases), $(domains)
+                $(function_name), $(f), $(aliases), $(domains), $(minimum_length)
             )
             # for a in $(aliases) # Register aliases
             #     feature_registry[a] = feature_registry[$(function_name)]
             # end
         else
             representation_registry[$(function_name)] = HRFeature(
-                $(function_name), $(f), $(aliases), $(domains)
+                $(function_name), $(f), $(aliases), $(domains), $(minimum_length)
             )
             for a in $(aliases) # Register aliases
                 representation_registry[a] = representation_registry[$(function_name)]
@@ -112,11 +113,12 @@ macro register(expr::Expr)
     end
     return esc(res) # Ensure the expression is evaluated in the correct context
 end
-# Extract "Domains", "Aliases", and "Representation" from the docstring
+# Extract "Domains", "Aliases", "Representation", and "Minimum length" from the docstring
 function parse_docstring(doc)
     domains = []
     aliases = []
     representation = false
+    minimum_length = 10  # Default value
     # Use regular expressions to find the word "Domains" and "Aliases" at the start of a line
     for line in split(doc, '\n')
         # if matches(r"^\s*Domains:", line) # Halucination, don't use this
@@ -134,11 +136,15 @@ function parse_docstring(doc)
             aliases = String.(strip.(split(aliases, ',')))
         elseif occursin("Representation:", line)
             occursin("true", line) ? representation = true : continue
+        elseif occursin("Minimum length:", line)
+            # Extract the minimum length value
+            length_str = strip(split(line, ':')[2])
+            minimum_length = tryparse(Int, length_str) !== nothing ? parse(Int, length_str) : 10
         else
             continue
         end
     end
-    return domains, aliases, representation
+    return domains, aliases, representation, minimum_length
 end
 
 # Level 1 Direct staticstics
@@ -150,6 +156,8 @@ end
         - `n`: An array of Inter-Beat-Intervals in milliseconds.
     Domains: time, statistics
     Aliases: average, mean_rr, mean_nn
+    
+    Minimum length: 10
     """
     return StatsBase.mean(n.data)
 end
@@ -160,6 +168,8 @@ end
     Calculate the standard deviation of the array `n`. This is the `sdnn`.
     Domains: time, statistics
     Aliases: std
+    
+    Minimum length: 10
     """
     return StatsBase.std(n.data)
 end
@@ -171,6 +181,8 @@ sdnn(n::Array{T,1}) where {T<:Real} = function_registry["sdnn"](HRMeasurement(n)
     Calculate the median value of the array `n`.
     Domains: time, statistics
     Aliases: median
+    
+    Minimum length: 10
     """
     return StatsBase.median(n.data)
 end
@@ -181,6 +193,8 @@ end
     Calculate the maximum value of the array `n`. This is the largest Inter-Beat-Interval (IBI) in milliseconds.
     Domains: time, statistics
     Aliases: max, maximum_rr, maximum_nn
+    
+    Minimum length: 10
     """
     return Base.maximum(n.data)
 end
@@ -191,6 +205,8 @@ end
     Calculate the minimum of the array `n`. This is the smallest Inter-Beat-Interval (IBI) in milliseconds.
     Domains: time, statistics
     Aliases: min, minimum_rr, minimum_nn
+    
+    Minimum length: 10
     """
     return Base.minimum(n.data)
 end
@@ -207,6 +223,8 @@ end
     Domains: time
     Aliases: dnn, difference_of_sequential_beats, numeric_differentiation
     Representation: true
+    
+    Minimum length: 10
     """
     # return n[2:end] .- n[1:end-1]
     return Base.diff(n.data)
@@ -223,6 +241,8 @@ end
     Domains: statistics
     Aliases: n, measurement_length, number_of_measurements, measurement_size
     Representation: true
+    
+    Minimum length: 10
     """
     return Base.length(n.data)
 end
@@ -238,6 +258,8 @@ end
     Domains: time
     Aliases: recording_duration
     Representation: true
+    
+    Minimum length: 10
     """
     return Base.cumsum(n.data)[end] # Record duration in ms
 end
@@ -253,6 +275,8 @@ end
         The average heart rate in BPM.
     Domains: time, statistics
     Aliases: mean_hr, average_hr
+    
+    Minimum length: 10
     """
     return ms2bpm(function_registry["mean"](n))
 end
@@ -266,6 +290,8 @@ end
         The standard deviation of the heart rate in BPM.
     Domains: time, statistics
     Aliases: std_hr
+    
+    Minimum length: 10
     """
     return ms2bpm(function_registry["sdnn"](n))
 end
@@ -279,6 +305,8 @@ end
         The maximum heart rate in BPM.
     Domains: time, statistics
     Aliases: max_hr, maximum_hr
+    
+    Minimum length: 10
     """
     return ms2bpm(function_registry["max"](n))
 end
@@ -292,6 +320,8 @@ end
         The minimum heart rate in BPM.
     Domains: time, statistics
     Aliases: min_hr, minimum_hr
+    
+    Minimum length: 10
     """
     return ms2bpm(function_registry["min"](n))
 end
@@ -306,6 +336,8 @@ end
         The standard deviation of the successive differences.
     Domains: time, statistics
     Aliases: sdsd
+    
+    Minimum length: 20
     """
     return function_registry["sdnn"](function_registry["diff"](n))
 end
@@ -319,6 +351,8 @@ end
         The range of the IBIs.
     Domains: time, statistics
     Aliases: range
+    
+    Minimum length: 10
     """
     return function_registry["max"](n) - function_registry["min"](n)
 end
@@ -332,6 +366,8 @@ end
         The RMSSD value.
     Domains: time, statistics
     Aliases: rmssd
+    
+    Minimum length: 20
     """
     return sqrt(sum(function_registry["diff"](n) .^ 2))
 end
@@ -345,6 +381,8 @@ end
         The standard deviation of the average IBIs in 5-minute windows.
     Domains: time, statistics
     Aliases: sdann
+    
+    Minimum length: 50
     """
     return StatsBase.std(
         windowed(
@@ -362,6 +400,8 @@ end
         The proportion of successive differences greater than 50 ms.
     Domains: time, statistics
     Aliases: pnn50
+    
+    Minimum length: 50
     """
     return sum(function_registry["diff"](n) .> 50) / function_registry["length"](n)
 end
@@ -375,6 +415,8 @@ end
         The proportion of successive differences greater than 20 ms.
     Domains: time, statistics
     Aliases: pnn20
+    
+    Minimum length: 50
     """
     return sum(function_registry["diff"](n) .> 20) / function_registry["length"](n)
 end
@@ -388,6 +430,8 @@ end
         The coefficient of variation of the successive differences.
     Domains: time, statistics
     Aliases: cvsd
+    
+    Minimum length: 20
     """
     return function_registry["sdsd"](n) / function_registry["mean"](n)
 end
@@ -403,6 +447,8 @@ end
         The RMSSD value.
     Domains: time, statistics
     Aliases: rRR
+    
+    Minimum length: 10
     """
     n = n.data
     rr = 2 .* function_registry["diff"](n) ./ (n[1:end-1] .+ n[2:end])
@@ -426,6 +472,8 @@ config["freq_method"] ∉ [:lomb_scargle, :welch] &&
     Domains: frequency
     Aliases: periodogram, power_spectrum
     Representation: true
+    
+    Minimum length: 128
     """
     config["freq_method"] ∉ [:lomb_scargle, :welch] && throw(ArgumentError("Unsupported method: $(config["freq_method"])"))
     if config["freq_method"] == :lomb_scargle
@@ -447,6 +495,8 @@ end
     Domains: time
     Aliases: max_time, recording_duration_s
     Representation: true
+    
+    Minimum length: 128
     """
     return function_registry["duration"](n) / 1000 # Record duration in seconds
 end
@@ -460,6 +510,8 @@ end
         The ultra low frequency power.
     Domains: frequency
     Aliases: ultra_low_frequency
+    
+    Minimum length: 128
     """
     if config["freq_method"] == :lomb_scargle
         # @warn "No ultra low frequency in Lomb-Scargle. Returning NaN."
@@ -482,6 +534,8 @@ end
         The very low frequency power.
     Domains: frequency
     Aliases: very_low_frequency
+    
+    Minimum length: 128
     """
     return get_power(function_registry["pgram"](n), 0.003, 0.04)
 end
@@ -495,6 +549,8 @@ end
         The low frequency power.
     Domains: frequency
     Aliases: low_frequency
+    
+    Minimum length: 128
     """
     return get_power(function_registry["pgram"](n), 0.04, 0.15)
 end
@@ -508,6 +564,8 @@ end
         The high frequency power.
     Domains: frequency
     Aliases: high_frequency
+    
+    Minimum length: 128
     """
     return get_power(function_registry["pgram"](n), 0.15, 0.4)
 end
@@ -521,6 +579,8 @@ end
         The total power of the IBIs.
     Domains: frequency
     Aliases: total_power
+    
+    Minimum length: 128
     """
     return get_power(function_registry["pgram"](n), 0.003, 0.4)
 end
@@ -534,6 +594,8 @@ end
         The peak frequency in the low frequency band.
     Domains: frequency
     Aliases: lf_peak
+    
+    Minimum length: 128
     """
     return find_peak(function_registry["pgram"](n), 0.04, 0.15)
 end
@@ -547,6 +609,8 @@ end
         The peak frequency in the high frequency band.
     Domains: frequency
     Aliases: hf_peak
+    
+    Minimum length: 128
     """
     return find_peak(function_registry["pgram"](n), 0.15, 0.4)
 end
@@ -561,6 +625,8 @@ end
         The ratio of low frequency power to high frequency power.
     Domains: frequency
     Aliases: lf_hf_ratio
+    
+    Minimum length: 128
     """
     return function_registry["lf"](n) / function_registry["hf"](n)
 end
@@ -574,6 +640,8 @@ end
         The relative low frequency power.
     Domains: frequency
     Aliases: lf_relative_power
+    
+    Minimum length: 128
     """
     lf = function_registry["lf"](n)
     tp = function_registry["tp"](n)
@@ -589,6 +657,8 @@ end
         The relative high frequency power.
     Domains: frequency
     Aliases: hf_relative_power
+    
+    Minimum length: 128
     """
     hf = function_registry["hf"](n)
     tp = function_registry["tp"](n)
@@ -605,6 +675,8 @@ end
         The low frequency power as a percentage.
     Domains: frequency
     Aliases: lf_%
+    
+    Minimum length: 128
     """
     return function_registry["lf_relative"](n) * 100
 end
@@ -618,6 +690,8 @@ end
         The high frequency power as a percentage.
     Domains: frequency
     Aliases: hf_%
+    
+    Minimum length: 128
     """
     return function_registry["hf_relative"](n) * 100
 end
@@ -633,6 +707,8 @@ end
     Domains: geometric
     Aliases: poincare_x, poincare_x_axis
     Representation: true
+    
+    Minimum length: 20
     """
     return [n.data[i] for i in 1:length(n.data)-1]
 end
@@ -647,6 +723,8 @@ end
     Domains: geometric
     Aliases: poincare_y, poincare_y_axis
     Representation: true
+    
+    Minimum length: 20
     """
     return [n.data[i+1] for i in 1:length(n.data)-1]
 end
@@ -660,6 +738,8 @@ end
         The standard deviation of the points in the Poincare plot along the line perpendicular to the line of identity.
     Domains: geometric
     Aliases: sd1, sd1_width
+    
+    Minimum length: 20
     """
     x = function_registry["px"](n)
     y = function_registry["py"](n)
@@ -675,6 +755,8 @@ end
         The standard deviation of the points in the Poincare plot along the line of identity.
     Domains: geometric
     Aliases: sd2, sd2_length
+    
+    Minimum length: 20
     """
     x = function_registry["px"](n)
     y = function_registry["py"](n)
@@ -690,6 +772,8 @@ end
         The ratio of sd2 to sd1.
     Domains: geometric
     Aliases: sd2_sd1_ratio, csi, cardiac_sympathetic_index
+    
+    Minimum length: 20
     """
     return function_registry["sd2"](n) / function_registry["sd1"](n)
 end
@@ -703,6 +787,8 @@ end
         The area of the Poincare plot defined by sd1 and sd2.
     Domains: geometric
     Aliases: poincare_area
+    
+    Minimum length: 20
     """
     return π * function_registry["sd1"](n) * function_registry["sd2"](n)
 end
@@ -716,6 +802,8 @@ end
         The cardiac vagal index.
     Domains: geometric
     Aliases: cardiac_vagal_index
+    
+    Minimum length: 20
     """
     return log10(function_registry["sd2"](n) * function_registry["sd1"](n) * 16)
 end
@@ -729,6 +817,8 @@ end
         The corrected cardiac sympathetic index.
     Domains: geometric
     Aliases: corrected_cardiac_sympathetic_index, corrected_csi
+    
+    Minimum length: 20
     """
     return (4 * function_registry["sd2"](n) ^ 2) / function_registry["sd1"](n)
 end
@@ -743,6 +833,8 @@ end
     Domains: geometric
     Aliases: histogram
     Representation: true
+    
+    Minimum length: 20
     """
     h = StatsBase.fit(StatsBase.Histogram, n.data, range(300, 2000, step=8))
     return h
@@ -757,6 +849,8 @@ end
         The triangular index.
     Domains: geometric
     Aliases: triangular_index
+    
+    Minimum length: 20
     """
     histogram_weights = function_registry["histogram"](n).weights
     return function_registry["length"](n) / maximum(histogram_weights)
@@ -772,6 +866,8 @@ end
         The TINN index.
     Domains: geometric
     Aliases: triangular_interpolation_of_nn_intervals
+    
+    Minimum length: 20
     """
     h = function_registry["histogram"](n)
     iX = argmax(h.weights)
@@ -832,6 +928,8 @@ end
         The approximate entropy of the IBIs.
     Domains: nonlinear
     Aliases: approximate_entropy, apen
+    
+    Minimum length: 100
     """
     apens, _ = EntropyHub.ApEn(n.data, m=m, r=r)
     return log(apens[end-1] / apens[end])
@@ -848,6 +946,8 @@ end
         The sample entropy of the IBIs.
     Domains: nonlinear
     Aliases: sample_entropy, sampen
+    
+    Minimum length: 100
     """
     sampen1, _ = EntropyHub.SampEn(n.data, m=m, r=r)
     sampen2, _ = EntropyHub.SampEn(n.data, m=+1, r=r)
@@ -863,6 +963,8 @@ end
         The Hurst exponent of the IBIs.
     Domains: nonlinear
     Aliases: hurst_exponent, hurst
+    
+    Minimum length: 100
     """
     τ_range = 1:min(10, length(n.data)) # 
     H, SD = hurst_exponent(n.data, τ_range)
@@ -888,6 +990,8 @@ end
     """
         renyi0(n::HRMeasurement)
     See `renyi(n::HRMeasurement, order::Int=0)`.
+    
+    Minimum length: 100
     """
     return function_registry["renyi"](n, 0)
 end
@@ -895,6 +999,8 @@ end
     """
         renyi1(n::HRMeasurement)
     See `renyi(n::HRMeasurement, order::Int=1)`.
+    
+    Minimum length: 100
     """
     return function_registry["renyi"](n, 1)
 end
@@ -902,6 +1008,8 @@ end
     """
         renyi2(n::HRMeasurement)
     See `renyi(n::HRMeasurement, order::Int=2)`.
+    
+    Minimum length: 100
     """
     return function_registry["renyi"](n, 2)
 end
@@ -916,16 +1024,20 @@ end
     Domains: nonlinear
     Aliases: detrended_fluctuation_analysis, dfa
     Representation: true
+    
+    Minimum length: 100
     """
-    scales, fluc = DFA.dfa(n.data, boxmax=64, boxmin=4, boxratio=2, overlap=0.0)
-    log_scales = log10.(scales)
-    log_fluc = log10.(fluc)
-    intercept, α1 = DFA.polyfit(log_scales, log_fluc) # TODO: Viz
-        
+    # α1: short-scale exponent (small scales, typically 4-16)
     scales, fluc = DFA.dfa(n.data, boxmax=16, boxmin=4, boxratio=2, overlap=0.0)
     log_scales = log10.(scales)
     log_fluc = log10.(fluc)
-    intercept, α2 = DFA.polyfit(log_scales, log_fluc) # TODO: Viz
+    intercept, α1 = DFA.polyfit(log_scales, log_fluc)
+
+    # α2: long-scale exponent (large scales, typically 16-128)
+    scales, fluc = DFA.dfa(n.data, boxmax=64, boxmin=4, boxratio=2, overlap=0.0)
+    log_scales = log10.(scales)
+    log_fluc = log10.(fluc)
+    intercept, α2 = DFA.polyfit(log_scales, log_fluc)
     return α1, α2
 end
 @register function dfa1(n::HRMeasurement)
@@ -939,6 +1051,8 @@ end
     Domains: nonlinear
     Aliases: dfa1, dfa_exponent_1
     Representation: true
+    
+    Minimum length: 100
     """
     return function_registry["dfa"](n)[1]
 end
@@ -952,6 +1066,8 @@ end
         α2
     Domains: nonlinear
     Aliases: dfa2, dfa_exponent_2
+    
+    Minimum length: 100
     """
     return function_registry["dfa"](n)[2]
 end
@@ -987,6 +1103,36 @@ function windowed_feature_set(
     )
     println("Extracted $(length(res)) windows with $(length(features)) features each.")
     return vcat(res...) # Concatenate the windows into a single DataFrame
+end
+
+"""
+    valid_features(n_beats::Int) -> Vector{String}
+
+Return a vector of feature names from the registry that are valid for a signal of `n_beats` inter-beat-intervals.
+
+A feature is valid if its `minimum_length` requirement is ≤ `n_beats`. This is essential for
+model evaluation, as generated synthetic IBI series may be short and cannot support all 44 features.
+
+# Arguments
+- `n_beats::Int`: Number of inter-beat-intervals (signal length)
+
+# Returns
+- `Vector{String}`: Names of features that can be computed for this signal length
+
+# Example
+```julia
+valid_features(50)   # Features valid for 50-beat signals
+valid_features(500)  # Features valid for 500-beat signals
+```
+"""
+function valid_features(n_beats::Int)::Vector{String}
+    valid = String[]
+    for (fname, feature) in feature_registry
+        if feature.minimum_length <= n_beats
+            push!(valid, fname)
+        end
+    end
+    return sort(valid)
 end
 
 end # Features

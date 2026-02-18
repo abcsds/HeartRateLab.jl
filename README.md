@@ -1,4 +1,4 @@
-# HeartRateLab
+# HeartRateLab.jl
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://abcsds.github.io/HeartRateLab.jl/stable/)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://abcsds.github.io/HeartRateLab.jl/dev/)
@@ -6,79 +6,175 @@
 [![Coverage](https://codecov.io/gh/abcsds/HeartRateLab.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/abcsds/HeartRateLab.jl)
 [![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
 
+A comprehensive Julia package for **Heart Rate Variability (HRV) analysis** combining feature extraction, mechanistic modeling, data-driven methods, and interactive visualization.
 
-A Julia package for heart rate analysis based on time series of inter-beat intervals (IBIs).
+## Quick Start
 
-Objective: To provide a comprehensive set of tools for heart rate analysis that leverage the power of julia's high performance computing capabilities, scientific computing libraries, modeling, machine learning, signal processing, and visualization tools.
+Extract 44 HRV features from inter-beat-interval (IBI) time series in 3 lines:
 
-## README driven development
-The following is a list of features that are planned for the package. The list is subject to change as the package evolves.
+```julia
+using HeartRateLab
 
+ibis = read_txt("your_data.txt")  # Load IBI data
+features = extract_feature_set(ibis)  # Compute all 44 HRV features
+```
 
-# Argument
+Fit a mechanistic model and generate synthetic HRV data:
 
-There exist several open source packages that provide heart rate analysis tools. However, most of them are not maintained. The only option we found was the https://github.com/neuropsychology/NeuroKit package, which is a Python package. The only julia package hasen't been updated in 2 years. Our pull prs had no response. Our fork currently provides the best option for heart rate variability analysis in julia. We aim to provide a comprehensive set of tools for heart rate variability analysis that leverage the power of julia's high performance computing capabilities, scientific computing libraries, modeling, machine learning, signal processing, and visualization tools.
+```julia
+using DifferentialEquations
+model = LIF(τ=50, I_base=0.5, threshold=1.0, noise_amp=0.1)
+result = fit(model, ibis; method=:gradient)
+synthetic = simulate(result.model, result.params, n_beats=1000)
+```
 
-This work is the combination of different HRV tools developed along my PhD:
-https://github.com/abcsds/hrv python tools for HRV online biofeedback using bluetooth and HR bands.
-https://github.com/abcsds/VizHRV visualization tools for in-depth online HRV analysis.
-https://github.com/abcsds/HeartRateVariability.jl Maintained fork of LiScI-Lab/HeartRateVariability.jl providing the most comprehensive set of HRV feature extraction tools in julia.
+Visualize HRV analysis results:
+
+```julia
+using GLMakie
+fig = plot_ibi_series(ibis)
+fig_compare = plot_comparison(ibis, synthetic; model_name="LIF")
+display(fig)
+```
+
+## Installation
+
+```julia
+julia> using Pkg
+julia> Pkg.add("HeartRateLab")
+```
+
+For visualization, optionally install:
+```julia
+julia> Pkg.add("GLMakie")  # For interactive plots
+julia> Pkg.add("DifferentialEquations")  # For mechanistic models
+julia> Pkg.add("Turing")  # For Bayesian inference
+```
+
+## Features
+
+- **54 HRV Features** across 9 domains (time, frequency, nonlinear, complexity, entropy)
+- **Input/Output**: Read/write TXT, WFDB, XDF formats
+- **Preprocessing**: Handle outliers, ectopic beats, interpolation
+- **4 Mechanistic Models**: LIF, Van der Pol, Lorenz, DMD
+- **9 Visualization Functions**: Analysis, comparison, and 3D plots
+- **Modular Extensions**: Load only what you need (DifferentialEquations, Turing, GLMakie optional)
+
+## Documentation
+
+- **[API Documentation](https://abcsds.github.io/HeartRateLab.jl/dev/)** - Complete function reference
+- **[User Guide](docs/guide.md)** - Tutorials and common workflows
+- **[Examples](examples/)** - Runnable example scripts
+
+## Key Components
+
+### Feature Extraction (44 Features)
+
+Extract comprehensive HRV metrics across multiple domains:
+
+```julia
+# Extract all 44 features
+features = extract_feature_set(ibis)
+
+# Extract features by domain
+time_features = extract_feature_set(ibis; domains=[:time])
+freq_features = extract_feature_set(ibis; domains=[:frequency])
+nonlinear_features = extract_feature_set(ibis; domains=[:nonlinear])
+```
+
+### Mechanistic Models
+
+Fit and simulate from data-driven HRV models:
+
+```julia
+# Available models:
+# - LIF (Leaky Integrate-and-Fire): stochastic spiking neuron
+# - VanDerPol: nonlinear oscillator with relaxation dynamics
+# - Lorenz: chaotic system with sensitive dependence on initial conditions
+# - DMD: data-driven spectral decomposition
+
+result = fit(LIF(), ibis; method=:gradient)
+synthetic = simulate(result.model, result.params, n_beats=1000)
+```
+
+### Visualization
+
+Create publication-quality HRV analysis plots:
+
+```julia
+plot_ibi_series(ibis)  # Time series with statistics
+plot_poincare(ibis)  # Beat-to-beat scatter plot
+plot_spectrum(ibis)  # Frequency domain with HRV bands
+plot_comparison(real, synthetic)  # Real vs synthetic comparison
+plot_lorenz_3d(ibis)  # Interactive 3D dynamics visualization
+```
+
+## Motivation
+
+While several open-source HRV packages exist (NeuroKit in Python), most Julia options are unmaintained. HeartRateLab provides:
+
+- **Comprehensive**: 54 features across 9 analysis domains
+- **Performant**: Leverages Julia's speed for batch processing
+- **Extensible**: Modular architecture with optional dependencies
+- **Modern**: Interactive GLMakie visualizations and ODE-based models
+- **Research-focused**: Publication-ready analysis and comparison plots
+
+This work builds upon tools developed during PhD research:
+- [hrv](https://github.com/abcsds/hrv): Real-time biofeedback tools
+- [VizHRV](https://github.com/abcsds/VizHRV): Advanced visualization
+- [HeartRateVariability.jl](https://github.com/abcsds/HeartRateVariability.jl): Feature extraction foundation
 
 # Abstract
 Heart Rate Variability (HRV) analysis involves examining variations in heart Inter-Beat-Intervals (IBIs). These variations can be extracted using various features. The devices for measuring and recording IBIs are one of the most economic and widely available form of biosignal acquisition. Additionally, there exist experimental and clinical evidence that HRV features are related to the autonomic nervous system (ANS) and can be used to assess its state, providing a valuable insight into cognitive processes. However, available tools for HRV analysis are mainly focused on feature extraction as a numeric value, often neglect to model and visualize many features, and fail to communicate the underlying processes. In this work, we present a comprehensive set of tools for HRV analysis: The Free and Open Source (FOSS) package HeartRateLab. It leverages the power of julia's high performance computing capabilities, FOSS scientific computing libraries, modeling, machine learning, signal processing, and visualization tools to provide a complete set of features for HRV extraction, models for data-driven HRV analysis, and visualizations. The package is designed to be used in an offline setting, as a feature extraction library, but can also be used in online settings for teaching, communication, or HRV biofeedback.
 
-# Approach
+## Implementation Status
 
+| Component | Status | Details |
+|-----------|--------|---------|
+| **Core Features** | ✅ Complete | 54 HRV features across 9 domains |
+| **Input/Output** | ✅ Complete | TXT, WFDB, XDF formats |
+| **Preprocessing** | ✅ Complete | Outlier removal, interpolation, windowing |
+| **Mechanistic Models** | ✅ Complete | LIF, Van der Pol, Lorenz (ODE-based) |
+| **Spectral Models** | ✅ Complete | DMD (data-driven decomposition) |
+| **Visualizations** | ✅ Complete | 9 analysis and comparison plots |
+| **Bayesian Inference** | ⏳ Planned | Turing.jl integration |
+| **Real-time Streaming** | ⏳ Planned | LSL integration for live HRV |
+| **Deep Learning Models** | ⏳ Planned | Neural ODE, VAE (Flux.jl) |
 
-### Features
-- Input:
-    - [x] Read and write IBI data from txt
-    - [x] Read and write IBI data from WFDB
-    - [x] Read XDF files
-- Preprocessing:
-    - [x] Replace zeros with NaNs
-    - [x] Replace biological implausible values with NaNs
-    - [x] Replace statistical outliers with NaNs
-    - [x] Replace ectopic beats
-    - [x] Strip extremes
-    - [x] Interpolate NaNs
-    - [x] Interpalate  methods: constant, linear, quadratic, cubic, spline, pchip, akima, hermite, lagrange, fourier, poly
-    - [x] windowed analysis
-- Features:
-    - Registry of features
-    - Feature type
-    - Feature alias
-    - Feature sets: Time domain, Frequency domain, Non-linear dynamics, Complexity, Entropy, Dynamics, Geometric, Fractal, Multiscale
-    - Call dependencies?
-    - Parallel call of features
-    - Signal length-based feature selection
-- Modeling:
-    - Leaky integrate-and-fire model: Büzás, A., Horváth, T., & Dér, A. (2022). A Novel Approach in Heart-Rate-Variability Analysis Based on Modified Poincaré Plots. IEEE Access, 10, 36606–36615. IEEE Access. https://doi.org/10.1109/ACCESS.2022.3162234
-    - Van der Pol oscillator: Lopez-Chamorro, F. M., Arciniegas-Mejia, A. F., Imbajoa-Ruiz, D. E., Rosero-Montalvo, P. D., García, P., Castro-Ospina, A. E., Acosta, A., & Peluffo-Ordóñez, D. H. (2018). Cardiac Pulse Modeling Using a Modified van der Pol Oscillator and Genetic Algorithms. In I. Rojas & F. Ortuño (Eds.), Bioinformatics and Biomedical Engineering (pp. 96–106). Springer International Publishing. https://doi.org/10.1007/978-3-319-78723-7_8
-    - Lorenz system: Esperer, H. D., Esperer, C., & Cohen, R. J. (2008). Cardiac Arrhythmias Imprint Specific Signatures on Lorenz Plots. Annals of Noninvasive Electrocardiology, 13(1), 44–60. https://doi.org/10.1111/j.1542-474X.2007.00200.x
-    - Dynamic Mode Decomposition. Yeh, J.-R., Sun, W.-Z., Shieh, J.-S., & Huang, N. E. (2010). Intrinsic Mode Analysis of Human Heartbeat Time Series. Annals of Biomedical Engineering, 38(4), 1337–1344. https://doi.org/10.1007/s10439-010-9939-z
-    - Variational Autoencoder for Ectopic beat detection: yo merengues (NN for Koopman eigenfunctions: https://www.youtube.com/watch?v=JJaxltAN9Ug)
-    - Statistical estimation of model parameters: también merengues
-    - Populational hierarchical models: tambor
-- Visualization:
-    - Interactive GLMakie visualizations:
-        - NN-time series
-        - ΔNN-time series
-        - Feature time series
-        - Feature distributions
-        - Poincare plot
-        - Frequency domain
-        - LIF phase space given parameters
-        - VDP phase space given parameters
-        - Lorenz plot given parameters
+## Contributing
 
-# Expected outcomes
+Contributions are welcome! To get started:
 
-- An offline HRV analysis tool for fast feature extraction.
-- Documented sets of features for HRV analysis.
-- Visualizations for HRV analysis.
-- A set of models for data-driven HRV analysis.
-- *A set of tools for (online) HRV biofeedback.
+1. Fork and clone the repository
+2. Create a development environment: `julia --project`
+3. Run tests: `using Pkg; Pkg.test()`
+4. Make your changes in a feature branch
+5. Submit a pull request
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+## Citation
+
+If you use HeartRateLab in your research, please cite:
+
+```bibtex
+@software{barradas2024heartrateLab,
+  author = {Barradas, Alberto},
+  title = {HeartRateLab.jl: Comprehensive Heart Rate Variability Analysis},
+  year = {2024},
+  url = {https://github.com/abcsds/HeartRateLab.jl}
+}
+```
+
+## References
+
+Key papers implemented in this package:
+
+- **Büzás et al. (2022)**: LIF model for HRV analysis
+- **Lopez-Chamorro et al. (2018)**: Van der Pol oscillator modeling
+- **Esperer et al. (2008)**: Lorenz plot analysis
+- **Malik et al. (1996)**: HRV standards and frequency domains
+- **Poincaré plot analysis**: Guzik et al., Brennan et al.
 
 ### Reproducibility
 A Dockerfile and a flake.nix are provided to reproduce the development environment and workflow:
