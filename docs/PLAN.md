@@ -18,45 +18,44 @@ HeartRateLab.jl aims to be the most comprehensive open-source HRV analysis packa
 
 ---
 
-## 2. Current State (February 2026)
+## 2. Current State (February 2026) — UPDATED
 
-### What's Done
+### ✅ What's Done
 
-| Module | Status | Lines | Details |
-|--------|--------|-------|---------|
-| **Input** | Complete | 63 | `read_xdf`, `read_txt`, `read_wfdb` — 3 formats |
-| **Preprocessing** | Complete | 266 | 10 functions: outlier removal (4 methods), interpolation (4 methods), windowing |
-| **Features** | Complete | 992 | 44 features across 6 domains via `@register` macro system |
-| **Frequency** | Complete | 91 | Welch + Lomb-Scargle periodograms, band power, peak finding |
-| **CI/CD** | Complete | 117 | GitHub Actions, WFDB setup, Codecov |
-| **Tests** | Complete | 303 | Input, preprocessing, features, frequency — with baseline CSVs |
-| **Reproducibility** | Complete | — | Dockerfile + flake.nix |
+| Module | Status | Details |
+|--------|--------|---------|
+| **Input** | ✅ Complete | `read_xdf`, `read_txt`, `read_wfdb` — 3 formats |
+| **Preprocessing** | ✅ Complete | 10 functions: outlier removal, interpolation, windowing |
+| **Features** | ✅ Complete | 44 features across 6 domains; `minimum_length` per feature; `valid_features(n)` selector |
+| **Frequency** | ✅ Complete | Welch + Lomb-Scargle periodograms, band power, peak finding |
+| **Model Interface** | ✅ Complete | `AbstractHRVModel`, `ModelFitResult` structs defined |
+| **LIF Model** | ✅ Complete | `simulate()`, `fit(:bayesian)` via Turing.jl (Task #14), `fit(:gradient)` via Optim.jl |
+| **VanDerPol Model** | ✅ Complete | `simulate()`, `parameter_space()` |
+| **Lorenz Model** | ✅ Complete | `simulate()` with chaotic IBI generation |
+| **DMD Model** | ✅ Complete | `fit()` for decomposition, `simulate()` for reconstruction |
+| **Package Extensions** | ✅ Complete | Project.toml configured with 4 extensions (Models, Visualization, Deep, LSL) |
+| **Bayesian Fitting** | ✅ Complete | Turing.jl integration: MCMC sampling, R-hat diagnostics, posterior distributions |
+| **Model Tests** | ✅ Complete | 21 test cases covering all models and fitting methods |
+| **Test Suite** | ✅ Complete | Split into 7 independent test files (input, preprocessing, features, frequency, models, evaluation, datasets, visualization) |
+| **Documentation** | ✅ Complete | API docs (getting_started, features, models, visualization), 5 tutorials, 414 lines |
+| **Reproducibility** | ✅ Complete | Dockerfile, flake.nix configured |
 
-### What's Partially Done
+### ⚠️ What's Partially Done
 
-| Module | Status | Lines | Details |
-|--------|--------|-------|---------|
-| **Visualization** | Scripts exist, not modular | ~900 | 5 GLMakie+LSL scripts with global state; not reusable functions |
-| **Models/LIF** | Simulation works, inference skeleton | 153 | Uses old `HeartRateVariability` package; Turing code untested |
-| **Models/Neural ODE** | Demo only | 64 | Flux+DiffEqFlux; synthetic sine data; not connected to HRV |
-| **Models/Van der Pol** | Interactive viz works | 41 | GLMakie sliders; standalone script; no fitting |
-| **Documentation** | Auto-generated only | — | Documenter.jl skeleton exists; no written content |
-| **Examples** | Macro demos only | 5 files | Show feature registry; no end-to-end workflows |
+| Module | Status | Details |
+|--------|--------|---------|
+| **Visualization Extension** | ⚠️ Framework only | GLMakie extension exists but plot functions not implemented |
+| **Van der Pol Fitting** | ⚠️ Not done | Has `simulate()`, but no `fit()` method |
 
-### What's Not Started
+### ❌ What's Not Started
 
-| Item | Notes |
-|------|-------|
-| **Models/VAE** | Empty file. Planned for ectopic beat detection via Koopman eigenfunctions |
-| **Lorenz oscillator** | As a *generative model* (ODE system with σ, ρ, β). Note: Esperer 2008 paper uses Lorenz *plots* (visualization), not the oscillator — both are wanted |
-| **Dynamic Mode Decomposition** | As a predictive/generative model. Note: Yeh 2010 actually uses EMD (not DMD) — the README citation is a mismatch; DMD is included as an independent choice |
-| **Evaluation pipeline** | fit → simulate ensemble → extract features → statistical tests |
-| **Dataset infrastructure** | URL-based PhysioNet loading; no stored data in codebase |
-| **Model-comparison visualizations** | Radar, violin, heatmap, pairplots, Poincaré overlays |
-| **Signal length-based feature selection** | Needed before model evaluation can work |
-| **Package extensions** | Models and Visualization not yet made optional |
-| **API documentation** | Docstrings exist but no written guides or tutorials |
-| **Package registration** | Not registered in Julia General registry |
+| Item | Priority | Notes |
+|------|----------|-------|
+| **Evaluation Pipeline** | 🔴 BLOCKING | General-purpose feature comparison framework (see Section 3.2 revised) |
+| **Dataset Infrastructure** | 🟡 HIGH | `load_physionet()`, `load_nsrdb()`, `load_mitbih()` |
+| **Visualization Functions** | 🟡 HIGH | `plot_radar()`, `plot_feature_violins()`, `plot_comparison()`, `plot_model_heatmap()`, `plot_correlations()` |
+| **Neural ODE/VAE** | 🟢 LOW | Deep learning models, deferred post-core |
+| **Package Registration** | 🟡 HIGH | Version should be 0.1.0 (not 1.0.0); needs LICENSE, CITATION.bib |
 
 ### Test Failures (as of February 2026)
 
@@ -130,47 +129,166 @@ The `fit()` function dispatches on `method` kwarg. Each model defines which meth
 | **Data-driven / generative** | Neural ODE VAE | Learned from data; no parameter prior; gradient fitting only |
 | **Special-purpose** | VAE for ectopic detection | Not a generative HRV model; different interface (classifier, not simulator) |
 
-### 3.2 Evaluation Pipeline
+### 3.2 Evaluation Pipeline — UNIFIED FRAMEWORK
 
-Composable functions — user chains them. No pipeline object.
+**Key Design Principle:** The pipeline is **data-agnostic**. Model-generated synthetic timeseries are treated identically to real data and public datasets. This enables unified comparison of:
+- Real data vs. synthetic model outputs
+- Multiple models against each other
+- Real data vs. public benchmarks (NSRDB, MIT-BIH)
+
+**Three Data Input Modes:**
+
+All modes ultimately produce **feature distributions** that can be compared using the same metrics.
+
+#### Mode 1: Continuous Timeseries
+Input: One continuous IBI series (real or synthetic)
+- From `simulate(model, params, n_beats)` — model output
+- From `read_txt()`, `read_wfdb()` — real data
+- From `load_nsrdb()`, `load_mitbih()` — public datasets
+
+Output: **Single feature point** (descriptive statistics of the entire series)
 
 ```julia
-# Step 1: generate ensemble of synthetic IBI series from a fitted model
-ensemble = simulate_ensemble(model, fit_result.params, n_beats; n_sim=100)
-# Returns: Vector{Vector{Float64}} — n_sim synthetic series each of length ~n_beats
-
-# Step 2: extract features from ensemble (parallel, using valid_features filter)
-ensemble_features = extract_ensemble_features(ensemble; features=valid_features(n_beats))
-# Returns: DataFrame of (n_sim rows × n_features cols)
-
-# Step 3: compare against real data's windowed feature distribution
-real_features = windowed_feature_set(data; window_size=n_beats, ...)
-
-# Three composable evaluation metrics:
-eval_distributional(real_features, ensemble_features; test=:ks)
-# → DataFrame: feature × {statistic, p_value, effect_size}
-
-eval_scalar(real_features, ensemble_features)
-# → DataFrame: feature × {real_mean, sim_mean, relative_error, within_ci}
-
-eval_distance(real_features, ensemble_features; metric=:mahalanobis)
-# → NamedTuple: {distance, feature_contributions}
+data = read_txt("subject.txt")  # or simulate(...) or load_nsrdb(...)
+features = extract_feature_set(data)  # → Dict with 44 features
+# This is ONE sample in feature space
 ```
 
-### 3.3 Signal Length-Based Feature Selection (BLOCKING)
-
-Required before model evaluation can work. Each feature in the registry needs a `minimum_length` annotation:
+#### Mode 2: Time Windows (Sliding Window)
+Input: One continuous IBI series → divide into overlapping windows
+Output: **Distribution of feature vectors** (one feature set per window)
 
 ```julia
-# In @register macro — new field:
+data = read_txt("subject.txt")
+window_features = windowed_feature_set(data; window_size=300, overlap=150)
+# → DataFrame: (n_windows rows × 44 features cols)
+# Each row is one window's feature set
+# This is a MULTIVARIATE DISTRIBUTION (or empirical CDF) in 44D feature space
+```
+
+#### Mode 3: Sampled Windows (Ensemble)
+Input: Either multiple independent samples or synthetic ensemble
+Output: **Empirical distribution** (one feature set per sample)
+
+**For synthetic models (ensemble of simulations):**
+```julia
+model = LIF()
+result = fit(model, data; method=:bayesian)
+ensemble = simulate_ensemble(model, result.params, n_beats; n_sim=100)
+# ensemble = Vector{Vector{Float64}} with 100 independent IBI series
+ensemble_features = extract_ensemble_features(ensemble)
+# → DataFrame: (100 rows × 44 features cols)
+# Each row is one synthetic series' feature set
+```
+
+**For real data (multiple subjects/recordings):**
+```julia
+# Load multiple subjects' recordings
+subjects = [load_nsrdb("16265"), load_nsrdb("16273"), load_nsrdb("16786")]
+all_features = [extract_feature_set(subj) for subj in subjects]
+# → Vector{Dict} with one feature dict per subject
+# Convert to DataFrame for consistency
+subj_features = reduce(vcat, [DataFrame(f) for f in all_features])
+```
+
+---
+
+**Composable Evaluation Functions:**
+
+All comparison functions take **feature DataFrames** (n_samples × n_features) as input. The functions don't care whether samples come from:
+- Synthetic ensemble (Mode 3)
+- Time windows (Mode 2)
+- Multiple subjects (Mode 3)
+
+```julia
+# Unified comparison signature for all modes:
+eval_distributional(real_features::DataFrame, model_features::DataFrame; test=:ks, features=nothing)
+# → DataFrame: (n_features rows) × {statistic, p_value, effect_size, test_name}
+# Tests: :ks (Kolmogorov-Smirnov), :mw (Mann-Whitney U), :ad (Anderson-Darling)
+
+eval_scalar(real_features::DataFrame, model_features::DataFrame; features=nothing)
+# → DataFrame: (n_features rows) × {real_mean, sim_mean, abs_error, rel_error, pct_difference}
+
+eval_distance(real_features::DataFrame, model_features::DataFrame; metric=:mahalanobis, features=nothing)
+# → NamedTuple: (distance=Float64, feature_contributions=Dict{String, Float64})
+# Metrics: :mahalanobis, :euclidean, :bhattacharyya
+```
+
+**Example Workflows:**
+
+*Workflow A: Continuous data vs. Model*
+```julia
+# Real data
+real_data = read_txt("patient.txt")
+real_features = extract_feature_set(real_data)
+real_df = DataFrame([real_features])  # 1 row
+
+# Model
+lif = LIF()
+fit_result = fit(lif, real_data; method=:bayesian)
+ensemble = simulate_ensemble(lif, fit_result.params, length(real_data); n_sim=100)
+model_features = extract_ensemble_features(ensemble)  # 100 rows
+
+# Compare
+eval_distributional(vcat(real_df, real_df, real_df),  # Repeat real for comparison
+                   model_features; test=:ks)
+```
+
+*Workflow B: Windowed analysis*
+```julia
+# Real data (windowed)
+real_data = read_txt("patient.txt")
+real_windows = windowed_feature_set(real_data; window_size=300, overlap=150)
+
+# Model ensemble (no windowing needed for synthetic)
+lif = LIF()
+fit_result = fit(lif, real_data; method=:bayesian)
+ensemble = simulate_ensemble(lif, fit_result.params, length(real_data); n_sim=100)
+model_features = extract_ensemble_features(ensemble)
+
+# Compare: Each real window vs. the ensemble distribution
+results = eval_distributional(real_windows, model_features)
+```
+
+*Workflow C: Dataset benchmarking*
+```julia
+# Public dataset
+nsrdb_data = load_nsrdb("16265")  # One healthy subject
+
+# Fit model to external data (or use pre-fit model)
+lif = LIF()
+fit_result = fit(lif, some_training_data)
+
+# Evaluate: Does model reproduce NSRDB subject's statistics?
+benchmark_features = extract_feature_set(nsrdb_data)
+benchmark_df = DataFrame([benchmark_features])
+
+ensemble = simulate_ensemble(lif, fit_result.params, length(nsrdb_data); n_sim=100)
+model_features = extract_ensemble_features(ensemble)
+
+comparison = eval_scalar(benchmark_df, model_features)
+```
+
+### 3.3 Signal Length-Based Feature Selection (✅ DONE)
+
+✅ **Already implemented.** Each feature has a `minimum_length` annotation (Features.jl:48):
+
+```julia
+# In @register macro — already integrated:
 @register "dfa" [] [:nonlinear] minimum_length=500 """..."""
 
-# New public function:
+# Public function exists (Features.jl:1128):
 valid_features(n_beats::Int) -> Vector{String}
 # Returns features from the registry whose minimum_length ≤ n_beats
 ```
 
-This is **blocking** because: generated series from short model simulations may not support all 44 features, and calling invalid features silently produces garbage values.
+**Usage in evaluation pipeline:**
+```julia
+# When extracting features from ensemble of fixed-length synthetics:
+n_beats = 500
+valid_set = valid_features(n_beats)  # Filter to valid features
+features = extract_feature_set(data; features=valid_set)
+```
 
 ### 3.4 Dataset Infrastructure & Scientific Benchmarking
 
@@ -354,251 +472,210 @@ HeartRateLab (core)
 
 ---
 
-## 6. Required Actions
+## 6. Required Actions — REVISED (Based on Actual Progress)
 
-### Phase 1: Stabilize (fix what's broken)
+### ✅ Phase 1-2: COMPLETE
+- ✅ Test suite split into 7 independent files
+- ✅ Package extensions configured (Project.toml, ext/ directory)
+- ✅ `AbstractHRVModel` and `ModelFitResult` defined
+- ✅ `minimum_length` annotations on all features
+- ✅ `valid_features(n)` function implemented
 
-1. **Split test suite** — Refactor `runtests.jl` into independent test files (see `WORKFLOW.md`). Gate WFDB tests on `ann2rr`, network tests on env var, visualization on `DISPLAY`.
-2. **Fix false test failures** — Switch feature baseline comparisons from `isequal` to `isapprox(rtol=1e-10)` (currently 2 false failures from floating-point precision).
-3. **Fix test environment** — Resolve remaining test errors. WFDB tests skip gracefully when `ann2rr` not on PATH.
-4. **Fix known bugs** — DFA scales (`Features.jl:920`), `find_peak` indexing (`Frequency.jl:88`).
-5. **Fix reproducibility** — Dockerfile: copy `Manifest.toml` (DFA is unregistered). Nix: add Docker fallback to `test` app.
-6. **Clean uncommitted state** — `Input_bkp.jl` → move to separate branch or delete. Commit `Models/`.
-7. **Correct README citation** — DMD entry cites Yeh 2010 (EMD paper). Replace with accurate citation or note DMD as independent.
-8. **Update dependencies** — `Pkg.update()`, fix compat bounds in `Project.toml`.
+### ✅ Phase 3a: Models — COMPLETE
+- ✅ LIF: `simulate()`, `fit(:bayesian)` via Turing.jl, `fit(:gradient)` via Optim.jl
+- ✅ Van der Pol: `simulate()`, `parameter_space()` (fit not yet implemented)
+- ✅ Lorenz: `simulate()` with chaotic dynamics
+- ✅ DMD: `fit()` for decomposition, `simulate()` for reconstruction
+- ✅ Bayesian fitting (Task #14): Full MCMC integration with diagnostics
 
-### Phase 2: Foundation for Models (structural, before any model code)
+### 🔴 Phase 3b: Evaluation Pipeline — BLOCKING (Next priority)
 
-6. **Implement `minimum_length` annotations** — Add to each `@register` call in `Features.jl`. This unblocks model evaluation.
-7. **Implement `valid_features(n::Int)`** — Returns subset of registry valid for a signal of `n` beats.
-8. **Design package extension structure** — Create `ext/` directory, split `Project.toml` into core + weakdeps. At minimum: `HeartRateLabModelsExt` (DifferentialEquations, Turing, Optim, BlackBoxOptim) and `HeartRateLabVisualizationExt` (GLMakie).
-9. **Define `AbstractHRVModel` and `ModelFitResult`** — Core types, can live in main package (just type definitions, no heavy deps).
+1. **Implement core evaluation functions:**
+   - `simulate_ensemble(model, params, n_beats; n_sim=100)` → Vector{Vector{Float64}}
+   - `extract_ensemble_features(ensemble; features=nothing)` → DataFrame
+   - `eval_distributional(real_df, model_df; test=:ks)` → DataFrame with p-values
+   - `eval_scalar(real_df, model_df)` → DataFrame with mean/error metrics
+   - `eval_distance(real_df, model_df; metric=:mahalanobis)` → NamedTuple with distance + contributions
 
-### Phase 3: Models
+2. **Implement helper for windowed analysis:**
+   - `windowed_feature_set(data; window_size, overlap)` → DataFrame (one feature set per window)
 
-10. **Refactor LIF** — Convert to `AbstractHRVModel`. Remove globals. Fix `HeartRateVariability` → `HeartRateLab`. Implement `simulate(LIF(), params, n_beats)`. Fix Turing inference.
-11. **Refactor Van der Pol** — Convert to `AbstractHRVModel`. Implement `simulate()`. Add fitting via Optim.jl or BlackBoxOptim.jl.
-12. **Implement Lorenz oscillator** — ODE system (σ, ρ, β). `simulate()` extracts IBI-like inter-threshold-crossing intervals from chaotic attractor trajectory.
-13. **Implement DMD** — Fit = decompose IBI series into DMD modes. Simulate = reconstruct/propagate from modes. Wraps an existing Julia DMD package if available.
-14. **Implement evaluation pipeline** — `simulate_ensemble`, `extract_ensemble_features`, `eval_distributional`, `eval_scalar`, `eval_distance`.
-15. **Implement dataset infrastructure** — `load_physionet`, `load_nsrdb`, `load_mitbih`. Network tests tagged `:network`, skipped offline.
-16. **Neural ODE** — Connect to real HRV data; move to `HeartRateLabDeepExt`.
-17. **VAE for ectopic detection** — Separate interface; move to `HeartRateLabDeepExt`.
-18. **Add model tests** — Unit tests per model: `simulate()` produces valid IBIs (positive, plausible range), `fit()` converges on synthetic data.
+3. **Update test_evaluation.jl with comprehensive tests:**
+   - Mode 1: Continuous data comparison
+   - Mode 2: Windowed analysis comparison
+   - Mode 3: Ensemble/sampled comparison
 
-### Phase 4: Visualization
+### 🟡 Phase 3c: Dataset Infrastructure — HIGH PRIORITY
 
-19. **Create `HeartRateLabVisualizationExt`** — Move GLMakie code to extension. Existing scripts become its initial content.
-20. **Refactor existing scripts** — Remove global state from `default.jl` and siblings. Convert to functions in `Visualization.online`.
-21. **Implement offline comparison plots** — `plot_radar`, `plot_feature_violins`, `plot_comparison`, `plot_model_heatmap`, `plot_correlations`.
-22. **Add Lorenz 3D scatter (Lorenz plot)** — IBI[n] vs IBI[n+1] vs IBI[n+2] as a visualization of any IBI series in `Visualization.offline`.
-23. **Add model phase-space plots** — LIF: V(t) trajectory with spike resets. VdP/Lorenz: phase portrait.
+4. **Implement dataset loaders:**
+   - `load_physionet(url; annotator="atr", preprocessed=true)` → Vector{Float64}
+   - `load_nsrdb(record::String)` → Vector{Float64}
+   - `load_mitbih(record::String)` → Vector{Float64}
 
-### Phase 5: Documentation and Publication
+5. **Update test_datasets.jl:**
+   - Tests gated by `ENV["HEARTRATE_NETWORK_TESTS"] == "true"`
+   - Verify loading, preprocessing, feature extraction works
 
-24. **Write API docs** — One page per module: Input, Preprocessing, Features, Frequency, Models, Evaluation, Visualization.
-25. **Write tutorials** — End-to-end: (a) offline feature extraction, (b) windowed analysis, (c) model fitting and evaluation, (d) multi-dataset comparison.
-26. **Create example notebooks** — Pluto or Jupyter, one per tutorial.
-27. **Update README** — Current state, installation, quick-start usage.
-28. **Deploy docs** — Uncomment CI docs workflow. Deploy to GitHub Pages.
-29. **Register package** — Version to 0.1.0. Register via JuliaRegistrator. Add LICENSE, CITATION.bib.
-30. **JOSS paper** — (Optional) Manuscript describing the package for Journal of Open Source Software.
+### 🟡 Phase 4: Visualization — HIGH PRIORITY (can be parallel)
 
----
+6. **Implement visualization functions in HeartRateLabVisualizationExt:**
+   - `plot_radar(datasets::Dict; features=nothing)` — Spider chart of z-scores
+   - `plot_feature_violins(real::DataFrame, ensembles::Dict; features=nothing)` — Violin distributions
+   - `plot_comparison(real::Vector, synthetics::Dict)` — IBI time series + Poincaré overlay
+   - `plot_model_heatmap(results::DataFrame)` — Model × feature reproduction quality
+   - `plot_correlations(feature_sets::Dict; features=nothing)` — Pairplot/correlation matrix
 
-## 7. Proposed Timeline
+7. **Additional visualization (bonus):**
+   - Lorenz 3D scatter: IBI[n] vs IBI[n+1] vs IBI[n+2]
+   - Model phase-space plots (LIF V(t), VdP/Lorenz portraits)
 
-### Sprint 1 — Stabilize (Week 1-2)
-- Split runtests.jl into independent test files (WORKFLOW.md)
-- Fix 2 false failures (isequal → isapprox) and gate WFDB/network/display tests
-- Fix DFA scales, find_peak bugs
-- Fix Dockerfile (copy Manifest.toml) and nix fallback
-- Correct README DMD citation
-- Clean uncommitted files, commit Models/
-- Update deps
+### 🟢 Phase 5: Publication — AFTER core work
 
-### Sprint 2 — Foundation (Week 2-3)
-- `minimum_length` annotations + `valid_features()`
-- `AbstractHRVModel` + `ModelFitResult` types
-- Package extension skeleton (`ext/` directory, `Project.toml` weakdeps)
+8. **Housekeeping (pre-publication):**
+   - Fix version: 1.0.0 → 0.1.0 in Project.toml
+   - Add LICENSE (MIT)
+   - Add CITATION.bib
+   - Fix README: Correct DMD citation (or remove Yeh 2010 reference)
 
-### Sprint 3 — ODE Models (Week 3-5)
-- LIF refactored + Turing fitting working
-- Van der Pol refactored + Optim/BlackBoxOptim fitting
-- Lorenz oscillator implemented
-- DMD implemented
-- Evaluation pipeline (`simulate_ensemble`, `eval_*` functions)
-- Model tests
+9. **Final steps:**
+   - Register in Julia General registry (JuliaRegistrator)
+   - Deploy documentation to GitHub Pages
+   - (Optional) Submit to JOSS
 
-### Sprint 4 — Datasets + Evaluation (Week 5-6)
-- `load_physionet`, `load_nsrdb`, `load_mitbih`
-- End-to-end test: load NSRDB record → extract features → fit LIF → evaluate
-- Network tests tagged and CI configured to skip them
+### 🟢 Phase 6: Advanced (post-publication)
 
-### Sprint 5 — Visualization (Week 6-7)
-- GLMakie moved to extension
-- Offline refactor of existing scripts
-- `plot_radar`, `plot_feature_violins`, `plot_comparison`, `plot_model_heatmap`, `plot_correlations`
-- Lorenz 3D scatter plot
-- Model phase-space plots
+10. **Deep learning models (deferred):**
+    - Connect Neural ODE to real HRV data
+    - Implement VAE for ectopic beat detection
+    - Move to `HeartRateLabDeepExt`
 
-### Sprint 6 — Documentation + Publish (Week 8-9)
-- API docs + 3 tutorial notebooks
-- README update
-- Version 0.1.0 + LICENSE + CITATION
-- Julia General registry registration
-- GitHub Pages deployment
+11. **Optimization & scaling:**
+    - Parallel feature extraction (`Distributed.jl`)
+    - Performance benchmarks on NSRDB
 
 ---
 
-## 8. Task List (todo.txt format)
+## 7. Revised Timeline
 
-Format: `(priority) date task +project @context`
-Priority: A=blocking, B=high, C=medium, D=low/future
+**Note:** Phases 1-2 and 3a are complete. Starting from Phase 3b.
 
-```todo.txt
-# ============================================================
-# STABILIZE — Fix broken state before anything else
-# ============================================================
-(A) 2026-02-17 Fix test failures: resolve XDF dependency errors in read_xdf test +stabilize @tests
-(A) 2026-02-17 Fix test failures: resolve read_txt error — verify path and parsing +stabilize @tests
-(A) 2026-02-17 Fix test failures: make WFDB tests skip gracefully when ann2rr not on PATH +stabilize @tests
-(A) 2026-02-17 Fix test failures: resolve ectopic beats error (cascades from read_txt) +stabilize @tests
-(A) 2026-02-17 Fix test failures: resolve Features error (cascades from read_txt) +stabilize @tests
-(A) 2026-02-17 Fix FIXME: DFA scales are wrong in Features.jl:920 +stabilize @bugs
-(A) 2026-02-17 Fix FIXME: find_peak incorrect index after filtering in Frequency.jl:88 +stabilize @bugs
-(B) 2026-02-17 Correct README: DMD citation (Yeh 2010) is actually an EMD paper; replace or note separately +stabilize @docs
-(B) 2026-02-17 Clean uncommitted state: move Input_bkp.jl to its own branch as future feature work +stabilize @cleanup
-(B) 2026-02-17 Delete flake_bkp.nix — worker/GPU content superseded by GPU task below +stabilize @cleanup
-(B) 2026-02-17 Update flake.nix: detect available GPUs at runtime (nvidia-smi or /dev/nvidia*) and conditionally pass --gpus all; preserve X11 forwarding (-e DISPLAY, /tmp/.X11-unix, .Xauthority) for GLMakie; note Wayland and headless alternatives +stabilize @reproducibility
-(B) 2026-02-17 Commit Models/ directory to git +stabilize @cleanup
-(B) 2026-02-17 Fix Models/LIF.jl:61 — replace HeartRateVariability reference with HeartRateLab +stabilize @bugs
-(B) 2026-02-17 Update Project.toml compat bounds for all dependencies +stabilize @deps
-(B) 2026-02-17 Run Pkg.update() and fix any resulting breakage +stabilize @deps
-(C) 2026-02-17 Remove deleted TU_Graz.png from git tracking +stabilize @cleanup
+### Sprint 1 — Evaluation Pipeline (Next, 1 week)
+- Implement `simulate_ensemble()`, `extract_ensemble_features()`
+- Implement `eval_distributional()`, `eval_scalar()`, `eval_distance()`
+- Implement `windowed_feature_set()` for time window analysis
+- Comprehensive tests covering all three input modes (continuous, windowed, ensemble)
+- **Deliverable:** End-to-end evaluation workflow: fit model → generate synthetic ensemble → compare to real data
 
-# ============================================================
-# TEST INFRASTRUCTURE — Split tests for agent TDD
-# ============================================================
-(A) 2026-02-17 Split runtests.jl into independent test files: test_input, test_preprocessing, test_features, test_frequency +testing @architecture
-(A) 2026-02-17 Make test_preprocessing.jl use only synthetic data — no dependency on read_txt +testing @independence
-(A) 2026-02-17 Switch feature baseline comparisons from isequal to isapprox(rtol=1e-10) — fix 2 false failures +testing @bugs
-(A) 2026-02-17 Gate WFDB tests on Sys.which("ann2rr") — skip gracefully when binary absent +testing @gating
-(B) 2026-02-17 Create test_models.jl skeleton with synthetic IBI validity checks +testing @models
-(B) 2026-02-17 Create test_evaluation.jl skeleton with mock model results +testing @evaluation
-(B) 2026-02-17 Create test_datasets.jl gated by HEARTRATE_NETWORK_TESTS env var +testing @datasets
-(B) 2026-02-17 Create test_visualization.jl gated by DISPLAY env var +testing @visualization
-(B) 2026-02-17 Fix Dockerfile: copy Manifest.toml alongside Project.toml (DFA is unregistered) +testing @docker
-(B) 2026-02-17 Fix flake.nix test app: add fallback from hrlab image to volume-mount julia:1.11-bookworm +testing @nix
-(C) 2026-02-17 Add nix run .#test-quick app: runs only non-network, non-WFDB tests for fast iteration +testing @nix
+### Sprint 2 — Dataset Infrastructure (1 week)
+- Implement `load_physionet()`, `load_nsrdb()`, `load_mitbih()`
+- Network tests gated by `HEARTRATE_NETWORK_TESTS` env var
+- Validation: Load NSRDB record → extract features → verify against public statistics
+- **Deliverable:** Users can benchmark against PhysioNet datasets
 
-# ============================================================
-# FOUNDATION — Structural work that blocks models and evaluation
-# ============================================================
-(A) 2026-02-17 Add minimum_length annotation to every @register call in Features.jl +foundation @features
-(A) 2026-02-17 Implement valid_features(n_beats::Int) -> Vector{String} using minimum_length registry +foundation @features
-(A) 2026-02-17 Define AbstractHRVModel abstract type and ModelFitResult struct in src/ +foundation @models
-(A) 2026-02-17 Design package extension structure: create ext/ directory and update Project.toml weakdeps +foundation @architecture
-(B) 2026-02-17 Create ext/HeartRateLabModelsExt.jl skeleton — deps: DifferentialEquations, Turing, Optim, BlackBoxOptim +foundation @architecture
-(B) 2026-02-17 Create ext/HeartRateLabVisualizationExt.jl skeleton — deps: GLMakie +foundation @architecture
-(B) 2026-02-17 Create ext/HeartRateLabLSLExt.jl skeleton — deps: LSL +foundation @architecture
-(C) 2026-02-17 Create ext/HeartRateLabDeepExt.jl skeleton — deps: Flux, DiffEqFlux +foundation @architecture
+### Sprint 3 — Visualization (1 week, can be parallel with Sprint 2)
+- Implement 5 core comparison plots in `HeartRateLabVisualizationExt`
+- Implement Lorenz 3D scatter and model phase-space plots
+- Write basic tutorials showing visualization outputs
+- **Deliverable:** Publication-quality figures for model comparison
 
-# ============================================================
-# MODELS — ODE and signal-decomposition models
-# ============================================================
-(A) 2026-02-17 Refactor LIF: convert script to AbstractHRVModel, implement simulate(LIF, params, n_beats) +models @lif
-(A) 2026-02-17 Refactor LIF: implement fit(LIF, data; method=:bayesian) using Turing.jl — fix existing skeleton +models @lif
-(B) 2026-02-17 Refactor Van der Pol: convert to AbstractHRVModel, implement simulate() +models @vdp
-(B) 2026-02-17 Refactor Van der Pol: implement fit() via BlackBoxOptim (evolutionary) and Optim (gradient) +models @vdp
-(B) 2026-02-17 Implement Lorenz oscillator model: ODE (σ, ρ, β), extract IBIs from inter-crossing intervals +models @lorenz
-(B) 2026-02-17 Implement Lorenz: parameter_space() with priors, fit() via Bayesian or evolutionary +models @lorenz
-(B) 2026-02-17 Implement DMD model: fit = decompose IBI series into modes, simulate = reconstruct/propagate +models @dmd
-(B) 2026-02-17 Survey Julia DMD ecosystem (e.g. DataDrivenDiffEq.jl) before implementing DMD from scratch +models @dmd
-(C) 2026-02-17 Refactor Neural ODE: connect to real HRV data, move to HeartRateLabDeepExt +models @neuralode
-(C) 2026-02-17 Implement VAE for ectopic detection: Koopman eigenfunction approach, move to HeartRateLabDeepExt +models @vae
-(C) 2026-02-17 Implement fit() method :gradient for LIF via Optim.jl (feature-space loss) +models @lif
-(C) 2026-02-17 Implement fit() method :evolutionary for LIF via BlackBoxOptim.jl +models @lif
-(D) 2026-02-17 Implement populational hierarchical models (post multi-subject dataset work) +models @hierarchical
-(B) 2026-02-17 Write tests: LIF simulate() produces valid IBIs (positive, 300-2000ms range) +models @tests
-(B) 2026-02-17 Write tests: VdP simulate() produces valid IBIs +models @tests
-(B) 2026-02-17 Write tests: Lorenz simulate() produces valid IBIs +models @tests
-(B) 2026-02-17 Write tests: DMD fit() then simulate() on example data round-trips reasonably +models @tests
-(B) 2026-02-17 Write tests: LIF fit() on synthetic data recovers approximate parameters +models @tests
+### Sprint 4 — Publication Readiness (3-4 days)
+- Fix version: 1.0.0 → 0.1.0
+- Add LICENSE (MIT), CITATION.bib
+- Correct README (DMD citation)
+- Register in Julia General registry
+- Deploy documentation to GitHub Pages
+- **Deliverable:** First official release
 
-# ============================================================
-# EVALUATION — The core model-testing pipeline
-# ============================================================
-(A) 2026-02-17 Implement simulate_ensemble(model, params, n_beats; n_sim) -> Vector{Vector{Float64}} +evaluation @pipeline
-(A) 2026-02-17 Implement extract_ensemble_features(ensemble; features) -> DataFrame +evaluation @pipeline
-(B) 2026-02-17 Implement eval_distributional(real, ensemble; test=:ks) -> DataFrame with p_value, effect_size per feature +evaluation @pipeline
-(B) 2026-02-17 Implement eval_scalar(real, ensemble) -> DataFrame with real_mean, sim_mean, relative_error per feature +evaluation @pipeline
-(B) 2026-02-17 Implement eval_distance(real, ensemble; metric=:mahalanobis) -> NamedTuple +evaluation @pipeline
-(B) 2026-02-17 Write end-to-end test: load example.txt -> fit LIF -> simulate_ensemble -> eval_distributional +evaluation @tests
+---
 
-# ============================================================
-# DATASETS — Open dataset infrastructure + scientific benchmarking
-# Dataset tests are part of an extensive test suite that produces
-# normative populational statistics as scientific results.
-# ============================================================
-(B) 2026-02-17 Implement load_physionet(url; annotator, preprocessed) using Downloads.jl + read_wfdb +datasets @infrastructure
-(B) 2026-02-17 Implement load_nsrdb(record; kwargs) — wrapper with known NSRDB URLs +datasets @nsrdb
-(B) 2026-02-17 Implement load_mitbih(record; kwargs) — wrapper with known MIT-BIH URLs +datasets @mitbih
-(B) 2026-02-17 Gate dataset tests on HEARTRATE_NETWORK_TESTS env var; configure CI to skip by default +datasets @ci
-(C) 2026-02-17 Implement load_physionet_challenge(dataset, record; kwargs) for challenge datasets +datasets @challenge
-(B) 2026-02-17 Write NSRDB normative benchmark: download records, extract features, log populational stats via @info +datasets @benchmarks
-(B) 2026-02-17 Write MIT-BIH benchmark: same as NSRDB but for arrhythmia population +datasets @benchmarks
-(C) 2026-02-17 Write cross-dataset comparison test: fit LIF to NSRDB, evaluate against MIT-BIH +datasets @benchmarks
-(D) 2026-02-17 Design normative statistics output format: CSV/JSON export of populational feature distributions +datasets @science
+## 8. Immediate Action Items (Next Sprint)
 
-# ============================================================
-# VISUALIZATION — Comparison and analysis plots
-# ============================================================
-(A) 2026-02-17 Move GLMakie code to ext/HeartRateLabVisualizationExt.jl; remove from core +visualization @architecture
-(A) 2026-02-17 Move LSL code to ext/HeartRateLabLSLExt.jl; remove from core +visualization @architecture
-(B) 2026-02-17 Implement plot_radar(datasets; features) — spider chart of feature z-scores per model/dataset +visualization @comparison
-(B) 2026-02-17 Implement plot_feature_violins(real, ensembles; features) — violin per feature, real vs each model +visualization @comparison
-(B) 2026-02-17 Implement plot_comparison(real, synthetics) — IBI time series + Poincaré overlay per model +visualization @comparison
-(B) 2026-02-17 Implement plot_model_heatmap(results::DataFrame) — model × feature reproduction quality heatmap +visualization @comparison
-(B) 2026-02-17 Implement plot_correlations(feature_sets) — pairplot/correlation matrix across models and datasets +visualization @comparison
-(B) 2026-02-17 Add Lorenz 3D scatter (IBI[n] vs IBI[n+1] vs IBI[n+2]) to Visualization.offline +visualization @analysis
-(C) 2026-02-17 Add LIF phase-space plot: V(t) with spike resets +visualization @models
-(C) 2026-02-17 Add VdP and Lorenz oscillator phase portrait visualizations +visualization @models
-(C) 2026-02-17 Implement offline plot_rr(data), plot_poincare(data), plot_spectrum(data), plot_distribution(data) +visualization @offline
-(C) 2026-02-17 Refactor default.jl: remove global state, convert to proper function in Visualization.online +visualization @refactor
-(C) 2026-02-17 Refactor heart_rate.jl, heart_rate_tt.jl, geometric.jl, distribution.jl similarly +visualization @refactor
-(D) 2026-02-17 Add breathing pace guidance visualization for biofeedback +visualization @biofeedback
+**Priority: BLOCKING** — Must complete before visualization or publication
 
-# ============================================================
-# DOCUMENTATION
-# ============================================================
-(B) 2026-02-17 Write API docs: Input module +docs @api
-(B) 2026-02-17 Write API docs: Preprocessing module +docs @api
-(B) 2026-02-17 Write API docs: Features module with full feature table and minimum_length column +docs @api
-(B) 2026-02-17 Write API docs: Frequency module +docs @api
-(B) 2026-02-17 Write API docs: Models module — interface spec + each model's parameter table +docs @api
-(B) 2026-02-17 Write API docs: Evaluation module — pipeline functions and metric descriptions +docs @api
-(B) 2026-02-17 Write API docs: Visualization module +docs @api
-(B) 2026-02-17 Write tutorial: end-to-end offline HRV analysis +docs @tutorials
-(B) 2026-02-17 Write tutorial: windowed feature extraction and bootstrapped distributions +docs @tutorials
-(C) 2026-02-17 Write tutorial: model fitting, ensemble evaluation, and plot_model_heatmap +docs @tutorials
-(C) 2026-02-17 Write tutorial: multi-dataset comparison with plot_radar +docs @tutorials
-(C) 2026-02-17 Create Pluto notebooks for each tutorial +docs @notebooks
-(C) 2026-02-17 Ensure all exported functions have complete docstrings +docs @docstrings
-(B) 2026-02-17 Update README: installation, quickstart, current feature checklist +docs @readme
-(B) 2026-02-17 Uncomment and fix docs deployment in CI.yml +docs @ci
-(C) 2026-02-17 Deploy documentation to GitHub Pages +docs @ci
+```
+(A) Implement simulate_ensemble(model, params, n_beats; n_sim=100) -> Vector{Vector{Float64}}
+    - Generate N independent synthetic IBI series from single parameter set
+    - Each series has length ≈ n_beats
+    - Location: ext/HeartRateLabModelsExt.jl
 
-# ============================================================
-# PUBLISH
-# ============================================================
-(B) 2026-02-17 Set version to 0.1.0 in Project.toml (current 1.0.0 is premature) +publish @version
-(B) 2026-02-17 Add LICENSE file (MIT) +publish @legal
-(B) 2026-02-17 Add CITATION.bib +publish @legal
-(B) 2026-02-17 Clean .gitignore: track examples/ +publish @cleanup
-(B) 2026-02-17 Final code review: BlueStyle compliance, edge cases, docstring completeness +publish @review
-(C) 2026-02-17 Register in Julia General registry via JuliaRegistrator +publish @registry
-(C) 2026-02-17 Verify CI badges work: tests, coverage, docs +publish @ci
-(D) 2026-02-17 Write JOSS paper draft +publish @paper
-(D) 2026-02-17 Performance benchmarks: feature extraction speed on NSRDB records +publish @benchmarks
+(A) Implement extract_ensemble_features(ensemble; features=nothing) -> DataFrame
+    - Extract features from all series in ensemble (parallel if possible)
+    - Handle signal-length constraints using valid_features()
+    - Return: DataFrame(n_sim rows × n_features cols)
+    - Location: ext/HeartRateLabModelsExt.jl
+
+(A) Implement windowed_feature_set(data; window_size, overlap) -> DataFrame
+    - Sliding window analysis of continuous data
+    - Extract features from each window independently
+    - Return: DataFrame (one row per window)
+    - Location: ext/HeartRateLabModelsExt.jl or src/Evaluation.jl
+
+(A) Implement eval_distributional(real::DataFrame, model::DataFrame; test=:ks, features=nothing) -> DataFrame
+    - Statistical comparison of feature distributions
+    - Tests: Kolmogorov-Smirnov (:ks), Mann-Whitney (:mw), Anderson-Darling (:ad)
+    - Return: DataFrame(n_features rows) × {feature, statistic, p_value, effect_size, test_name}
+    - Location: ext/HeartRateLabModelsExt.jl
+
+(A) Implement eval_scalar(real::DataFrame, model::DataFrame; features=nothing) -> DataFrame
+    - Point-estimate comparison (means, errors)
+    - Return: DataFrame(n_features rows) × {feature, real_mean, sim_mean, abs_error, rel_error, pct_diff}
+    - Location: ext/HeartRateLabModelsExt.jl
+
+(A) Implement eval_distance(real::DataFrame, model::DataFrame; metric=:mahalanobis, features=nothing) -> NamedTuple
+    - Feature-space distance metrics
+    - Metrics: :mahalanobis, :euclidean, :bhattacharyya
+    - Return: (distance=Float64, feature_contributions=Dict, metric=Symbol)
+    - Location: ext/HeartRateLabModelsExt.jl
+
+(A) Write comprehensive tests in test_evaluation.jl
+    - Mode 1: Continuous data (single point) vs. ensemble
+    - Mode 2: Windowed data (multivariate dist) vs. ensemble
+    - Mode 3: Multiple subjects (empirical dist) vs. ensemble
+    - End-to-end: fit model → generate ensemble → evaluate → verify p-values are reasonable
+
+(B) Implement load_physionet(url; annotator="atr", preprocessed=true) -> Vector{Float64}
+    - Generic loader for PhysioNet records
+    - Download via Downloads.jl to tempdir()
+    - Use read_wfdb() for parsing
+    - Optionally preprocess (outlier removal, interpolation)
+    - Location: ext/HeartRateLabModelsExt.jl
+
+(B) Implement load_nsrdb(record::String; kwargs...) -> Vector{Float64}
+    - NSRDB-specific wrapper (healthy baseline)
+    - Known URLs: https://physionet.org/files/nsrdb/1.0.0/
+    - Location: ext/HeartRateLabModelsExt.jl
+
+(B) Implement load_mitbih(record::String; kwargs...) -> Vector{Float64}
+    - MIT-BIH specific wrapper (arrhythmia)
+    - Known URLs: https://physionet.org/files/mitdb/1.0.0/
+    - Location: ext/HeartRateLabModelsExt.jl
+
+(B) Update test_datasets.jl with actual tests
+    - Gate on ENV["HEARTRATE_NETWORK_TESTS"]
+    - Verify loading works, preprocesses correctly
+    - Check feature extraction doesn't crash
+```
+
+**Lower Priority (Can be parallel or after core evaluation works):**
+
+```
+(B) Implement visualization functions in HeartRateLabVisualizationExt
+    - plot_radar(datasets::Dict; features=none)
+    - plot_feature_violins(real::DataFrame, ensembles::Dict; features=none)
+    - plot_comparison(real::Vector, synthetics::Dict)
+    - plot_model_heatmap(results::DataFrame)
+    - plot_correlations(feature_sets::Dict; features=none)
+
+(B) Implement additional plots
+    - Lorenz 3D scatter: IBI[n] vs IBI[n+1] vs IBI[n+2]
+    - Model phase-space plots (LIF V(t), VdP portrait, Lorenz portrait)
+
+(C) Housekeeping for publication
+    - Fix version: 1.0.0 → 0.1.0
+    - Add LICENSE (MIT)
+    - Add CITATION.bib
+    - Fix README: Correct DMD citation
+
+(C) Register in Julia General registry
+    - Prepare via JuliaRegistrator
 ```

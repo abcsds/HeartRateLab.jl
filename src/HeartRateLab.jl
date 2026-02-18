@@ -8,6 +8,7 @@ include("preprocessing.jl")
 include("Frequency.jl")
 include("Features.jl")
 include("Models.jl")
+include("Evaluation.jl")
 # include("Models/Models.jl")  # TODO: implement model implementations in Phase 3
 include("Visualization/Visualization.jl")
 
@@ -53,4 +54,5 @@ export windowed
 # export welch
 # export get_power
 # export get_peaks
+export windowed_feature_set
 end
