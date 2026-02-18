@@ -4,6 +4,121 @@ using Test, DataFrames, Random
 # Set working directory to test directory for relative paths
 cd(@__DIR__)
 
+@testset "Evaluation — Distributional Comparison (eval_distributional)" begin
+    # Create test data: real features (1 window) vs ensemble features
+    Random.seed!(42)
+
+    # Real data: 1 feature vector (could be from one window or one subject)
+    real_features = DataFrame(
+        mean_ibi = [800.0],
+        rmssd = [40.0],
+        pnn50 = [25.0],
+        lf_hf_ratio = [2.5]
+    )
+
+    # Ensemble data: 50 feature vectors from synthetic series
+    ensemble_features = DataFrame(
+        mean_ibi = 800 .+ randn(50) .* 20,
+        rmssd = 40 .+ randn(50) .* 15,
+        pnn50 = 25 .+ randn(50) .* 10,
+        lf_hf_ratio = 2.5 .+ randn(50) .* 0.5
+    )
+
+    @testset "Basic KS test" begin
+        result = eval_distributional(real_features, ensemble_features; test=:ks)
+
+        @test isa(result, DataFrame)
+        @test nrow(result) == 4  # One row per feature
+        @test ncol(result) >= 4  # feature, statistic, p_value, at minimum
+
+        # Check column names
+        @test "feature" in names(result)
+        @test "statistic" in names(result)
+        @test "p_value" in names(result)
+
+        # Check p-values are valid (0-1)
+        @test all(0 .<= result.p_value .<= 1)
+
+        # Check statistics are non-negative
+        @test all(result.statistic .>= 0)
+    end
+
+    @testset "Different test types" begin
+        for test_type in [:ks, :mw]  # KS and Mann-Whitney
+            result = eval_distributional(real_features, ensemble_features; test=test_type)
+            @test nrow(result) == 4
+            @test all(0 .<= result.p_value .<= 1)
+        end
+    end
+
+    @testset "Feature selection" begin
+        # Test with specific features
+        selected = [:mean_ibi, :rmssd]
+        result = eval_distributional(real_features, ensemble_features; features=selected)
+
+        @test nrow(result) == 2
+        @test all(result.feature .∈ Ref(selected))
+    end
+
+    @testset "Handles NaN values" begin
+        # Create data with NaN
+        real_with_nan = DataFrame(
+            feature1 = [1.0],
+            feature2 = [NaN],
+            feature3 = [3.0]
+        )
+
+        ensemble_with_nan = DataFrame(
+            feature1 = randn(20),
+            feature2 = fill(NaN, 20),
+            feature3 = randn(20) .+ 3
+        )
+
+        result = eval_distributional(real_with_nan, ensemble_with_nan; test=:ks)
+        @test nrow(result) >= 1  # Should handle gracefully
+    end
+
+    @testset "Large ensemble" begin
+        large_real = DataFrame(mean_ibi = [800.0])
+        large_ensemble = DataFrame(mean_ibi = 800 .+ randn(1000) .* 30)
+
+        result = eval_distributional(large_real, large_ensemble; test=:ks)
+        @test nrow(result) == 1
+        @test result.p_value[1] >= 0 && result.p_value[1] <= 1
+    end
+
+    @testset "Multiple real observations" begin
+        # Real data as multiple windows/subjects
+        multi_real = DataFrame(
+            feat = [800.0, 810.0, 790.0, 820.0, 795.0]
+        )
+
+        multi_ensemble = DataFrame(
+            feat = 805 .+ randn(100) .* 25
+        )
+
+        result = eval_distributional(multi_real, multi_ensemble; test=:ks)
+        @test nrow(result) == 1
+        @test result.p_value[1] >= 0 && result.p_value[1] <= 1
+    end
+
+    @testset "Output structure" begin
+        result = eval_distributional(real_features, ensemble_features; test=:ks)
+
+        # Should have useful columns
+        @test "feature" in names(result)
+        @test "statistic" in names(result)
+        @test "p_value" in names(result)
+
+        # Feature column should contain feature names
+        @test all(isa(f, String) for f in result.feature)
+
+        # Numeric columns should be numeric
+        @test all(isa(s, Number) for s in result.statistic)
+        @test all(isa(p, Number) for p in result.p_value)
+    end
+end
+
 @testset "Evaluation — Extract Ensemble Features" begin
     # Create simple ensemble for testing
     model = LIF(; τ=50.0, I_base=0.5, threshold=1.0, noise_amp=0.1)

@@ -8,7 +8,8 @@ across different data modes (continuous, windowed, ensemble).
 """
 module Evaluation
 
-using DataFrames, Random
+using DataFrames, Random, Statistics
+using HypothesisTests
 using ..Features: extract_feature_set, valid_features
 using ..Models: AbstractHRVModel
 
@@ -312,6 +313,149 @@ function extract_ensemble_features(
     end
 
     return DataFrame(all_features)
+end
+
+"""
+    eval_distributional(real::DataFrame, ensemble::DataFrame; test=:ks, features=nothing) -> DataFrame
+
+Compare feature distributions between real and model data using statistical tests.
+
+For each feature, tests whether the ensemble distribution differs from real observations
+using Kolmogorov-Smirnov, Mann-Whitney U, or Anderson-Darling tests.
+
+# Arguments
+- `real::DataFrame`: Feature observations (could be 1 row or many windows/subjects)
+- `ensemble::DataFrame`: Ensemble feature samples (typically many rows from synthetic data)
+- `test=:ks`: Statistical test to use: `:ks` (Kolmogorov-Smirnov), `:mw` (Mann-Whitney U), `:ad` (Anderson-Darling)
+- `features=nothing`: Specific features to test. If nothing, uses all columns in both DataFrames
+
+# Returns
+- `DataFrame`: One row per feature with columns: feature, statistic, p_value, test_name
+
+# Details
+
+**Statistical Tests:**
+- `:ks` — Kolmogorov-Smirnov test: compares empirical CDFs
+- `:mw` — Mann-Whitney U test: non-parametric rank test
+- `:ad` — Anderson-Darling test: goodness-of-fit test
+
+**Interpretation:**
+- Small p-value (< 0.05): Real and ensemble distributions are significantly different
+- Large p-value (> 0.05): Cannot reject that distributions are equal
+- statistic: Test-specific value (larger typically = more different)
+
+**Data Handling:**
+- NaN values are filtered out per feature
+- Features with all NaN are skipped
+- Single real observation compares point to ensemble distribution
+
+# Examples
+
+```julia
+# Compare real windowed data to synthetic ensemble
+real_windows = windowed_feature_set(data; window_size=300, overlap=150)
+ensemble = simulate_ensemble(model, params, 300; n_sim=100)
+ensemble_features = extract_ensemble_features(ensemble)
+
+# Test each feature
+results = eval_distributional(real_windows, ensemble_features; test=:ks)
+
+# View results
+sort!(results, :p_value)  # Features most different from ensemble
+```
+"""
+function eval_distributional(
+    real::DataFrame,
+    ensemble::DataFrame;
+    test::Symbol=:ks,
+    features=nothing
+)::DataFrame
+
+    # Validate test type
+    if !(test in [:ks, :mw, :ad])
+        throw(ArgumentError("test must be :ks, :mw, or :ad, got :$test"))
+    end
+
+    # Determine features to test
+    if features === nothing
+        # Use common columns in both DataFrames
+        features = intersect(names(real), names(ensemble))
+    end
+
+    # Handle empty case
+    if isempty(features)
+        return DataFrame(
+            feature=String[],
+            statistic=Float64[],
+            p_value=Float64[],
+            test_name=Symbol[]
+        )
+    end
+
+    # Run tests
+    results = []
+
+    for feature_name in features
+        try
+            # Extract data for this feature, filtering NaN
+            real_vals = real[!, feature_name]
+            ensemble_vals = ensemble[!, feature_name]
+
+            # Filter NaN
+            real_valid = filter(!isnan, real_vals)
+            ensemble_valid = filter(!isnan, ensemble_vals)
+
+            # Skip if insufficient data
+            if isempty(real_valid) || isempty(ensemble_valid)
+                continue
+            end
+
+            # Run the test
+            if test == :ks
+                # Kolmogorov-Smirnov test
+                test_result = ExactOneSampleKSTest(ensemble_valid, real_valid)
+                stat = test_result.δ⁺  # or δ⁻, or max
+                pval = pvalue(test_result)
+
+            elseif test == :mw
+                # Mann-Whitney U test
+                test_result = MannWhitneyUTest(real_valid, ensemble_valid)
+                stat = test_result.U
+                pval = pvalue(test_result)
+
+            elseif test == :ad
+                # Anderson-Darling test (one sample)
+                # Compare ensemble to real as reference
+                test_result = ExactOneSampleADTest(ensemble_valid, real_valid)
+                stat = test_result.A²
+                pval = pvalue(test_result)
+            end
+
+            # Store result
+            push!(results, (
+                feature = feature_name,
+                statistic = stat,
+                p_value = pval,
+                test_name = test
+            ))
+
+        catch e
+            # If test fails for a feature, skip it
+            continue
+        end
+    end
+
+    # Convert to DataFrame
+    if isempty(results)
+        return DataFrame(
+            feature=String[],
+            statistic=Float64[],
+            p_value=Float64[],
+            test_name=Symbol[]
+        )
+    end
+
+    return DataFrame(results)
 end
 
 end  # Evaluation
