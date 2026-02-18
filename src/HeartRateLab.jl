@@ -54,5 +54,5 @@ export windowed
 # export welch
 # export get_power
 # export get_peaks
-export windowed_feature_set
+export windowed_feature_set, simulate_ensemble
 end

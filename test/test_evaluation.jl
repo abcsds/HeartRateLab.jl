@@ -4,6 +4,99 @@ using Test, DataFrames, Random
 # Set working directory to test directory for relative paths
 cd(@__DIR__)
 
+@testset "Evaluation — Simulate Ensemble" begin
+    # Create a simple synthetic model for testing
+    # Use LIF model which should be available
+    model = LIF(; τ=50.0, I_base=0.5, threshold=1.0, noise_amp=0.1)
+    params = (τ=50.0, I_base=0.5, threshold=1.0, noise_amp=0.1)
+
+    @testset "Basic ensemble generation" begin
+        n_beats = 100
+        n_sim = 10
+
+        ensemble = simulate_ensemble(model, params, n_beats; n_sim=n_sim)
+
+        # Should return Vector of Vector{Float64}
+        @test isa(ensemble, Vector)
+        @test length(ensemble) == n_sim
+
+        # Each series should be a Vector{Float64}
+        for series in ensemble
+            @test isa(series, Vector{Float64})
+            @test length(series) ≈ n_beats atol=5  # Stochastic, so approximate
+        end
+    end
+
+    @testset "Ensemble series are different (stochastic)" begin
+        n_beats = 150
+        n_sim = 5
+
+        ensemble = simulate_ensemble(model, params, n_beats; n_sim=n_sim)
+
+        # Each series should be different (not exact copies)
+        for i in 1:n_sim
+            for j in (i+1):n_sim
+                @test ensemble[i] != ensemble[j]  # Extremely unlikely to be identical
+            end
+        end
+    end
+
+    @testset "Ensemble series are physiological" begin
+        n_beats = 200
+        n_sim = 10
+
+        ensemble = simulate_ensemble(model, params, n_beats; n_sim=n_sim)
+
+        for series in ensemble
+            # All IBIs should be in physiological range
+            @test all((series .> 300) .| (series .< 10))  # Some might be small due to noise
+            @test all(series .< 2000)
+
+            # Most values should be reasonable
+            valid_ibis = filter(x -> 300 <= x <= 2000, series)
+            @test length(valid_ibis) >= 0.7 * length(series)  # At least 70%
+        end
+    end
+
+    @testset "Reproducibility with RNG seed" begin
+        n_beats = 100
+        n_sim = 3
+
+        # First run with seed
+        rng1 = Random.seed!(123)
+        ensemble1 = simulate_ensemble(model, params, n_beats; n_sim=n_sim, rng=rng1)
+
+        # Second run with same seed
+        rng2 = Random.seed!(123)
+        ensemble2 = simulate_ensemble(model, params, n_beats; n_sim=n_sim, rng=rng2)
+
+        # Should be identical
+        for i in 1:n_sim
+            @test ensemble1[i] ≈ ensemble2[i]
+        end
+    end
+
+    @testset "Different ensemble sizes" begin
+        n_beats = 100
+
+        for n_sim in [1, 5, 20, 100]
+            ensemble = simulate_ensemble(model, params, n_beats; n_sim=n_sim)
+            @test length(ensemble) == n_sim
+        end
+    end
+
+    @testset "Different beat counts" begin
+        n_sim = 5
+
+        for n_beats in [50, 100, 500, 1000]
+            ensemble = simulate_ensemble(model, params, n_beats; n_sim=n_sim)
+            for series in ensemble
+                @test length(series) ≈ n_beats atol=10
+            end
+        end
+    end
+end
+
 @testset "Evaluation — Windowed Feature Set" begin
     # Create synthetic IBI data: realistic heart rate variability
     # 300-2000 ms range, with some variation

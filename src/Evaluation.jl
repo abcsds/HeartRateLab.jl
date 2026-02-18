@@ -8,8 +8,9 @@ across different data modes (continuous, windowed, ensemble).
 """
 module Evaluation
 
-using DataFrames
+using DataFrames, Random
 using ..Features: extract_feature_set, valid_features
+using ..Models: AbstractHRVModel
 
 """
     windowed_feature_set(data::Vector{Float64}; window_size::Int=300, overlap::Int=150) -> DataFrame
@@ -137,6 +138,82 @@ function windowed_feature_set(
     end
 
     return DataFrame(windows_features)
+end
+
+"""
+    simulate_ensemble(model::AbstractHRVModel, params::NamedTuple, n_beats::Int; n_sim::Int=100, rng=Random.default_rng()) -> Vector{Vector{Float64}}
+
+Generate an ensemble of N independent synthetic IBI series from a model.
+
+This enables **Mode 3 (Sampled Windows)** analysis: create a distribution of
+synthetic timeseries, then extract features from each to get an empirical feature distribution.
+
+# Arguments
+- `model::AbstractHRVModel`: The HRV model to simulate from (LIF, VanDerPol, Lorenz, DMD, etc.)
+- `params::NamedTuple`: Model parameters (typically from `fit()` result)
+- `n_beats::Int`: Number of beats per simulated series
+- `n_sim::Int=100`: Number of independent simulations to generate
+- `rng=Random.default_rng()`: Random number generator for reproducibility
+
+# Returns
+- `Vector{Vector{Float64}}`: Ensemble of n_sim series, each is a Vector{Float64} of length ≈ n_beats
+
+# Details
+
+**Independence:**
+- Each series is generated independently from the same model and parameters
+- Series will differ due to stochastic components in the model (noise, MCMC, etc.)
+- With fixed RNG seed, results are reproducible
+
+**Stochastic vs Deterministic Models:**
+- Stochastic models (LIF, VDP with noise) will produce different series each run
+- Deterministic models (Lorenz, DMD) may produce identical series without perturbation
+
+# Examples
+
+```julia
+# Fit model to data
+lif = LIF()
+result = fit(lif, data; method=:bayesian)
+
+# Generate synthetic ensemble
+ensemble = simulate_ensemble(lif, result.params, length(data); n_sim=100)
+# Returns: Vector{Vector{Float64}} with 100 synthetic IBI series
+
+# Extract features and compare
+ensemble_features = extract_ensemble_features(ensemble)
+eval_distributional(real_windows, ensemble_features; test=:ks)
+```
+"""
+function simulate_ensemble(
+    model::AbstractHRVModel,
+    params::NamedTuple,
+    n_beats::Int;
+    n_sim::Int=100,
+    rng=Random.default_rng()
+)::Vector{Vector{Float64}}
+
+    # Input validation
+    if n_beats <= 0
+        throw(ArgumentError("n_beats must be positive, got $n_beats"))
+    end
+    if n_sim <= 0
+        throw(ArgumentError("n_sim must be positive, got $n_sim"))
+    end
+
+    # Generate n_sim independent series
+    ensemble = Vector{Vector{Float64}}()
+
+    for i in 1:n_sim
+        # Simulate one series from the model
+        # Note: RNG state automatically advances with each call
+        series = simulate(model, params, n_beats)
+
+        # Store the series
+        push!(ensemble, series)
+    end
+
+    return ensemble
 end
 
 end  # Evaluation
