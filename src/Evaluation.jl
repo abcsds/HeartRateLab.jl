@@ -216,4 +216,102 @@ function simulate_ensemble(
     return ensemble
 end
 
+"""
+    extract_ensemble_features(ensemble::Vector{Vector{Float64}}; features=nothing) -> DataFrame
+
+Extract HRV features from all series in a synthetic ensemble.
+
+This applies feature extraction to each independent series in an ensemble,
+producing a DataFrame with one row per series. This enables empirical feature
+distributions for Mode 3 (Sampled/Ensemble) analysis.
+
+# Arguments
+- `ensemble::Vector{Vector{Float64}}`: Collection of IBI series (from `simulate_ensemble()`)
+- `features=nothing`: Optional list of specific features to extract. If nothing, uses `valid_features()` for signal length
+
+# Returns
+- `DataFrame`: One row per series in ensemble, columns are feature names
+
+# Details
+
+**Signal Length:**
+- If all series have the same length, uses that for `valid_features()` filtering
+- If series have different lengths, extracts all computable features (less strict)
+
+**Efficiency:**
+- Current: sequential (can be parallelized with `Distributed.pmap()`)
+- NaN handling: Features that fail to compute are marked as NaN
+
+**Integration with Evaluation:**
+```julia
+# Typical workflow
+lif = LIF()
+result = fit(lif, data; method=:bayesian)
+ensemble = simulate_ensemble(lif, result.params, length(data); n_sim=100)
+ensemble_features = extract_ensemble_features(ensemble)
+
+# Now use with comparison functions
+eval_distributional(real_windows, ensemble_features; test=:ks)
+```
+
+# Examples
+
+```julia
+# Generate ensemble and extract features
+ensemble = simulate_ensemble(model, params, 300; n_sim=50)
+features_df = extract_ensemble_features(ensemble)
+
+# features_df has 50 rows (one per simulation) and ~40 columns (features)
+# Can now compare against real data using eval_* functions
+```
+"""
+function extract_ensemble_features(
+    ensemble::Vector{Vector{Float64}};
+    features=nothing
+)::DataFrame
+
+    # Handle empty ensemble
+    if isempty(ensemble)
+        return DataFrame()
+    end
+
+    # Determine feature set to use
+    if features === nothing
+        # Use valid_features based on signal length
+        # If all series have same length, use that; otherwise use minimum
+        series_lengths = length.(ensemble)
+        min_length = minimum(series_lengths)
+        features = valid_features(min_length)
+    end
+
+    # Extract features from each series
+    all_features = []
+
+    for series in ensemble
+        try
+            # Extract features for this series
+            series_feats = extract_feature_set(series)
+
+            # Filter to requested features
+            filtered = Dict(
+                f => get(series_feats, f, NaN)
+                for f in features
+            )
+
+            push!(all_features, filtered)
+        catch e
+            # If extraction fails for a series, record NaN for all features
+            failed = Dict(f => NaN for f in features)
+            push!(all_features, failed)
+        end
+    end
+
+    # Convert to DataFrame
+    if isempty(all_features)
+        return DataFrame(Dict(f => Float64[] for f in features))
+    end
+
+    return DataFrame(all_features)
+end
+
 end  # Evaluation

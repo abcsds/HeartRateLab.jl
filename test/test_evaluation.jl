@@ -4,6 +4,88 @@ using Test, DataFrames, Random
 # Set working directory to test directory for relative paths
 cd(@__DIR__)
 
+@testset "Evaluation — Extract Ensemble Features" begin
+    # Create simple ensemble for testing
+    model = LIF(; τ=50.0, I_base=0.5, threshold=1.0, noise_amp=0.1)
+    params = (τ=50.0, I_base=0.5, threshold=1.0, noise_amp=0.1)
+    ensemble = simulate_ensemble(model, params, 200; n_sim=10)
+
+    @testset "Basic feature extraction from ensemble" begin
+        result = extract_ensemble_features(ensemble)
+
+        # Should return DataFrame
+        @test isa(result, DataFrame)
+
+        # Should have one row per simulation
+        @test nrow(result) == 10
+
+        # Should have multiple feature columns
+        @test ncol(result) >= 10
+
+        # All columns should be feature names (strings) or have valid data
+        for col in names(result)
+            @test isa(col, String)
+        end
+    end
+
+    @testset "Feature values are reasonable" begin
+        result = extract_ensemble_features(ensemble)
+
+        # Most rows should have at least some non-NaN values
+        for row_idx in 1:nrow(result)
+            row = result[row_idx, :]
+            non_nan_count = sum(!ismissing(v) && !isnan(v) for v in row)
+            @test non_nan_count > 0  # At least some valid features per series
+        end
+    end
+
+    @testset "Respects valid_features for signal length" begin
+        # Shorter ensemble
+        short_ensemble = simulate_ensemble(model, params, 50; n_sim=5)
+        result_short = extract_ensemble_features(short_ensemble)
+
+        # Should have fewer features for short signals
+        valid_short = valid_features(50)
+        @test ncol(result_short) <= length(valid_short)
+    end
+
+    @testset "Ensemble with single series" begin
+        single_series = simulate_ensemble(model, params, 200; n_sim=1)
+        result = extract_ensemble_features(single_series)
+
+        @test nrow(result) == 1
+        @test ncol(result) >= 10
+    end
+
+    @testset "Large ensemble" begin
+        large_ensemble = simulate_ensemble(model, params, 150; n_sim=100)
+        result = extract_ensemble_features(large_ensemble)
+
+        @test nrow(result) == 100
+        @test all(size(result) .> 0)
+    end
+
+    @testset "Feature selection parameter" begin
+        # Test with specific feature selection (when implemented)
+        result = extract_ensemble_features(ensemble)
+
+        # By default should get all valid features for signal length
+        n_beats = length(ensemble[1])
+        expected_features = valid_features(n_beats)
+
+        @test ncol(result) <= length(expected_features)
+    end
+
+    @testset "Empty ensemble handling" begin
+        empty_ensemble = Vector{Vector{Float64}}()
+        result = extract_ensemble_features(empty_ensemble)
+
+        # Should return empty DataFrame
+        @test isa(result, DataFrame)
+        @test nrow(result) == 0
+    end
+end
+
 @testset "Evaluation — Simulate Ensemble" begin
     # Create a simple synthetic model for testing
     # Use LIF model which should be available
