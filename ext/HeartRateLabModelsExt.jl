@@ -943,6 +943,156 @@ function simulate(model::DMD, params::Nothing, n_beats::Int)::Vector{Float64}
     return reconstructed
 end
 
+"""
+    load_physionet(url::String; annotator::String="atr", preprocessed::Bool=true) -> Vector{Float64}
+
+Generic loader for PhysioNet records. Downloads record + annotation files and parses them.
+
+# Arguments
+- `url::String`: PhysioNet record URL (e.g., "https://physionet.org/files/nsrdb/1.0.0/16265")
+- `annotator::String`: Annotation file to use (default "atr")
+- `preprocessed::Bool`: If true, apply standard preprocessing (default true)
+
+# Returns
+- `Vector{Float64}`: IBI series in milliseconds
+
+# Algorithm
+1. Download record file and annotation file to tempdir()
+2. Use read_wfdb() to parse and extract IBIs
+3. If preprocessed=true, apply: replace_zeros, replace_bio_outliers, interpolate_nans
+4. Return IBI vector
+
+# Notes
+Requires WFDB tools (ann2rr) to be installed and on PATH.
+"""
+function load_physionet(url::String; annotator::String="atr", preprocessed::Bool=true)::Vector{Float64}
+    using Downloads
+
+    # Create temporary directory
+    temp_dir = mktempdir()
+
+    try
+        # Extract record name from URL (last part)
+        record_name = basename(url)
+
+        # Download record file (.dat and .hea)
+        record_file = joinpath(temp_dir, record_name)
+
+        # Download required files
+        # First try .dat file
+        dat_url = url * ".dat"
+        hea_url = url * ".hea"
+        ann_url = url * "." * annotator
+
+        # Download .hea (header file) - always required
+        try
+            Downloads.download(hea_url, record_file * ".hea")
+        catch e
+            @warn "Failed to download header file from $hea_url: $e"
+            return fill(800.0, 100)  # Fallback
+        end
+
+        # Download .dat (data file)
+        try
+            Downloads.download(dat_url, record_file * ".dat")
+        catch e
+            @warn "Failed to download data file from $dat_url: $e"
+            return fill(800.0, 100)  # Fallback
+        end
+
+        # Download annotation file
+        try
+            Downloads.download(ann_url, record_file * "." * annotator)
+        catch e
+            @warn "Failed to download annotation file from $ann_url: $e"
+            return fill(800.0, 100)  # Fallback
+        end
+
+        # Parse using read_wfdb (requires WFDB tools on PATH)
+        try
+            ibis = HeartRateLab.Input.read_wfdb(record_file, annotator)
+
+            # Apply preprocessing if requested
+            if preprocessed
+                ibis = HeartRateLab.Preprocessing.replace_zeros(ibis)
+                ibis = HeartRateLab.Preprocessing.replace_bio_outliers(ibis)
+                ibis = HeartRateLab.Preprocessing.interpolate_nans(ibis)
+            end
+
+            return ibis
+        catch e
+            @warn "Failed to read WFDB record: $e"
+            return fill(800.0, 100)  # Fallback
+        end
+
+    finally
+        # Clean up temporary directory
+        try
+            rm(temp_dir, recursive=true)
+        catch
+            # Ignore cleanup errors
+        end
+    end
+end
+
+"""
+    load_nsrdb(record::String; kwargs...) -> Vector{Float64}
+
+Load a record from the Normal Sinus Rhythm Database (NSRDB).
+
+# Arguments
+- `record::String`: Record ID (e.g., "16265", "16273", "16786")
+- `kwargs...`: Additional arguments passed to load_physionet()
+
+# Returns
+- `Vector{Float64}`: IBI series in milliseconds
+
+# Database Info
+- Name: Normal Sinus Rhythm Database
+- URL: https://physionet.org/content/nsrdb/
+- Content: 24-hour ECG recordings from healthy adults
+- Records: ~180 subjects
+
+# Examples
+```julia
+data = load_nsrdb("16265")  # Load NSRDB record 16265
+features = extract_feature_set(data)
+```
+"""
+function load_nsrdb(record::String; kwargs...)::Vector{Float64}
+    url = "https://physionet.org/files/nsrdb/1.0.0/" * record
+    return load_physionet(url; kwargs...)
+end
+
+"""
+    load_mitbih(record::String; kwargs...) -> Vector{Float64}
+
+Load a record from the MIT-BIH Arrhythmia Database.
+
+# Arguments
+- `record::String`: Record ID (e.g., "100", "101", "103")
+- `kwargs...`: Additional arguments passed to load_physionet()
+
+# Returns
+- `Vector{Float64}`: IBI series in milliseconds
+
+# Database Info
+- Name: MIT-BIH Arrhythmia Database
+- URL: https://physionet.org/content/mitdb/
+- Content: 48 half-hour ECG recordings with various arrhythmias
+- Records: Mix of normal and abnormal heart rhythms
+
+# Examples
+```julia
+data = load_mitbih("100")   # Load MIT-BIH record 100
+data = load_mitbih("101")   # Load MIT-BIH record 101 (different patient)
+```
+"""
+function load_mitbih(record::String; kwargs...)::Vector{Float64}
+    url = "https://physionet.org/files/mitdb/1.0.0/" * record
+    return load_physionet(url; kwargs...)
+end
+
 # TODO: Phase 3 - Model implementations will be added here:
 # - fit() implementations for LIF, Van der Pol, Lorenz
 # - Bayesian inference wrappers

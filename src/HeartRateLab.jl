@@ -55,4 +55,5 @@ export windowed
 # export get_power
 # export get_peaks
 export windowed_feature_set, simulate_ensemble, extract_ensemble_features, eval_distributional, eval_scalar, eval_distance
+export load_physionet, load_nsrdb, load_mitbih
 end
