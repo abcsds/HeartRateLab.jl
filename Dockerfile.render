@@ -47,11 +47,11 @@ RUN JULIA_VER=$(julia -e 'print(VERSION)') && \
     sed -i "s/^julia_version = .*/julia_version = \"$JULIA_VER\"/" /workdir/Manifest.toml && \
     echo "Updated Manifest.toml julia_version to $JULIA_VER"
 
-# Save Manifest to safe location (won't be overwritten by Docker volume mount)
-RUN cp /workdir/Manifest.toml /.manifest_backup
-
-# Now instantiate and resolve packages
+# Instantiate and resolve packages
 RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.instantiate()'
+
+# Save fully-resolved Manifest to safe location (won't be overwritten by Docker volume mount)
+RUN cp /workdir/Manifest.toml /.manifest_backup
 
 # Precompile HeartRateLab to avoid slow first execution in notebooks
 RUN julia --project=/workdir -e 'using Pkg; Pkg.precompile()' 2>&1 | grep -v "function_registry" || true
