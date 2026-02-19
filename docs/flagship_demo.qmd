@@ -22,7 +22,9 @@ This notebook demonstrates the complete HeartRateLab pipeline end-to-end:
 
 ## Setup
 
-```julia
+```{julia}
+#| warning: false
+
 using HeartRateLab
 using Plots, StatsPlots
 using Statistics, Random
@@ -36,7 +38,7 @@ println("✓ Packages loaded successfully")
 
 ## Part 1: Load and Explore Real Data
 
-```julia
+```{julia}
 # For demo purposes, we'll generate synthetic data that mimics real HRV
 # In practice, you would load real data with:
 # data = read_txt("subject.txt")
@@ -57,7 +59,7 @@ println("  Std: $(round(std(real_data); digits=1)) ms")
 
 ## Part 2: Feature Extraction from Real Data
 
-```julia
+```{julia}
 real_features = extract_feature_set(real_data)
 
 println("\nKey HRV features from real data:")
@@ -70,7 +72,7 @@ println("  sd2: $(round(real_features["sd2"]; digits=1)) ms")
 
 ## Part 3: Fit Van der Pol Model with Bayesian Inference
 
-```julia
+```{julia}
 println("\n" * "="^70)
 println("        PART 2: Bayesian Model Fitting (Van der Pol)")
 println("="^70)
@@ -108,7 +110,7 @@ end
 
 ## Part 4: Generate Synthetic Ensemble
 
-```julia
+```{julia}
 println("\n" * "="^70)
 println("        PART 3: Generate Synthetic Ensemble")
 println("="^70)
@@ -126,7 +128,7 @@ println("  Mean IBI: $(round(mean(mean.(ensemble)); digits=1)) ms")
 
 ## Part 5: Extract Features from Ensemble
 
-```julia
+```{julia}
 println("\nExtracting features from all $(length(ensemble)) synthetic series...")
 ensemble_features = extract_ensemble_features(ensemble)
 println("✓ Features extracted: $(size(ensemble_features)) ($(size(ensemble_features,1)) samples × $(size(ensemble_features,2)) features)")
@@ -139,7 +141,7 @@ println("  PNN50: μ=$(round(mean(ensemble_features.pnn50); digits=1)) ± $(roun
 
 ## Part 6: Statistical Validation
 
-```julia
+```{julia}
 println("\n" * "="^70)
 println("        PART 4: Statistical Validation")
 println("="^70)
@@ -169,7 +171,7 @@ end
 
 ## Part 7: Flagship Visualization
 
-```julia
+```{julia}
 println("\n" * "="^70)
 println("        PART 5: Flagship Visualization")
 println("="^70)
@@ -194,7 +196,7 @@ end
 
 ## Part 8: Summary and Interpretation
 
-```julia
+```{julia}
 println("\n" * "="^70)
 println("                   PIPELINE SUMMARY")
 println("="^70)
