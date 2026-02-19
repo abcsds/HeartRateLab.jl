@@ -85,8 +85,9 @@
             echo ""
 
             # Run render and capture output/errors
+            # Use container's pre-built Manifest and instantiate to validate environment
             if docker run --rm -v .:/workdir --entrypoint bash hrlab:render \
-              -c 'cd /workdir && quarto render docs/flagship_demo.qmd --to html --execute'; then
+              -c "cp /.manifest_backup /workdir/Manifest.toml && julia --project=/workdir -e 'using Pkg; Pkg.instantiate()' && cd /workdir && quarto render docs/flagship_demo.qmd --to html --execute"; then
               echo ""
               echo "✓ Notebook rendered successfully!"
               echo "📂 Output: docs/flagship_demo.html"
