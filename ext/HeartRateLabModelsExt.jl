@@ -645,17 +645,44 @@ between real and simulated IBIs.
 
 Since Van der Pol is deterministic, only gradient-based fitting is supported.
 """
+"""
+    fit(model::VanDerPol, data::Vector{Float64}; method=:gradient, kwargs...) -> ModelFitResult
+
+Fit a Van der Pol model to real HRV data using gradient-based or Bayesian inference.
+
+# Arguments
+- `model::VanDerPol`: Model instance
+- `data::Vector{Float64}`: Real IBI data (milliseconds)
+- `method=:gradient`: Optimization method (:gradient or :bayesian)
+- `optimizer=:LBFGS`: Optim optimizer (gradient only)
+- `max_iter=1000`: Maximum iterations (gradient only)
+- `abstol=1e-6`: Absolute tolerance (gradient only)
+- `chains=4`: Number of MCMC chains (Bayesian only)
+- `samples=1000`: Samples per chain (Bayesian only)
+- `rng=Random.default_rng()`: Random number generator
+
+# Returns
+- `ModelFitResult`: Fitted model with parameters and diagnostics
+
+# Details
+Supports both deterministic gradient-based and stochastic Bayesian fitting.
+Bayesian method provides posterior distributions over parameters for uncertainty quantification.
+"""
 function fit(model::VanDerPol, data::Vector{Float64};
              method::Symbol=:gradient,
              optimizer::Symbol=:LBFGS,
              max_iter::Int=1000,
              abstol::Float64=1e-6,
+             chains::Int=4,
+             samples::Int=1000,
              rng=Random.default_rng())
 
     if method == :gradient
         return _fit_vanderpol_gradient(model, data, optimizer, max_iter, abstol, rng)
+    elseif method == :bayesian
+        return _fit_vanderpol_bayesian(model, data, chains, samples, rng)
     else
-        error("Van der Pol fitting method $method not supported. Only :gradient is available.")
+        error("Van der Pol fitting method $method not supported. Use :gradient or :bayesian")
     end
 end
 
@@ -746,6 +773,108 @@ function _fit_vanderpol_gradient(model::VanDerPol, data::Vector{Float64},
         diagnostics,
         data
     )
+end
+
+"""
+    _fit_vanderpol_bayesian(model, data, chains, samples, rng)
+
+Internal function for Bayesian Van der Pol fitting using Turing.jl.
+"""
+function _fit_vanderpol_bayesian(model::VanDerPol, data::Vector{Float64},
+                                chains::Int=4, samples::Int=1000,
+                                rng=Random.default_rng())
+
+    # Get parameter space
+    ps = parameter_space(model)
+
+    # Compute target statistics from real data
+    target_stats = compute_summary_stats(data)
+
+    # Define Turing model for Bayesian inference
+    @model function vanderpol_model(target_stats, data_length)
+        # Prior distributions
+        μ ~ ps.μ.prior
+        heart_rate ~ ps.heart_rate.prior
+
+        # Simulate from parameters
+        params = (μ=μ, heart_rate=heart_rate)
+        try
+            synthetic = simulate(model, params, data_length)
+            synth_stats = compute_summary_stats(synthetic)
+
+            # Likelihood: normal distribution centered on target stats
+            # Standard deviation controls how closely synthetic stats match
+            sigma = 10.0  # Standard deviation in feature space
+            for i in 1:length(target_stats)
+                target_stats[i] ~ Normal(synth_stats[i], sigma)
+            end
+        catch
+            # If simulation fails, reject the sample
+            Turing.@addlogprob! -Inf
+        end
+    end
+
+    # Sample from posterior
+    mcmc_model = vanderpol_model(target_stats, length(data))
+
+    # Run MCMC with NUTS sampler
+    try
+        sampler = Turing.NUTS()
+        chain = sample(mcmc_model, sampler, (samples, chains); rng=rng, progress=false)
+
+        # Extract posterior samples
+        μ_samples = vec(chain[:μ].values)
+        hr_samples = vec(chain[:heart_rate].values)
+
+        # Compute posterior mean as best estimate
+        best_params = (
+            μ = mean(μ_samples),
+            heart_rate = mean(hr_samples)
+        )
+
+        # Create posterior samples structure
+        posterior = Dict(
+            "μ" => μ_samples,
+            "heart_rate" => hr_samples
+        )
+
+        # Create diagnostics from MCMC
+        diagnostics = Dict(
+            "method" => "NUTS (Turing.jl)",
+            "chains" => chains,
+            "samples_per_chain" => samples,
+            "total_samples" => length(μ_samples),
+            "rhat_mu" => compute_rhat(μ_samples, chains),
+            "rhat_heart_rate" => compute_rhat(hr_samples, chains)
+        )
+
+        return ModelFitResult(
+            model,
+            :bayesian,
+            best_params,
+            posterior,
+            diagnostics,
+            data
+        )
+
+    catch e
+        # Fallback: if MCMC fails, return empty result
+        @warn "Bayesian fitting failed: $e. Falling back to prior mean."
+
+        prior_mean = (
+            μ = (ps.μ.lower + ps.μ.upper) / 2,
+            heart_rate = (ps.heart_rate.lower + ps.heart_rate.upper) / 2
+        )
+
+        return ModelFitResult(
+            model,
+            :bayesian,
+            prior_mean,
+            nothing,
+            Dict("error" => "MCMC sampling failed: $e"),
+            data
+        )
+    end
 end
 
 """
