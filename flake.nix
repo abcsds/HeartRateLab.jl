@@ -59,6 +59,26 @@
             exec ${pkgs.act}/bin/act "$@"
           '');
         };
+        render = {
+          type = "app";
+          program = toString (pkgs.writeShellScript "render-notebook" ''
+            #!${pkgs.runtimeShell}
+            set -e
+
+            # Quarto version to install
+            QUARTO_VERSION="1.8.27"
+
+            echo "🔨 Building Docker image with Quarto $QUARTO_VERSION..."
+            docker build --network=host --build-arg QUARTO_VERSION=$QUARTO_VERSION . -t hrlab:latest
+
+            echo "📝 Rendering flagship demo notebook..."
+            docker run -it --rm -v .:/workdir hrlab:latest \
+              bash -c 'cd /workdir && quarto render docs/flagship_demo.qmd --to html'
+
+            echo "✓ Notebook rendered successfully!"
+            echo "📂 Output: docs/flagship_demo.html"
+          '');
+        };
       };
 
       ### 2. Containerization ### TODO: Move the instructions from the Dockerfile to descriptions here
