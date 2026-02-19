@@ -68,12 +68,13 @@
             # Quarto version to install
             QUARTO_VERSION="1.8.27"
 
-            echo "🔨 Building Docker image with Quarto $QUARTO_VERSION..."
-            docker build --network=host --build-arg QUARTO_VERSION=$QUARTO_VERSION . -t hrlab:latest
+            echo "🔨 Building render container with Quarto $QUARTO_VERSION..."
+            docker build --network=host --build-arg QUARTO_VERSION=$QUARTO_VERSION \
+              -f Dockerfile.render -t hrlab:render .
 
-            echo "📝 Rendering flagship demo notebook..."
-            docker run --rm -v .:/workdir hrlab:latest \
-              -c 'cd /workdir && quarto render docs/flagship_demo.qmd --to html'
+            echo "📝 Rendering flagship demo notebook with code execution..."
+            docker run --rm -v .:/workdir hrlab:render \
+              -c 'cd /workdir && quarto render docs/flagship_demo.qmd --to html --execute'
 
             echo "✓ Notebook rendered successfully!"
             echo "📂 Output: docs/flagship_demo.html"

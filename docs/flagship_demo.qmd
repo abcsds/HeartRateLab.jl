@@ -4,6 +4,11 @@ subtitle: "Bayesian inference, synthetic generation, and statistical validation"
 author: "HeartRateLab.jl"
 date: today
 format: html
+execute:
+  eval: true
+  echo: true
+  warning: true
+jupyter: julia-1.11
 ---
 
 # HeartRateLab: Complete Pipeline Demonstration
