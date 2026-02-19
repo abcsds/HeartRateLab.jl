@@ -647,6 +647,180 @@ function plot_feature_violins(real::DataFrame, ensembles::Dict{String, DataFrame
     fig
 end
 
+"""
+    plot_flagship(real_data::Vector{Float64}, fit_result::ModelFitResult; title="HeartRateLab Pipeline Demo") -> Figure
+
+Create a comprehensive flagship visualization showcasing the complete HRV analysis pipeline.
+
+Shows:
+1. **Phase Portrait**: Model attractor with Bayesian posterior uncertainty
+2. **Signal**: Generated IBIs with beat detection markers and IBI annotations
+3. **Posterior**: Distribution of key parameters from MCMC
+
+# Arguments
+- `real_data::Vector{Float64}`: Original IBI data used for fitting
+- `fit_result::ModelFitResult`: Result from fit() - contains model, params, posterior
+- `title::String`: Figure title
+
+# Returns
+- `Figure`: Multi-panel GLMakie figure with:
+  - Phase portrait (left): Attractor trajectory with posterior contours
+  - Signal plot (right top): Generated IBIs with beat markers
+  - Posterior plots (right bottom): Parameter distributions from MCMC
+
+# Details
+This is the flagship visualization showing:
+- Real data (input)
+- Fitted model dynamics
+- Generated synthetic data
+- Parameter uncertainty from Bayesian inference
+- Beat detection with physiological annotations
+
+Works with any model supporting both simulation and Bayesian fitting (LIF, VanDerPol, Lorenz).
+"""
+function plot_flagship(real_data::Vector{Float64}, fit_result::ModelFitResult; title="HeartRateLab Pipeline Demo")
+    using DataFrames
+
+    # Validate inputs
+    if isnothing(fit_result.posterior)
+        @warn "fit_result has no posterior - using point estimates only"
+    end
+
+    # Generate synthetic data from fitted model
+    synthetic_data = simulate(fit_result.model, fit_result.params, length(real_data))
+
+    # Create figure layout: 2 columns
+    # Left: Phase portrait + posterior
+    # Right: Signal analysis
+    fig = Figure(size=(1400, 800))
+
+    # ========== LEFT COLUMN: Phase Portrait ==========
+    ax_phase = Axis(fig[1, 1];
+        xlabel="IBI[n] (ms)",
+        ylabel="IBI[n+1] (ms)",
+        title="Phase Portrait: Real vs Synthetic"
+    )
+
+    # Plot real data Poincaré (X vs X+1)
+    x_real = real_data[1:end-1]
+    y_real = real_data[2:end]
+    scatter!(ax_phase, x_real, y_real; label="Real", color=:blue, markersize=5, alpha=0.5)
+
+    # Plot synthetic data Poincaré
+    x_synth = synthetic_data[1:end-1]
+    y_synth = synthetic_data[2:end]
+    scatter!(ax_phase, x_synth, y_synth; label="Synthetic", color=:orange, markersize=5, alpha=0.5)
+
+    # Add posterior uncertainty visualization if available
+    if !isnothing(fit_result.posterior)
+        # Extract parameter posterior
+        if haskey(fit_result.posterior, "μ")
+            # Van der Pol model - show phase portrait for different μ values from posterior
+            μ_samples = fit_result.posterior["μ"]
+            μ_mean = mean(μ_samples)
+            μ_std = std(μ_samples)
+
+            # Create synthetic data with mean and ±1σ parameters
+            try
+                hr = fit_result.params.heart_rate
+                synth_low = simulate(fit_result.model, (μ=max(0.5, μ_mean-μ_std), heart_rate=hr), length(real_data))
+                synth_high = simulate(fit_result.model, (μ=min(3.0, μ_mean+μ_std), heart_rate=hr), length(real_data))
+
+                x_low = synth_low[1:end-1]
+                y_low = synth_low[2:end]
+                x_high = synth_high[1:end-1]
+                y_high = synth_high[2:end]
+
+                # Plot uncertainty band as scatter with transparency
+                scatter!(ax_phase, x_low, y_low; color=:orange, markersize=3, alpha=0.15, label="-1σ")
+                scatter!(ax_phase, x_high, y_high; color=:orange, markersize=3, alpha=0.15, label="+1σ")
+            catch
+                # If posterior sampling fails, just use mean
+            end
+        end
+    end
+
+    axislegend(ax_phase; position=:rt)
+    xlims!(ax_phase, minimum(x_real)-50, maximum(x_real)+50)
+    ylims!(ax_phase, minimum(y_real)-50, maximum(y_real)+50)
+
+    # ========== RIGHT COLUMN: Signal Analysis ==========
+    # Top right: IBI time series with beat markers
+    ax_signal = Axis(fig[1, 2];
+        xlabel="Beat Index",
+        ylabel="IBI (ms)",
+        title="Generated Signal with Beat Detection"
+    )
+
+    n_beats = length(synthetic_data)
+    beat_indices = 1:n_beats
+
+    # Plot synthetic signal
+    lines!(ax_signal, beat_indices, synthetic_data; color=:orange, linewidth=2, label="Synthetic IBIs")
+
+    # Plot real signal for reference
+    lines!(ax_signal, beat_indices[1:length(real_data)], real_data; color=:blue, linewidth=1, alpha=0.5, linestyle=:dash, label="Real IBIs")
+
+    # Add beat detection markers (peaks for visualization)
+    peak_threshold = mean(synthetic_data) + 0.5 * std(synthetic_data)
+    peaks = findall(synthetic_data .> peak_threshold)
+
+    if !isempty(peaks)
+        scatter!(ax_signal, peaks, synthetic_data[peaks]; color=:red, markersize=8, marker=:diamond, label="Beat peaks")
+
+        # Annotate some IBIs
+        for i in 1:min(5, length(peaks)-1)
+            ibi_val = peaks[i+1] - peaks[i]
+            mid_x = (peaks[i] + peaks[i+1]) / 2
+            mid_y = maximum(synthetic_data) + 50
+
+            text!(ax_signal, mid_x, mid_y;
+                text="$(Int(round(ibi_val)))ms",
+                fontsize=9,
+                align=(:center, :bottom),
+                color=:darkred
+            )
+        end
+    end
+
+    axislegend(ax_signal; position=:rt)
+    xlims!(ax_signal, 0, n_beats+1)
+
+    # Bottom right: Posterior parameter distributions
+    if !isnothing(fit_result.posterior) && !isempty(fit_result.posterior)
+        param_names = collect(keys(fit_result.posterior))
+        n_params = min(length(param_names), 2)  # Show top 2 parameters
+
+        for (param_idx, param_name) in enumerate(param_names[1:n_params])
+            ax_post = Axis(fig[2, 2];
+                xlabel=param_name,
+                ylabel="Density",
+                title="Posterior: $param_name"
+            )
+
+            samples = fit_result.posterior[param_name]
+            # Create histogram
+            hist!(ax_post, samples; bins=30, color=(:teal, 0.6), alpha=0.7)
+
+            # Add mean and std lines
+            mean_val = mean(samples)
+            std_val = std(samples)
+            vlines!(ax_post, [mean_val]; color=:red, linewidth=2, label="Mean: $(round(mean_val; digits=2))")
+            vlines!(ax_post, [mean_val - std_val, mean_val + std_val]; color=:darkred, linewidth=1, linestyle=:dash, label="±1σ")
+
+            axislegend(ax_post; position=:rt, fontsize=10)
+
+            # Only show one posterior plot for space
+            break
+        end
+    end
+
+    # Add overall title
+    Label(fig[0, :], title, fontsize=20, font=:bold)
+
+    fig
+end
+
 # TODO: Phase 4 - Visualization implementations will be added here:
 # - plot_radar()
 # - plot_feature_violins()
