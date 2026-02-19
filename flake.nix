@@ -72,8 +72,8 @@
             docker build --network=host --build-arg QUARTO_VERSION=$QUARTO_VERSION . -t hrlab:latest
 
             echo "📝 Rendering flagship demo notebook..."
-            docker run -it --rm -v .:/workdir hrlab:latest \
-              bash -c 'cd /workdir && quarto render docs/flagship_demo.qmd --to html'
+            docker run --rm -v .:/workdir hrlab:latest \
+              -c 'cd /workdir && quarto render docs/flagship_demo.qmd --to html'
 
             echo "✓ Notebook rendered successfully!"
             echo "📂 Output: docs/flagship_demo.html"

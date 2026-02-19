@@ -37,4 +37,7 @@ ENV LD_LIBRARY_PATH="/run/opengl-driver/lib"
 # Instantiate the julia environment
 RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.instantiate()'
 
-ENTRYPOINT [ "bash", "-c", "-l", "/usr/local/julia/bin/julia --project=. -i" ]
+# Use bash as entrypoint to allow flexible command execution
+# For interactive shell: docker run -it hrlab:latest
+# For commands: docker run hrlab:latest bash -c 'command'
+ENTRYPOINT [ "bash" ]
