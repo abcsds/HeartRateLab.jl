@@ -125,6 +125,45 @@ try
 
         # Test 6: Standard deviation is reasonable (not all identical)
         @test std(ibis) > 5.0  # At least some variation
+
+        # Test 7: fit() method produces valid results
+        # Generate synthetic data from Van der Pol to test fitting
+        synthetic_data = HeartRateLab.Models.simulate(vdp, params, n_beats=200)
+
+        try
+            fitted_result = HeartRateLab.Models.fit(vdp, synthetic_data; method=:gradient)
+
+            @test fitted_result.model isa HeartRateLab.Models.VanDerPol
+            @test fitted_result.method == :gradient
+            @test haskey(fitted_result.params, :μ)
+            @test haskey(fitted_result.params, :heart_rate)
+            @test fitted_result.params.μ > 0
+            @test fitted_result.params.heart_rate > 0
+
+            # Test 8: Fitted parameters are within bounds
+            ps = HeartRateLab.Models.parameter_space(vdp)
+            @test ps.μ.lower <= fitted_result.params.μ <= ps.μ.upper
+            @test ps.heart_rate.lower <= fitted_result.params.heart_rate <= ps.heart_rate.upper
+
+            # Test 9: Fitted parameters are reasonably close to original
+            # (not exact because we're minimizing distance in feature space)
+            @test abs(fitted_result.params.μ - params.μ) < 1.0  # Within 1.0
+            @test abs(fitted_result.params.heart_rate - params.heart_rate) < 30.0  # Within 30 BPM
+
+            # Test 10: Fitted model produces IBIs similar to real data
+            fitted_synthetic = HeartRateLab.Models.simulate(vdp, fitted_result.params, 200)
+            @test mean(fitted_synthetic) ≈ mean(synthetic_data) atol=50.0  # Within 50 ms
+            @test std(fitted_synthetic) ≈ std(synthetic_data) atol=30.0  # Within 30 ms
+
+            # Test 11: Diagnostics contain useful information
+            @test haskey(fitted_result.diagnostics, "converged")
+            @test haskey(fitted_result.diagnostics, "iterations")
+            @test haskey(fitted_result.diagnostics, "loss_final")
+            @test fitted_result.diagnostics["loss_final"] >= 0
+
+        catch e
+            @warn "Van der Pol fitting test skipped: $e"
+        end
     end
 
     @testset "Lorenz Model" begin

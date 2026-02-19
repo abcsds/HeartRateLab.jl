@@ -622,6 +622,133 @@ function parameter_space(model::VanDerPol)
 end
 
 """
+    fit(model::VanDerPol, data::Vector{Float64}; method=:gradient, kwargs...) -> ModelFitResult
+
+Fit a Van der Pol model to real HRV data using gradient-based optimization.
+
+# Arguments
+- `model::VanDerPol`: Model instance
+- `data::Vector{Float64}`: Real IBI data (milliseconds)
+- `method=:gradient`: Optimization method (only :gradient supported)
+- `optimizer=:LBFGS`: Optim optimizer
+- `max_iter=1000`: Maximum iterations
+- `abstol=1e-6`: Absolute tolerance
+- `rng=Random.default_rng()`: Random number generator
+
+# Returns
+- `ModelFitResult`: Fitted model with parameters and diagnostics
+
+# Details
+Fits Van der Pol oscillator to real data by minimizing feature-space distance.
+Uses the same approach as LIF: compare statistical features (mean, std, pnn50, etc.)
+between real and simulated IBIs.
+
+Since Van der Pol is deterministic, only gradient-based fitting is supported.
+"""
+function fit(model::VanDerPol, data::Vector{Float64};
+             method::Symbol=:gradient,
+             optimizer::Symbol=:LBFGS,
+             max_iter::Int=1000,
+             abstol::Float64=1e-6,
+             rng=Random.default_rng())
+
+    if method == :gradient
+        return _fit_vanderpol_gradient(model, data, optimizer, max_iter, abstol, rng)
+    else
+        error("Van der Pol fitting method $method not supported. Only :gradient is available.")
+    end
+end
+
+"""
+    _fit_vanderpol_gradient(model, data, optimizer, max_iter, abstol, rng)
+
+Internal function for gradient-based Van der Pol fitting.
+"""
+function _fit_vanderpol_gradient(model::VanDerPol, data::Vector{Float64},
+                                optimizer::Symbol, max_iter::Int, abstol::Float64,
+                                rng=Random.default_rng())
+
+    # Get parameter space
+    ps = parameter_space(model)
+
+    # Extract bounds
+    bounds = (
+        μ = (ps.μ.lower, ps.μ.upper),
+        heart_rate = (ps.heart_rate.lower, ps.heart_rate.upper)
+    )
+
+    # Compute target statistics from real data
+    target_stats = compute_summary_stats(data)
+
+    # Create loss function (L2 distance in feature space)
+    function loss(params_vec)
+        # Unpack parameters
+        μ, heart_rate = params_vec
+
+        # Check bounds
+        if μ < bounds.μ[1] || μ > bounds.μ[2] ||
+           heart_rate < bounds.heart_rate[1] || heart_rate > bounds.heart_rate[2]
+            return 1e10
+        end
+
+        try
+            # Simulate from parameters
+            params = (μ=μ, heart_rate=heart_rate)
+            synthetic = simulate(model, params, length(data))
+
+            # Compute statistics
+            synth_stats = compute_summary_stats(synthetic)
+
+            # L2 distance (normalized)
+            loss_val = sum((target_stats .- synth_stats).^2)
+            return loss_val
+        catch
+            return 1e10
+        end
+    end
+
+    # Initialize from prior mean
+    x0 = [
+        (ps.μ.lower + ps.μ.upper) / 2,
+        (ps.heart_rate.lower + ps.heart_rate.upper) / 2
+    ]
+
+    # Optimize
+    opt_result = Optim.optimize(
+        loss, x0,
+        Optim.LBFGS(),
+        Optim.Options(
+            iterations=max_iter,
+            f_abstol=abstol,
+            show_trace=false
+        )
+    )
+
+    # Extract best parameters
+    best_params = (
+        μ = opt_result.minimizer[1],
+        heart_rate = opt_result.minimizer[2]
+    )
+
+    # Create diagnostics
+    diagnostics = Dict(
+        "converged" => Optim.converged(opt_result),
+        "iterations" => opt_result.iterations,
+        "loss_final" => Optim.minimum(opt_result),
+        "method" => "LBFGS"
+    )
+
+    return ModelFitResult(
+        model,
+        :gradient,
+        best_params,
+        nothing,  # No posterior for gradient fitting
+        diagnostics,
+        data
+    )
+end
+
+"""
     Lorenz <: AbstractHRVModel
 
 Lorenz chaotic attractor model for HRV generation.
