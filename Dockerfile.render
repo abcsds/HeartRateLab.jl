@@ -47,7 +47,8 @@ ENV LD_LIBRARY_PATH="/run/opengl-driver/lib"
 RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.instantiate()'
 
 # Install and register IJulia kernel for Jupyter/Quarto
-RUN julia -e 'using Pkg; Pkg.add("IJulia"); using IJulia; IJulia.installkernel("Julia", env=Dict("JULIA_PROJECT"=>"/workdir"))'
+# The kernel MUST use the /workdir project so HeartRateLab is available
+RUN julia --project=/workdir -e 'using Pkg; Pkg.add("IJulia"); using IJulia; IJulia.installkernel("Julia", env=Dict("JULIA_PROJECT"=>"/workdir"))'
 
 # Use bash as entrypoint to allow flexible command execution
 # For quarto rendering: docker run hrlab:render bash -c 'quarto render ...'
