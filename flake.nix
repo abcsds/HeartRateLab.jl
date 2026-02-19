@@ -85,9 +85,9 @@
             echo ""
 
             # Run render and capture output/errors
-            # Restore container's Manifest and resolve for final validation
+            # Restore container's pre-built Manifest and resolve any inconsistencies
             if docker run --rm -v .:/workdir --entrypoint bash hrlab:render \
-              -c "rm -f /workdir/Manifest.toml && cp /.manifest_backup /workdir/Manifest.toml && julia --project=/workdir -e 'using Pkg; Pkg.resolve()' && cd /workdir && quarto render docs/flagship_demo.qmd --to html --execute"; then
+              -c "cp /.manifest_backup /workdir/Manifest.toml && julia --project=/workdir -e 'using Pkg; Pkg.resolve()' && cd /workdir && quarto render docs/flagship_demo.qmd --to html --execute"; then
               echo ""
               echo "✓ Notebook rendered successfully!"
               echo "📂 Output: docs/flagship_demo.html"
