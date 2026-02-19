@@ -59,9 +59,9 @@
             exec ${pkgs.act}/bin/act "$@"
           '');
         };
-        render = {
+        build-render = {
           type = "app";
-          program = toString (pkgs.writeShellScript "render-notebook" ''
+          program = toString (pkgs.writeShellScript "build-render-container" ''
             #!${pkgs.runtimeShell}
             set -e
 
@@ -72,12 +72,29 @@
             docker build --network=host --build-arg QUARTO_VERSION=$QUARTO_VERSION \
               -f Dockerfile.render -t hrlab:render .
 
-            echo "📝 Rendering flagship demo notebook with code execution..."
-            docker run --rm -v .:/workdir hrlab:render \
-              -c 'cd /workdir && quarto render docs/flagship_demo.qmd --to html --execute'
+            echo "✓ Render container built successfully!"
+          '');
+        };
+        render = {
+          type = "app";
+          program = toString (pkgs.writeShellScript "render-notebook" ''
+            #!${pkgs.runtimeShell}
 
-            echo "✓ Notebook rendered successfully!"
-            echo "📂 Output: docs/flagship_demo.html"
+            echo "📝 Rendering flagship demo notebook with code execution..."
+            echo "   (make sure to run 'nix run .#build-render' first)"
+            echo ""
+
+            # Run render and capture output/errors
+            if docker run --rm -v .:/workdir --entrypoint bash hrlab:render \
+              -c 'cd /workdir && quarto render docs/flagship_demo.qmd --to html --execute'; then
+              echo ""
+              echo "✓ Notebook rendered successfully!"
+              echo "📂 Output: docs/flagship_demo.html"
+            else
+              echo ""
+              echo "✗ Render failed - check errors above"
+              exit 1
+            fi
           '');
         };
       };

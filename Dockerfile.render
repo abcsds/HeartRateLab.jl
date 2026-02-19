@@ -51,6 +51,10 @@ RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.instantiate(); Pkg.resolv
 # The kernel MUST use the /workdir project so HeartRateLab is available
 RUN julia --project=/workdir -e 'using Pkg; Pkg.add("IJulia"); using IJulia; IJulia.installkernel("Julia", env=Dict("JULIA_PROJECT"=>"/workdir"))'
 
+# Configure kernel to use --project=/workdir by modifying kernel.json
+# This ensures Jupyter always uses the /workdir project for package resolution
+RUN sed -i 's|"/usr/local/julia/bin/julia",|"/usr/local/julia/bin/julia", "--project=/workdir",|' /root/.local/share/jupyter/kernels/julia-1.11/kernel.json
+
 # Use bash as entrypoint to allow flexible command execution
 # For quarto rendering: docker run hrlab:render bash -c 'quarto render ...'
 ENTRYPOINT [ "bash" ]
