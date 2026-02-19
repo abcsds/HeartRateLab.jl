@@ -86,9 +86,6 @@ macro register(expr::Expr)
     function_name ∈ keys(function_registry) &&
         @warn("Function $(function_name) is already registered. Overwriting.")
     res = quote
-        """
-        $($docstr)
-        """
         function_registry[$(function_name)] = @memoize function $(f)($(args...))
             (occursin("HRMeasurement", repr($args[1]))) ||  # Ensure the first argument is an HRMeasurement
                 throw(ArgumentError("The first argument must be an HRMeasurement."))
