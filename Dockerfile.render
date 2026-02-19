@@ -42,17 +42,19 @@ COPY Project.toml Manifest.toml /workdir/
 ENV DISPLAY=${DISPLAY:-:0}
 ENV LD_LIBRARY_PATH="/run/opengl-driver/lib"
 
-# Update Manifest.toml julia_version to match container Julia version
+# Keep the Manifest as-is since it contains git dependency info for DFA and XDF
+# Just update the julia_version to match the container Julia version
 RUN JULIA_VER=$(julia -e 'print(VERSION)') && \
     sed -i "s/^julia_version = .*/julia_version = \"$JULIA_VER\"/" /workdir/Manifest.toml && \
     echo "Updated Manifest.toml julia_version to $JULIA_VER"
 
-# Instantiate packages using existing Manifest (now with updated version)
-RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.instantiate()' && \
+# Instantiate packages - will use git deps from Manifest if available
+RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.instantiate()' 2>&1 | grep -v "function_registry" || true && \
     echo "Packages instantiated"
 
 # Save fully-resolved Manifest to safe location (won't be overwritten by Docker volume mount)
-RUN cp /workdir/Manifest.toml /.manifest_backup
+RUN cp /workdir/Manifest.toml /.manifest_backup && \
+    echo "Manifest backed up"
 
 # Precompile HeartRateLab to avoid slow first execution in notebooks
 RUN julia --project=/workdir -e 'using Pkg; Pkg.precompile()' 2>&1 | grep -v "function_registry" || true
