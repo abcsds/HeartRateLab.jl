@@ -10,15 +10,21 @@ ARG QUARTO_VERSION=1.8.27
 # Create a working directory within the container
 WORKDIR /workdir
 
-# Install build tools and Quarto dependencies
+# Install build tools, Quarto dependencies, and Jupyter/Python
 RUN apt-get update && \
     apt-get -y install \
     gcc \
     make \
     curl \
-    gdebi-core
+    gdebi-core \
+    python3 \
+    python3-pip \
+    python3-venv
     # libcurl4-openssl-dev \
     # libexpat1-dev
+
+# Install Jupyter via pip
+RUN pip3 install jupyter --break-system-packages
 
 # Install Quarto for notebook rendering
 RUN curl -LO https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/quarto-${QUARTO_VERSION}-linux-amd64.deb && \
@@ -39,6 +45,9 @@ ENV LD_LIBRARY_PATH="/run/opengl-driver/lib"
 
 # Instantiate the julia environment
 RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.instantiate()'
+
+# Install and register IJulia kernel for Jupyter/Quarto
+RUN julia -e 'using Pkg; Pkg.add("IJulia"); using IJulia; IJulia.installkernel("Julia", env=Dict("JULIA_PROJECT"=>"/workdir"))'
 
 # Use bash as entrypoint to allow flexible command execution
 # For quarto rendering: docker run hrlab:render bash -c 'quarto render ...'

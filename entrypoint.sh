@@ -2,12 +2,10 @@
 # HeartRateLab Docker entrypoint script
 # Handles both interactive and non-interactive Julia commands
 
-set -e
-
-# If arguments are provided, run them as a Julia command
+# If arguments are provided, treat them as a shell command
 if [ $# -gt 0 ]; then
-    # Run Julia with the provided command
-    exec /usr/local/julia/bin/julia --project=. "$@"
+    # Execute the provided command using bash -c to properly parse it
+    exec bash -c "$@"
 else
     # Interactive mode: start Julia REPL
     exec /usr/local/julia/bin/julia --project=. -i
