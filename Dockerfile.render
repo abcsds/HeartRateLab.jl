@@ -43,8 +43,9 @@ COPY Manifest.toml /workdir/
 ENV DISPLAY=${DISPLAY:-:0}
 ENV LD_LIBRARY_PATH="/run/opengl-driver/lib"
 
-# Instantiate the julia environment
-RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.instantiate()'
+# Instantiate and resolve the julia environment
+# Resolve cleans up Manifest.toml to match current Project.toml
+RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.instantiate(); Pkg.resolve()'
 
 # Install and register IJulia kernel for Jupyter/Quarto
 # The kernel MUST use the /workdir project so HeartRateLab is available
