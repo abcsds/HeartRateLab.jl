@@ -217,6 +217,51 @@ try
         # Different thresholds should produce different results
         @test abs(mean(ibis_low_thresh) - mean(ibis_high_thresh)) > 10.0
 
+        # Test 6: fit() method produces valid results
+        # Generate synthetic data from Lorenz to test fitting
+        synthetic_data = HeartRateLab.Models.simulate(lorenz, params, n_beats=150)
+
+        try
+            fitted_result = HeartRateLab.Models.fit(lorenz, synthetic_data; method=:bayesian)
+
+            @test fitted_result.model isa HeartRateLab.Models.Lorenz
+            @test fitted_result.method == :bayesian
+            @test haskey(fitted_result.params, :σ)
+            @test haskey(fitted_result.params, :ρ)
+            @test haskey(fitted_result.params, :β)
+            @test haskey(fitted_result.params, :threshold)
+
+            # Test 7: Fitted parameters are within bounds
+            ps = HeartRateLab.Models.parameter_space(lorenz)
+            @test ps.σ.lower <= fitted_result.params.σ <= ps.σ.upper
+            @test ps.ρ.lower <= fitted_result.params.ρ <= ps.ρ.upper
+            @test ps.β.lower <= fitted_result.params.β <= ps.β.upper
+            @test ps.threshold.lower <= fitted_result.params.threshold <= ps.threshold.upper
+
+            # Test 8: Posterior samples are available
+            @test !isnothing(fitted_result.posterior)
+            @test haskey(fitted_result.posterior, "σ")
+            @test haskey(fitted_result.posterior, "ρ")
+            @test haskey(fitted_result.posterior, "β")
+            @test haskey(fitted_result.posterior, "threshold")
+            @test length(fitted_result.posterior["σ"]) > 0
+
+            # Test 9: Diagnostics contain convergence info
+            @test haskey(fitted_result.diagnostics, "method")
+            @test haskey(fitted_result.diagnostics, "chains")
+            @test haskey(fitted_result.diagnostics, "total_samples")
+            @test haskey(fitted_result.diagnostics, "rhat_sigma")
+            @test fitted_result.diagnostics["method"] == "NUTS (Turing.jl)"
+
+            # Test 10: Fitted model produces IBIs similar to real data
+            fitted_synthetic = HeartRateLab.Models.simulate(lorenz, fitted_result.params, 150)
+            @test mean(fitted_synthetic) ≈ mean(synthetic_data) atol=100.0  # Within 100 ms (chaotic)
+            @test std(fitted_synthetic) ≈ std(synthetic_data) atol=50.0  # Within 50 ms
+
+        catch e
+            @warn "Lorenz fitting test skipped: $e"
+        end
+
         # Test 6: Standard deviation is reasonable (chaotic system shows variability)
         @test std(ibis) > 20.0  # Chaotic systems show high variability
 

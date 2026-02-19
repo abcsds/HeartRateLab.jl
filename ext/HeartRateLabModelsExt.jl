@@ -901,6 +901,154 @@ function parameter_space(model::Lorenz)
 end
 
 """
+    fit(model::Lorenz, data::Vector{Float64}; method=:bayesian, kwargs...) -> ModelFitResult
+
+Fit a Lorenz chaotic attractor model to real HRV data using Bayesian inference.
+
+# Arguments
+- `model::Lorenz`: Model instance
+- `data::Vector{Float64}`: Real IBI data (milliseconds)
+- `method=:bayesian`: Optimization method (:bayesian or :gradient)
+- `chains=4`: Number of MCMC chains (Bayesian only)
+- `samples=1000`: Samples per chain (Bayesian only)
+- `rng=Random.default_rng()`: Random number generator
+
+# Returns
+- `ModelFitResult`: Fitted model with parameters and posterior samples
+
+# Details
+Fits Lorenz oscillator to real data using MCMC sampling.
+Provides posterior distribution over all 4 parameters: σ, ρ, β, threshold.
+Useful for uncertainty quantification in chaotic model fitting.
+"""
+function fit(model::Lorenz, data::Vector{Float64};
+             method::Symbol=:bayesian,
+             chains::Int=4,
+             samples::Int=1000,
+             rng=Random.default_rng())
+
+    if method == :bayesian
+        return _fit_lorenz_bayesian(model, data, chains, samples, rng)
+    else
+        error("Lorenz fitting method $method not supported. Use :bayesian")
+    end
+end
+
+"""
+    _fit_lorenz_bayesian(model, data, chains, samples, rng)
+
+Internal function for Bayesian Lorenz fitting using Turing.jl.
+"""
+function _fit_lorenz_bayesian(model::Lorenz, data::Vector{Float64},
+                             chains::Int=4, samples::Int=1000,
+                             rng=Random.default_rng())
+
+    # Get parameter space
+    ps = parameter_space(model)
+
+    # Compute target statistics from real data
+    target_stats = compute_summary_stats(data)
+
+    # Define Turing model for Bayesian inference
+    @model function lorenz_model(target_stats, data_length)
+        # Prior distributions
+        σ ~ ps.σ.prior
+        ρ ~ ps.ρ.prior
+        β ~ ps.β.prior
+        threshold ~ ps.threshold.prior
+
+        # Simulate from parameters
+        params = (σ=σ, ρ=ρ, β=β, threshold=threshold)
+        try
+            synthetic = simulate(model, params, data_length)
+            synth_stats = compute_summary_stats(synthetic)
+
+            # Likelihood: normal distribution centered on target stats
+            # Standard deviation controls how closely synthetic stats match
+            sigma = 10.0  # Standard deviation in feature space
+            for i in 1:length(target_stats)
+                target_stats[i] ~ Normal(synth_stats[i], sigma)
+            end
+        catch
+            # If simulation fails, reject the sample
+            Turing.@addlogprob! -Inf
+        end
+    end
+
+    # Sample from posterior
+    mcmc_model = lorenz_model(target_stats, length(data))
+
+    # Run MCMC with NUTS sampler
+    try
+        sampler = Turing.NUTS()
+        chain = sample(mcmc_model, sampler, (samples, chains); rng=rng, progress=false)
+
+        # Extract posterior samples
+        σ_samples = vec(chain[:σ].values)
+        ρ_samples = vec(chain[:ρ].values)
+        β_samples = vec(chain[:β].values)
+        threshold_samples = vec(chain[:threshold].values)
+
+        # Compute posterior mean as best estimate
+        best_params = (
+            σ = mean(σ_samples),
+            ρ = mean(ρ_samples),
+            β = mean(β_samples),
+            threshold = mean(threshold_samples)
+        )
+
+        # Create posterior samples structure
+        posterior = Dict(
+            "σ" => σ_samples,
+            "ρ" => ρ_samples,
+            "β" => β_samples,
+            "threshold" => threshold_samples
+        )
+
+        # Create diagnostics from MCMC
+        diagnostics = Dict(
+            "method" => "NUTS (Turing.jl)",
+            "chains" => chains,
+            "samples_per_chain" => samples,
+            "total_samples" => length(σ_samples),
+            "rhat_sigma" => compute_rhat(σ_samples, chains),
+            "rhat_rho" => compute_rhat(ρ_samples, chains),
+            "rhat_beta" => compute_rhat(β_samples, chains),
+            "rhat_threshold" => compute_rhat(threshold_samples, chains)
+        )
+
+        return ModelFitResult(
+            model,
+            :bayesian,
+            best_params,
+            posterior,
+            diagnostics,
+            data
+        )
+
+    catch e
+        # Fallback: if MCMC fails, return empty result
+        @warn "Bayesian fitting failed: $e. Falling back to prior mean."
+
+        prior_mean = (
+            σ = (ps.σ.lower + ps.σ.upper) / 2,
+            ρ = (ps.ρ.lower + ps.ρ.upper) / 2,
+            β = (ps.β.lower + ps.β.upper) / 2,
+            threshold = (ps.threshold.lower + ps.threshold.upper) / 2
+        )
+
+        return ModelFitResult(
+            model,
+            :bayesian,
+            prior_mean,
+            nothing,
+            Dict("error" => "MCMC sampling failed: $e"),
+            data
+        )
+    end
+end
+
+"""
     DMD <: AbstractHRVModel
 
 Dynamic Mode Decomposition model for data-driven HRV synthesis.
