@@ -521,6 +521,132 @@ function plot_correlations(features_df::DataFrame; title="Feature Correlations")
     fig
 end
 
+"""
+    plot_feature_violins(real::DataFrame, ensembles::Dict{String, DataFrame}; features=nothing) -> Figure
+
+Create violin plots comparing real vs synthetic feature distributions.
+
+# Arguments
+- `real::DataFrame`: Real feature data (n_real_samples × n_features)
+- `ensembles::Dict{String, DataFrame}`: Dict mapping model names to feature DataFrames
+  - Each DataFrame should have same columns as `real`
+  - Rows represent samples from that model's ensemble
+- `features=nothing`: Subset of features to plot (default: all common columns)
+
+# Returns
+- `Figure`: GLMakie figure with one panel per feature, showing:
+  - Reference violin for real data (in gray)
+  - Colored violins for each model's synthetic distribution
+
+# Details
+Enables visual comparison of feature distributions between real and synthetic data.
+Useful for identifying which features the models capture well vs. poorly.
+All features must have numeric columns.
+
+# Example
+```julia
+real_features = extract_feature_set(real_data)
+real_df = DataFrame([real_features])  # 1 row
+ensemble_df = extract_ensemble_features(ensemble)  # n_sim rows
+fig = plot_feature_violins(real_df, Dict("LIF" => ensemble_df))
+```
+"""
+function plot_feature_violins(real::DataFrame, ensembles::Dict{String, DataFrame}; features=nothing)
+    # Determine which features to use
+    if isnothing(features)
+        # Use all common columns
+        common_cols = intersect(names(real), [names(df) for df in values(ensembles)]...)
+        features = String.(common_cols)
+    end
+
+    n_features = length(features)
+    n_models = length(ensembles)
+    model_names = sort(collect(keys(ensembles)))
+    colors = HSL.(range(0, 360, length=n_models+1)[1:end-1], 0.7, 0.5)
+
+    # Calculate subplot grid
+    n_cols = min(3, n_features)  # 3 columns max
+    n_rows = cld(n_features, n_cols)
+
+    fig = Figure(size=(300*n_cols, 250*n_rows))
+
+    for (feat_idx, feat_name) in enumerate(features)
+        ax_row = cld(feat_idx, n_cols)
+        ax_col = ((feat_idx - 1) % n_cols) + 1
+
+        ax = Axis(fig[ax_row, ax_col];
+            title=feat_name,
+            xlabel="Distribution",
+            ylabel="Value",
+            xticks=(1:n_models+1, vcat("Real", model_names))
+        )
+
+        # Prepare data for violin plot
+        all_positions = []
+        all_values = []
+        all_colors = []
+
+        # Real data (position 1)
+        real_vals = real[!, feat_name]
+        # Remove NaN and Inf
+        real_vals = filter(x -> isfinite(x), real_vals)
+        if !isempty(real_vals)
+            append!(all_positions, fill(1, length(real_vals)))
+            append!(all_values, real_vals)
+            append!(all_colors, fill(:gray, length(real_vals)))
+        end
+
+        # Synthetic data (positions 2, 3, ..., n_models+1)
+        for (model_idx, model_name) in enumerate(model_names)
+            synth_vals = ensembles[model_name][!, feat_name]
+            # Remove NaN and Inf
+            synth_vals = filter(x -> isfinite(x), synth_vals)
+            if !isempty(synth_vals)
+                append!(all_positions, fill(model_idx + 1, length(synth_vals)))
+                append!(all_values, synth_vals)
+                append!(all_colors, fill(model_idx, length(synth_vals)))
+            end
+        end
+
+        # Plot violins
+        if !isempty(all_positions)
+            violin!(ax, all_positions, all_values;
+                color=all_colors,
+                colormap=[:gray; colors],
+                alpha=0.6,
+                linewidth=0
+            )
+
+            # Add box plots on top for quartile visualization
+            boxplot!(ax, all_positions, all_values;
+                color=all_colors,
+                colormap=[:gray; colors],
+                strokewidth=1,
+                width=0.2,
+                alpha=0.3
+            )
+        end
+
+        # Add mean marker
+        real_mean = mean(filter(x -> isfinite(x), real[!, feat_name]))
+        scatter!(ax, [1], [real_mean]; color=:red, markersize=8, marker=:star5, label="Real mean")
+
+        for (model_idx, model_name) in enumerate(model_names)
+            model_mean = mean(filter(x -> isfinite(x), ensembles[model_name][!, feat_name]))
+            scatter!(ax, [model_idx + 1], [model_mean];
+                color=colors[model_idx], markersize=8, marker=:star5)
+        end
+
+        # Clean up axis
+        hidexdecorations!(ax; label=false, ticklabels=false)
+        hidedecorations!(ax; label=false, ticklabels=false)
+        ax.xticks = (1:n_models+1, vcat("Real", model_names))
+        ax.xticklabelrotation = π/6
+    end
+
+    fig
+end
+
 # TODO: Phase 4 - Visualization implementations will be added here:
 # - plot_radar()
 # - plot_feature_violins()
