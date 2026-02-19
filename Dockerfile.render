@@ -42,30 +42,16 @@ COPY Project.toml Manifest.toml /workdir/
 ENV DISPLAY=${DISPLAY:-:0}
 ENV LD_LIBRARY_PATH="/run/opengl-driver/lib"
 
-# Fix Manifest.toml julia_version using Julia to ensure correct TOML parsing
-RUN julia << 'EOF'
-using TOML
-
-manifest_path = "/workdir/Manifest.toml"
-manifest = TOML.parsefile(manifest_path)
-
-# Update julia_version to match container's Julia
-manifest["julia_version"] = string(VERSION)
-manifest["manifest_format"] = "2.0"
-
-# Write back to file
-open(manifest_path, "w") do io
-    TOML.print(io, manifest)
-end
-
-println("Updated Manifest.toml julia_version to $(VERSION)")
-EOF
-
-# Now instantiate and resolve packages
-RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.instantiate(); Pkg.resolve()'
+# Fix Manifest.toml julia_version using sed to preserve file format
+RUN JULIA_VER=$(julia -e 'print(VERSION)') && \
+    sed -i "s/^julia_version = .*/julia_version = \"$JULIA_VER\"/" /workdir/Manifest.toml && \
+    echo "Updated Manifest.toml julia_version to $JULIA_VER"
 
 # Save Manifest to safe location (won't be overwritten by Docker volume mount)
 RUN cp /workdir/Manifest.toml /.manifest_backup
+
+# Now instantiate and resolve packages
+RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.instantiate()'
 
 # Precompile HeartRateLab to avoid slow first execution in notebooks
 RUN julia --project=/workdir -e 'using Pkg; Pkg.precompile()' 2>&1 | grep -v "function_registry" || true
