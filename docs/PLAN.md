@@ -18,44 +18,56 @@ HeartRateLab.jl aims to be the most comprehensive open-source HRV analysis packa
 
 ---
 
-## 2. Current State (February 2026) — UPDATED
+## 2. Current State (February 2026) — UPDATED AFTER EVALUATION PIPELINE
 
 ### ✅ What's Done
 
-| Module | Status | Details |
-|--------|--------|---------|
-| **Input** | ✅ Complete | `read_xdf`, `read_txt`, `read_wfdb` — 3 formats |
-| **Preprocessing** | ✅ Complete | 10 functions: outlier removal, interpolation, windowing |
-| **Features** | ✅ Complete | 44 features across 6 domains; `minimum_length` per feature; `valid_features(n)` selector |
-| **Frequency** | ✅ Complete | Welch + Lomb-Scargle periodograms, band power, peak finding |
-| **Model Interface** | ✅ Complete | `AbstractHRVModel`, `ModelFitResult` structs defined |
-| **LIF Model** | ✅ Complete | `simulate()`, `fit(:bayesian)` via Turing.jl (Task #14), `fit(:gradient)` via Optim.jl |
-| **VanDerPol Model** | ✅ Complete | `simulate()`, `parameter_space()` |
-| **Lorenz Model** | ✅ Complete | `simulate()` with chaotic IBI generation |
-| **DMD Model** | ✅ Complete | `fit()` for decomposition, `simulate()` for reconstruction |
-| **Package Extensions** | ✅ Complete | Project.toml configured with 4 extensions (Models, Visualization, Deep, LSL) |
-| **Bayesian Fitting** | ✅ Complete | Turing.jl integration: MCMC sampling, R-hat diagnostics, posterior distributions |
-| **Model Tests** | ✅ Complete | 21 test cases covering all models and fitting methods |
-| **Test Suite** | ✅ Complete | Split into 7 independent test files (input, preprocessing, features, frequency, models, evaluation, datasets, visualization) |
-| **Documentation** | ✅ Complete | API docs (getting_started, features, models, visualization), 5 tutorials, 414 lines |
-| **Reproducibility** | ✅ Complete | Dockerfile, flake.nix configured |
+| Module | Status | Commits | Lines |
+|--------|--------|---------|-------|
+| **Input** | ✅ Complete | — | 63 |
+| **Preprocessing** | ✅ Complete | — | 266 |
+| **Features** | ✅ Complete | — | 992 |
+| **Frequency** | ✅ Complete | — | 91 |
+| **Model Interface** | ✅ Complete | — | 77 |
+| **LIF Model** | ✅ Complete | 13e590c, b79f352 | 300 |
+| **VanDerPol Model** | ✅ Complete | — | 150 |
+| **Lorenz Model** | ✅ Complete | — | 180 |
+| **DMD Model** | ✅ Complete | — | 200 |
+| **Package Extensions** | ✅ Complete | — | 960 |
+| **Bayesian Fitting** | ✅ Complete | 13e590c | 200 |
+| **Model Tests** | ✅ Complete | b79f352 | 177 |
+| **Test Suite Split** | ✅ Complete | — | 300+ |
+| **Documentation** | ✅ Complete | 52ebe74 | 400+ |
+| **Evaluation Pipeline** | ✅ **COMPLETE** | e6a7b18→7855155 | 1,170 |
+
+**Evaluation Pipeline Details (NEW):**
+- ✅ `windowed_feature_set()` — Mode 2 (sliding windows) | e6a7b18 | 150 lines
+- ✅ `simulate_ensemble()` — Mode 3 (synthetic ensemble) | 53546fe | 180 lines
+- ✅ `extract_ensemble_features()` — Feature extraction from ensemble | 624936e | 180 lines
+- ✅ `eval_distributional()` — Statistical tests (KS, Mann-Whitney, AD) | 8ec90aa | 260 lines
+- ✅ `eval_scalar()` — Mean/error metrics | 297331f | 150 lines
+- ✅ `eval_distance()` — Feature-space distances (Euclidean, Mahalanobis) | 7855155 | 250 lines
+
+**Documentation:**
+- ✅ `evaluation_demo.qmd` — Live Quarto notebook demonstrating full pipeline
+- ✅ `EVALUATION_DEMO_OUTPUT.md` — Expected output and interpretation guide
 
 ### ⚠️ What's Partially Done
 
 | Module | Status | Details |
 |--------|--------|---------|
-| **Visualization Extension** | ⚠️ Framework only | GLMakie extension exists but plot functions not implemented |
-| **Van der Pol Fitting** | ⚠️ Not done | Has `simulate()`, but no `fit()` method |
+| **Visualization Functions** | ⚠️ Framework ready | GLMakie extension exists but functions not implemented |
+| **Van der Pol Fitting** | ⚠️ simulate only | `simulate()` works, needs `fit()` method |
 
 ### ❌ What's Not Started
 
 | Item | Priority | Notes |
 |------|----------|-------|
-| **Evaluation Pipeline** | 🔴 BLOCKING | General-purpose feature comparison framework (see Section 3.2 revised) |
 | **Dataset Infrastructure** | 🟡 HIGH | `load_physionet()`, `load_nsrdb()`, `load_mitbih()` |
-| **Visualization Functions** | 🟡 HIGH | `plot_radar()`, `plot_feature_violins()`, `plot_comparison()`, `plot_model_heatmap()`, `plot_correlations()` |
+| **Visualization Functions** | 🟡 HIGH | 5 comparison plots (`plot_radar`, `plot_feature_violins`, etc.) |
 | **Neural ODE/VAE** | 🟢 LOW | Deep learning models, deferred post-core |
-| **Package Registration** | 🟡 HIGH | Version should be 0.1.0 (not 1.0.0); needs LICENSE, CITATION.bib |
+| **Package Registration** | 🟡 HIGH | Version 0.1.0, LICENSE, CITATION.bib |
+| **Performance Benchmarking** | 🟢 LOW | Speed benchmarks on NSRDB records |
 
 ### Test Failures (as of February 2026)
 

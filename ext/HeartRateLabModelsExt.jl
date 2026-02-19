@@ -1093,6 +1093,198 @@ function load_mitbih(record::String; kwargs...)::Vector{Float64}
     return load_physionet(url; kwargs...)
 end
 
+"""
+    load_nsr2db(record::String; kwargs...) -> Vector{Float64}
+
+Load a record from the Normal Sinus Rhythm RR Interval Database.
+
+# Arguments
+- `record::String`: Record ID
+- `kwargs...`: Additional arguments passed to load_physionet()
+
+# Returns
+- `Vector{Float64}`: IBI series in milliseconds
+
+# Database Info
+- Name: Normal Sinus Rhythm RR Interval Database
+- URL: https://physionet.org/content/nsr2db/
+- Content: RR intervals from healthy subjects
+- Focus: Normative baseline for comparison
+
+"""
+function load_nsr2db(record::String; kwargs...)::Vector{Float64}
+    url = "https://physionet.org/files/nsr2db/1.0.0/" * record
+    return load_physionet(url; kwargs...)
+end
+
+"""
+    load_healthy_rr_intervals(record::String; kwargs...) -> Vector{Float64}
+
+Load a record from the RR Interval Time Series from Healthy Subjects database.
+
+# Arguments
+- `record::String`: Record ID
+- `kwargs...`: Additional arguments passed to load_physionet()
+
+# Returns
+- `Vector{Float64}`: IBI series in milliseconds
+
+# Database Info
+- Name: RR Interval Time Series from Healthy Subjects
+- URL: https://physionet.org/content/rr-interval-healthy-subjects/
+- Content: RR interval timeseries from healthy subjects
+- Focus: Long-term normative reference
+
+"""
+function load_healthy_rr_intervals(record::String; kwargs...)::Vector{Float64}
+    url = "https://physionet.org/files/rr-interval-healthy-subjects/1.0.0/" * record
+    return load_physionet(url; kwargs...)
+end
+
+"""
+    load_meditation(record::String; kwargs...) -> Vector{Float64}
+
+Load a record from the Heart Rate Oscillations during Meditation database.
+
+# Arguments
+- `record::String`: Record ID
+- `kwargs...`: Additional arguments passed to load_physionet()
+
+# Returns
+- `Vector{Float64}`: IBI series in milliseconds
+
+# Database Info
+- Name: Heart Rate Oscillations during Meditation
+- URL: https://physionet.org/content/meditation/
+- Content: ECG/heart rate data during meditation vs. rest
+- Focus: Autonomic nervous system modulation
+
+"""
+function load_meditation(record::String; kwargs...)::Vector{Float64}
+    url = "https://physionet.org/files/meditation/1.0.0/" * record
+    return load_physionet(url; kwargs...)
+end
+
+"""
+    load_challenge_2002(record::String; kwargs...) -> Vector{Float64}
+
+Load a record from the PhysioNet/Computing in Cardiology Challenge 2002 dataset.
+
+# Arguments
+- `record::String`: Record ID
+- `kwargs...`: Additional arguments passed to load_physionet()
+
+# Returns
+- `Vector{Float64}`: IBI series in milliseconds
+
+# Database Info
+- Name: RR Interval Time Series Modeling Challenge 2002
+- URL: https://physionet.org/content/challenge-2002/
+- Content: RR intervals for modeling competition
+- Focus: Benchmark for HRV modeling algorithms
+
+"""
+function load_challenge_2002(record::String; kwargs...)::Vector{Float64}
+    url = "https://physionet.org/files/challenge-2002/1.0.0/" * record
+    return load_physionet(url; kwargs...)
+end
+
+"""
+    load_chaos(record::String; kwargs...) -> Vector{Float64}
+
+Load a record from the "Is the Normal Heart Rate Chaotic?" database.
+
+# Arguments
+- `record::String`: Record ID
+- `kwargs...`: Additional arguments passed to load_physionet()
+
+# Returns
+- `Vector{Float64}`: IBI series in milliseconds
+
+# Database Info
+- Name: Is the Normal Heart Rate Chaotic?
+- URL: https://physionet.org/content/chaos-heart-rate/
+- Content: Long RR interval timeseries from healthy subjects
+- Focus: Chaotic dynamics and nonlinear properties
+
+"""
+function load_chaos(record::String; kwargs...)::Vector{Float64}
+    url = "https://physionet.org/files/chaos-heart-rate/1.0.0/" * record
+    return load_physionet(url; kwargs...)
+end
+
+"""
+    load_ibs(record::String; kwargs...) -> Vector{Float64}
+
+Load a record from the Information-Based Similarity database.
+
+# Arguments
+- `record::String`: Record ID
+- `kwargs...`: Additional arguments passed to load_physionet()
+
+# Returns
+- `Vector{Float64}`: IBI series in milliseconds
+
+# Database Info
+- Name: Information-Based Similarity
+- URL: https://physionet.org/content/ibs/
+- Content: Physiological recordings with RR intervals
+- Focus: Similarity measures for heart rate signals
+
+"""
+function load_ibs(record::String; kwargs...)::Vector{Float64}
+    url = "https://physionet.org/files/ibs/1.0.0/" * record
+    return load_physionet(url; kwargs...)
+end
+
+"""
+    load_simultaneous_measurements(record::String; kwargs...) -> Vector{Float64}
+
+Load a record from the Simultaneous Physiological Measurements database.
+
+# Arguments
+- `record::String`: Record ID
+- `kwargs...`: Additional arguments passed to load_physionet()
+
+# Returns
+- `Vector{Float64}`: IBI series in milliseconds
+
+# Database Info
+- Name: Simultaneous Physiological Measurements with Five Devices
+- URL: https://physionet.org/content/simultaneous-measurements/
+- Content: Multi-device measurements at different cognitive/physical loads
+- Focus: Cross-device validation and workload effects
+
+"""
+function load_simultaneous_measurements(record::String; kwargs...)::Vector{Float64}
+    url = "https://physionet.org/files/simultaneous-measurements/1.0.2/" * record
+    return load_physionet(url; kwargs...)
+end
+
+"""
+    load_mvtdb(record::String; kwargs...) -> Vector{Float64}
+
+Load a record from the Spontaneous Ventricular Tachyarrhythmia Database.
+
+# Arguments
+- `record::String`: Record ID
+- `kwargs...`: Additional arguments passed to load_physionet()
+
+# Returns
+- `Vector{Float64}`: IBI series in milliseconds
+
+# Database Info
+- Name: Spontaneous Ventricular Tachyarrhythmia Database
+- URL: https://physionet.org/content/mvtdb/
+- Content: ECG recordings with spontaneous ventricular arrhythmias
+- Focus: Clinical arrhythmia classification and modeling
+
+"""
+function load_mvtdb(record::String; kwargs...)::Vector{Float64}
+    url = "https://physionet.org/files/mvtdb/1.0/" * record
+    return load_physionet(url; kwargs...)
+end
+
 # TODO: Phase 3 - Model implementations will be added here:
 # - fit() implementations for LIF, Van der Pol, Lorenz
 # - Bayesian inference wrappers
