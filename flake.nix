@@ -86,13 +86,12 @@
             MTIME_BEFORE=$(stat -c %Y docs/flagship_demo.html 2>/dev/null || echo 0)
 
             # Run Quarto render with explicit bash entrypoint to show all output
-            # Mount src/ and docs/ but keep container's Project.toml and Manifest.toml
+            # Mount entire project directory to ensure fresh source code
             echo "--- Starting Quarto render ---"
             docker run --rm \
-              -v "$(pwd)/src:/workdir/src" \
-              -v "$(pwd)/docs:/workdir/docs" \
+              -v "$(pwd):/workdir" \
               --entrypoint bash hrlab:render \
-              -c "cd /workdir && quarto render docs/flagship_demo.qmd --to html --execute"
+              -c "rm -rf /root/.julia/compiled && cd /workdir && quarto render docs/flagship_demo.qmd --to html --execute"
             RENDER_EXIT=$?
             echo "--- Quarto render completed (exit code: $RENDER_EXIT) ---"
 

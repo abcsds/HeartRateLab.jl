@@ -52,7 +52,7 @@ println("\n" * "="^70)
 println("           PART 1: Real Data Characterization")
 println("="^70)
 println("✓ Loaded $(length(real_data)) IBI samples")
-println("  Range: $(Int(minimum(real_data)))—$(Int(maximum(real_data))) ms")
+println("  Range: $(round(Int, minimum(real_data)))—$(round(Int, maximum(real_data))) ms")
 println("  Mean: $(round(mean(real_data); digits=1)) ms")
 println("  Std: $(round(std(real_data); digits=1)) ms")
 ```
