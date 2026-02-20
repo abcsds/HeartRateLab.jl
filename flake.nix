@@ -65,12 +65,9 @@
             #!${pkgs.runtimeShell}
             set -e
 
-            # Quarto version to install
-            QUARTO_VERSION="1.8.27"
-
-            echo "🔨 Building render container with Quarto $QUARTO_VERSION..."
-            docker build --network=host --build-arg QUARTO_VERSION=$QUARTO_VERSION \
-              -f Dockerfile.render -t hrlab:render .
+            echo "🔨 Building render container with Quarto..."
+            docker build --network=host --build-arg INSTALL_QUARTO=true \
+              -t hrlab:render .
 
             echo "✓ Render container built successfully!"
           '');
@@ -84,10 +81,9 @@
             echo "   (make sure to run 'nix run .#build-render' first)"
             echo ""
 
-            # Run render and capture output/errors
-            # Restore container's pre-built Manifest and resolve any inconsistencies
-            if docker run --rm -v .:/workdir --entrypoint bash hrlab:render \
-              -c "cp /.manifest_backup /workdir/Manifest.toml && julia --project=/workdir -e 'using Pkg; Pkg.resolve()' && cd /workdir && quarto render docs/flagship_demo.qmd --to html --execute"; then
+            # Run Quarto render with volume-mounted project
+            if docker run --rm -v .:/workdir hrlab:render \
+              bash -c "cd /workdir && quarto render docs/flagship_demo.qmd --to html --execute"; then
               echo ""
               echo "✓ Notebook rendered successfully!"
               echo "📂 Output: docs/flagship_demo.html"
