@@ -76,22 +76,49 @@
           type = "app";
           program = toString (pkgs.writeShellScript "render-notebook" ''
             #!${pkgs.runtimeShell}
+            set -e
 
             echo "📝 Rendering flagship demo notebook with code execution..."
             echo "   (make sure to run 'nix run .#build-render' first)"
             echo ""
 
-            # Run Quarto render with volume-mounted project
-            if docker run --rm -v .:/workdir hrlab:render \
-              bash -c "cd /workdir && quarto render docs/flagship_demo.qmd --to html --execute"; then
+            # Record modification time before render
+            MTIME_BEFORE=$(stat -c %Y docs/flagship_demo.html 2>/dev/null || echo 0)
+
+            # Run Quarto render with explicit bash entrypoint to show all output
+            # Mount src/ and docs/ but keep container's Project.toml and Manifest.toml
+            echo "--- Starting Quarto render ---"
+            docker run --rm \
+              -v "$(pwd)/src:/workdir/src" \
+              -v "$(pwd)/docs:/workdir/docs" \
+              --entrypoint bash hrlab:render \
+              -c "cd /workdir && quarto render docs/flagship_demo.qmd --to html --execute"
+            RENDER_EXIT=$?
+            echo "--- Quarto render completed (exit code: $RENDER_EXIT) ---"
+
+            # Verify the output file exists and was actually modified
+            if [ ! -f docs/flagship_demo.html ]; then
               echo ""
-              echo "✓ Notebook rendered successfully!"
-              echo "📂 Output: docs/flagship_demo.html"
-            else
-              echo ""
-              echo "✗ Render failed - check errors above"
+              echo "✗ Render failed - output file does not exist"
               exit 1
             fi
+
+            MTIME_AFTER=$(stat -c %Y docs/flagship_demo.html)
+            if [ "$MTIME_AFTER" -le "$MTIME_BEFORE" ]; then
+              echo ""
+              echo "✗ Render failed - output file was not modified (render did not complete)"
+              exit 1
+            fi
+
+            if [ $RENDER_EXIT -ne 0 ]; then
+              echo ""
+              echo "✗ Render failed with exit code $RENDER_EXIT"
+              exit 1
+            fi
+
+            echo ""
+            echo "✓ Notebook rendered successfully!"
+            echo "📂 Output: docs/flagship_demo.html ($(stat -c %s docs/flagship_demo.html) bytes)"
           '');
         };
       };

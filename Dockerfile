@@ -51,8 +51,10 @@ RUN if [ "$INSTALL_QUARTO" = "true" ]; then \
     curl -LO https://github.com/quarto-dev/quarto-cli/releases/download/v1.8.27/quarto-1.8.27-linux-amd64.deb && \
     gdebi --non-interactive quarto-1.8.27-linux-amd64.deb && \
     rm quarto-1.8.27-linux-amd64.deb && \
-    julia --project=/workdir -e 'using Pkg; Pkg.add("IJulia")' && \
-    julia --project=/workdir -e 'using IJulia; IJulia.installkernel("Julia", env=Dict("JULIA_PROJECT"=>"/workdir"))' && \
+    julia -e 'using Pkg; Pkg.add("IJulia")' && \
+    julia -e 'using Pkg; Pkg.add("Plots")' && \
+    julia -e 'using Pkg; Pkg.add("StatsPlots")' && \
+    julia -e 'using IJulia; IJulia.installkernel("Julia", env=Dict("JULIA_PROJECT"=>"/workdir"))' && \
     sed -i 's|"/usr/local/julia/bin/julia",|"/usr/local/julia/bin/julia", "--project=/workdir",|' /root/.local/share/jupyter/kernels/julia-1.11/kernel.json; \
     fi
 
