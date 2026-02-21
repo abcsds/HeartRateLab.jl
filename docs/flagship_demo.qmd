@@ -63,11 +63,11 @@ println("  Std: $(round(std(real_data); digits=1)) ms")
 real_features = extract_feature_set(real_data)
 
 println("\nKey HRV features from real data:")
-println("  mean: $(round(real_features["mean"]; digits=1)) ms")
-println("  rmssd: $(round(real_features["rmssd"]; digits=2)) ms")
-println("  pnn50: $(round(real_features["pnn50"]; digits=1))%")
-println("  sd1: $(round(real_features["sd1"]; digits=1)) ms")
-println("  sd2: $(round(real_features["sd2"]; digits=1)) ms")
+println("  mean: $(round(real_features[!, "mean"][1]; digits=1)) ms")
+println("  rmssd: $(round(real_features[!, "rmssd"][1]; digits=2)) ms")
+println("  pnn50: $(round(real_features[!, "pnn50"][1]; digits=1))%")
+println("  sd1: $(round(real_features[!, "sd1"][1]; digits=1)) ms")
+println("  sd2: $(round(real_features[!, "sd2"][1]; digits=1)) ms")
 ```
 
 ## Part 3: Fit Van der Pol Model with Bayesian Inference
