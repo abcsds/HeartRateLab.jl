@@ -22,6 +22,8 @@ Optional implementations:
 """
 module Models
 
+using Random
+
 """
     AbstractHRVModel
 
@@ -80,5 +82,46 @@ Van der Pol oscillator model for HRV simulation.
 Simple mechanistic model for cardiac oscillations.
 """
 struct VanDerPol <: AbstractHRVModel end
+
+"""
+    simulate(model::VanDerPol, params::NamedTuple, n_beats::Int) -> Vector{Float64}
+
+Simulate IBI time series using Van der Pol oscillator.
+
+# Parameters
+- `μ`: Non-linearity parameter (amplitude of oscillation)
+- `heart_rate`: Base heart rate in BPM
+
+# Returns
+Vector of inter-beat intervals in milliseconds
+"""
+function simulate(model::VanDerPol, params::NamedTuple, n_beats::Int)::Vector{Float64}
+    # Extract parameters with defaults
+    μ = get(params, :μ, 0.5)  # Non-linearity
+    hr = get(params, :heart_rate, 70)  # Heart rate in BPM
+
+    # Mean IBI in milliseconds
+    mean_ibi = 60000 / hr
+
+    # Generate oscillatory modulation
+    time = range(0, 4π, length=n_beats)
+
+    # Van der Pol oscillation: x'' + μ(x² - 1)x' + x = 0
+    # Use simple harmonic approximation with modulation
+    modulation = 1.0 .+ 0.3 .* μ .* sin.(time) .+ 0.1 .* μ .* cos.(2 .* time)
+
+    # Generate IBI with physiological constraints
+    ibi = mean_ibi .* modulation
+
+    # Add small random noise
+    noise = randn(n_beats) .* (0.01 * mean_ibi)
+    ibi = ibi .+ noise
+
+    # Ensure physiological bounds (300-2000 ms typical)
+    ibi = max.(ibi, 300)
+    ibi = min.(ibi, 2000)
+
+    return ibi
+end
 
 end  # Models

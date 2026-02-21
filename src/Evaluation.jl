@@ -11,7 +11,7 @@ module Evaluation
 using DataFrames, Random, Statistics
 using HypothesisTests
 using ..Features: extract_feature_set, valid_features
-using ..Models: AbstractHRVModel
+using ..Models: AbstractHRVModel, simulate
 
 """
     windowed_feature_set(data::Vector{Float64}; window_size::Int=300, overlap::Int=150) -> DataFrame
