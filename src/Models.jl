@@ -73,4 +73,12 @@ struct ModelFitResult
     data::Vector{Float64}  # Original data used for fitting
 end
 
+"""
+    VanDerPol <: AbstractHRVModel
+
+Van der Pol oscillator model for HRV simulation.
+Simple mechanistic model for cardiac oscillations.
+"""
+struct VanDerPol <: AbstractHRVModel end
+
 end  # Models
