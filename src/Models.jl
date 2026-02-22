@@ -26,6 +26,7 @@ using Random
 using Distributions
 using Turing
 using Optim
+using DataFrames
 
 # DifferentialEquations is optional, only needed for Lorenz model
 const hasDiffEq = try
