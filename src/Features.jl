@@ -925,7 +925,7 @@ end
         The approximate entropy of the IBIs.
     Domains: nonlinear
     Aliases: approximate_entropy, apen
-    
+
     Minimum length: 100
     """
     apens, _ = EntropyHub.ApEn(n.data, m=m, r=r)
@@ -943,7 +943,7 @@ end
         The sample entropy of the IBIs.
     Domains: nonlinear
     Aliases: sample_entropy, sampen
-    
+
     Minimum length: 100
     """
     sampen1, _ = EntropyHub.SampEn(n.data, m=m, r=r)
