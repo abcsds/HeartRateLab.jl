@@ -55,6 +55,7 @@ RUN if [ "$INSTALL_QUARTO" = "true" ]; then \
     julia -e 'using Pkg; Pkg.add("IJulia")' && \
     julia -e 'using Pkg; Pkg.add("Plots")' && \
     julia -e 'using Pkg; Pkg.add("StatsPlots")' && \
+    julia -e 'using Pkg; Pkg.add("CairoMakie")' && \
     julia -e 'using IJulia; IJulia.installkernel("Julia", env=Dict("JULIA_PROJECT"=>"/workdir"))' && \
     sed -i 's|"/usr/local/julia/bin/julia",|"/usr/local/julia/bin/julia", "--project=/workdir",|' /root/.local/share/jupyter/kernels/julia-1.11/kernel.json; \
     fi
