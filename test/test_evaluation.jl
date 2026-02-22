@@ -473,10 +473,10 @@ end
 
     @testset "Basic windowed extraction" begin
         window_size = 100
-        overlap = 50
+        stride = 50
 
         # Call windowed_feature_set
-        result = windowed_feature_set(ibis; window_size=window_size, overlap=overlap)
+        result = windowed_feature_set(ibis; window_size=window_size, stride=stride)
 
         # Should return a DataFrame
         @test isa(result, DataFrame)
@@ -485,7 +485,7 @@ end
         @test ncol(result) >= 10  # At least some features valid for 100-beat windows
 
         # Should have multiple rows (one per window)
-        expected_n_windows = div(n_beats - window_size, window_size - overlap) + 1
+        expected_n_windows = div(n_beats - window_size, stride) + 1
         @test nrow(result) == expected_n_windows
 
         # Each row should contain valid numerical values
@@ -494,24 +494,24 @@ end
 
     @testset "Window computation is correct" begin
         window_size = 150
-        overlap = 50
+        stride = 100
 
-        result = windowed_feature_set(ibis; window_size=window_size, overlap=overlap)
+        result = windowed_feature_set(ibis; window_size=window_size, stride=stride)
 
         # Manually compute expected number of windows
         # First window: indices 1:150
         # Second window: indices 101:250
         # Continue until window_start + window_size > n_beats
-        expected_n_windows = div(n_beats - window_size, window_size - overlap) + 1
+        expected_n_windows = div(n_beats - window_size, stride) + 1
         @test nrow(result) == expected_n_windows
     end
 
     @testset "Respects valid_features constraint" begin
         # Use small window size that limits available features
         window_size = 50  # Only ~11 features valid for 50-beat signals
-        overlap = 25
+        stride = 25
 
-        result = windowed_feature_set(ibis; window_size=window_size, overlap=overlap)
+        result = windowed_feature_set(ibis; window_size=window_size, stride=stride)
 
         # Should have fewer columns (only valid features)
         valid_count = length(valid_features(window_size))
@@ -526,9 +526,9 @@ end
 
     @testset "No overlap (sequential windows)" begin
         window_size = 100
-        overlap = 0
+        stride = 100
 
-        result = windowed_feature_set(ibis; window_size=window_size, overlap=overlap)
+        result = windowed_feature_set(ibis; window_size=window_size, stride=stride)
 
         # With no overlap: floor(n_beats / window_size) non-overlapping windows
         # Plus possibly one partial window
@@ -538,9 +538,9 @@ end
 
     @testset "Full overlap (every beat starts a window)" begin
         window_size = 100
-        overlap = 99  # 99 of 100 beats overlap with next window
+        stride = 1  # 99 of 100 beats overlap with next window
 
-        result = windowed_feature_set(ibis; window_size=window_size, overlap=overlap)
+        result = windowed_feature_set(ibis; window_size=window_size, stride=stride)
 
         # Should have n_beats - window_size + 1 windows (every position gets a window)
         expected_n_windows = n_beats - window_size + 1
@@ -551,9 +551,9 @@ end
         # Edge case: data shorter than window size
         short_ibis = ibis[1:50]
         window_size = 100
-        overlap = 50
+        stride = 50
 
-        result = windowed_feature_set(short_ibis; window_size=window_size, overlap=overlap)
+        result = windowed_feature_set(short_ibis; window_size=window_size, stride=stride)
 
         # Should handle gracefully: either return empty DataFrame or one window if possible
         # Behavior: return empty DataFrame (no complete windows possible)
@@ -563,9 +563,9 @@ end
 
     @testset "Feature values are reasonable" begin
         window_size = 200
-        overlap = 100
+        stride = 100
 
-        result = windowed_feature_set(ibis; window_size=window_size, overlap=overlap)
+        result = windowed_feature_set(ibis; window_size=window_size, stride=stride)
 
         # If we have results, check that feature values are in reasonable ranges
         if nrow(result) > 0
