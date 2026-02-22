@@ -152,17 +152,17 @@ function parameter_space(model::VanDerPol)
         μ = (
             lower = 0.1,
             upper = 3.0,
-            prior = TruncatedNormal(1.0, 0.5, 0.1, 3.0)
+            prior = Distributions.truncated(Distributions.Normal(1.0, 0.5), 0.1, 3.0)
         ),
         heart_rate = (
             lower = 40.0,
             upper = 120.0,
-            prior = TruncatedNormal(70.0, 15.0, 40.0, 120.0)
+            prior = Distributions.truncated(Distributions.Normal(70.0, 15.0), 40.0, 120.0)
         ),
         σ_noise = (
             lower = 1.0,
             upper = 50.0,
-            prior = Exponential(10.0)
+            prior = Distributions.Exponential(10.0)
         )
     )
 end
