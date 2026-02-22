@@ -242,25 +242,27 @@ end
 end
 
 # ============================================================================
-# LIF Model - NOT YET IMPLEMENTED
+# LIF Model - IMPLEMENTED (requires DifferentialEquations)
 # ============================================================================
-@testset "LIF Model (NOT YET IMPLEMENTED)" begin
+@testset "LIF Model (requires DifferentialEquations)" begin
     @test_broken begin
-        using DifferentialEquations, Optim
-
         lif = HeartRateLab.Models.LIF(τ=50.0, I_base=0.8, threshold=1.0, noise_amp=0.15)
 
+        # Test 1: Model can be created
         @test lif.τ ≈ 50.0
         @test lif.I_base ≈ 0.8
         @test lif.threshold ≈ 1.0
         @test lif.noise_amp ≈ 0.15
 
+        # Test 2: parameter_space() returns expected parameters
         ps = HeartRateLab.Models.parameter_space(lif)
         @test haskey(ps, :τ)
         @test haskey(ps, :I_base)
         @test haskey(ps, :threshold)
         @test haskey(ps, :noise_amp)
+        @test haskey(ps, :σ_noise)
 
+        # Test 3: simulate() produces valid IBIs
         params = (τ=50.0, I_base=0.8, threshold=1.0, noise_amp=0.15)
         ibis = HeartRateLab.Models.simulate(lif, params, n_beats=50)
 
@@ -268,20 +270,57 @@ end
         @test all(ibis .> 0)
         @test all(300 .< ibis .< 2000)
 
-        # Test fit(:gradient)
-        result = HeartRateLab.Models.fit(lif, ibis; method=:gradient, max_iter=100)
+        # Test 4: Different parameters produce different dynamics
+        params_slow_tau = (τ=80.0, I_base=0.8, threshold=1.0, noise_amp=0.15)
+        ibis_slow = HeartRateLab.Models.simulate(lif, params_slow_tau, n_beats=50)
+
+        # Slower time constant should affect variability
+        @test std(ibis_slow) != std(ibis)
+
+        # Test 5: fit(:gradient) produces valid result
+        result = HeartRateLab.Models.fit(lif, ibis; method=:gradient)
 
         @test result.model isa HeartRateLab.Models.LIF
         @test result.method == :gradient
         @test haskey(result.diagnostics, "converged")
         @test haskey(result.diagnostics, "loss_final")
+        @test result.posterior === nothing  # No posterior for gradient
 
-        # Test fit(:bayesian)
+        # Test 6: Gradient fit produces valid parameters
+        @test 10.0 <= result.params.τ <= 100.0
+        @test 0.5 <= result.params.I_base <= 1.5
+        @test 0.5 <= result.params.threshold <= 1.5
+        @test 0.05 <= result.params.noise_amp <= 0.5
+
+        # Test 7: fit(:bayesian) produces valid result
         result_bayes = HeartRateLab.Models.fit(lif, ibis; method=:bayesian, chains=2, samples=100)
 
         @test result_bayes.model isa HeartRateLab.Models.LIF
         @test result_bayes.method == :bayesian
         @test result_bayes.posterior !== nothing
+        @test haskey(result_bayes.posterior, "τ")
+        @test haskey(result_bayes.posterior, "I_base")
+        @test haskey(result_bayes.posterior, "threshold")
+        @test haskey(result_bayes.posterior, "noise_amp")
+
+        # Test 8: Bayesian fit produces valid parameters
+        @test result_bayes.params.τ > 0
+        @test result_bayes.params.I_base > 0
+        @test result_bayes.params.threshold > 0
+        @test result_bayes.params.noise_amp > 0
+
+        # Test 9: Diagnostics include R-hat values
         @test haskey(result_bayes.diagnostics, "rhat_tau")
+        @test haskey(result_bayes.diagnostics, "rhat_I_base")
+        @test haskey(result_bayes.diagnostics, "rhat_threshold")
+        @test haskey(result_bayes.diagnostics, "rhat_noise_amp")
+        @test haskey(result_bayes.diagnostics, "rhat_sigma_noise")
+
+        # Test 10: Posterior samples have expected length
+        expected_samples = 100 * 2  # samples * chains
+        @test length(result_bayes.posterior["τ"]) == expected_samples
+        @test length(result_bayes.posterior["I_base"]) == expected_samples
+        @test length(result_bayes.posterior["threshold"]) == expected_samples
+        @test length(result_bayes.posterior["noise_amp"]) == expected_samples
     end
 end

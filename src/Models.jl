@@ -546,4 +546,288 @@ function fit(model::Lorenz, data::Vector{Float64};
     end
 end
 
+# ============================================================================
+# Leaky Integrate-and-Fire (LIF) Neural Model
+# ============================================================================
+
+"""
+    LIF <: AbstractHRVModel
+
+Leaky Integrate-and-Fire stochastic neural model for HRV simulation.
+Generates spike-based cardiac dynamics through threshold crossings.
+
+# Parameters
+- `τ`: Membrane time constant (typically ~50 ms)
+- `I_base`: Base input current (typically ~0.8)
+- `threshold`: Spike threshold (typically ~1.0)
+- `noise_amp`: Noise amplitude (typically ~0.15)
+"""
+struct LIF <: AbstractHRVModel
+    τ::Float64
+    I_base::Float64
+    threshold::Float64
+    noise_amp::Float64
+end
+
+LIF(; τ=50.0, I_base=0.8, threshold=1.0, noise_amp=0.15) = LIF(τ, I_base, threshold, noise_amp)
+
+"""
+    parameter_space(model::LIF) -> NamedTuple
+
+Return the parameter space for LIF model with priors for Bayesian fitting.
+"""
+function parameter_space(model::LIF)
+    return (
+        τ = (
+            lower = 10.0,
+            upper = 100.0,
+            prior = TruncatedNormal(50.0, 15.0, 10.0, 100.0)
+        ),
+        I_base = (
+            lower = 0.5,
+            upper = 1.5,
+            prior = TruncatedNormal(0.8, 0.2, 0.5, 1.5)
+        ),
+        threshold = (
+            lower = 0.5,
+            upper = 1.5,
+            prior = TruncatedNormal(1.0, 0.2, 0.5, 1.5)
+        ),
+        noise_amp = (
+            lower = 0.05,
+            upper = 0.5,
+            prior = TruncatedNormal(0.15, 0.1, 0.05, 0.5)
+        ),
+        σ_noise = (
+            lower = 1.0,
+            upper = 50.0,
+            prior = Exponential(10.0)
+        )
+    )
+end
+
+"""
+    simulate(model::LIF, params::NamedTuple, n_beats::Int) -> Vector{Float64}
+
+Simulate IBI time series using LIF stochastic neural model with threshold crossings.
+
+# Parameters
+- `τ`: Membrane time constant (ms)
+- `I_base`: Base input current
+- `threshold`: Spike threshold voltage
+- `noise_amp`: Noise amplitude in dynamics
+
+# Returns
+Vector of inter-beat intervals in milliseconds
+"""
+function simulate(model::LIF, params::NamedTuple, n_beats::Int)::Vector{Float64}
+    if !hasDiffEq
+        error("LIF model requires DifferentialEquations.jl. Install with: Pkg.add(\"DifferentialEquations\")")
+    end
+
+    # Extract parameters
+    τ = get(params, :τ, model.τ)
+    I_base = get(params, :I_base, model.I_base)
+    threshold = get(params, :threshold, model.threshold)
+    noise_amp = get(params, :noise_amp, model.noise_amp)
+
+    # LIF ODE: τ dV/dt = -V + I_base + noise
+    function lif!(du, u, p, t)
+        τ_param, I_base_param, noise_amp_param = p
+        V = u[1]
+        du[1] = (-V + I_base_param) / τ_param + noise_amp_param * randn()
+    end
+
+    # Simulate until we get n_beats
+    ibis = Float64[]
+    u0 = [0.0]  # Start below threshold
+    t = 0.0
+    dt = 0.1   # Time step in ms
+    last_spike_time = -Inf
+
+    max_iterations = n_beats * 100  # Safety limit
+
+    for iteration = 1:max_iterations
+        # Solve for short interval (100ms)
+        tspan = (t, t + 100.0)
+        prob = ODEProblem(lif!, u0, tspan, [τ, I_base, noise_amp])
+
+        try
+            sol = solve(prob, Tsit5(), saveat=dt, verbose=false)
+
+            # Check for threshold crossings
+            for i in 2:length(sol.t)
+                if sol[1, i] >= threshold && sol[1, i-1] < threshold
+                    spike_time = sol.t[i]
+                    if last_spike_time > -Inf
+                        ibi = spike_time - last_spike_time
+                        if 300 < ibi < 2000  # Physiological bounds
+                            push!(ibis, ibi)
+                        end
+                    end
+                    last_spike_time = spike_time
+                    u0 = [0.0]  # Reset voltage after spike
+                    break
+                end
+            end
+
+            t += 100.0
+            u0 = [sol[1, end]]
+
+            if length(ibis) >= n_beats
+                return ibis[1:n_beats]
+            end
+        catch
+            # If ODE solve fails, stop
+            break
+        end
+    end
+
+    if length(ibis) < n_beats
+        error("LIF simulation: got $(length(ibis)) IBIs but needed $n_beats. Try adjusting parameters.")
+    end
+
+    return ibis[1:n_beats]
+end
+
+"""
+    fit(model::LIF, data::Vector{Float64}; method=:bayesian, kwargs...) -> ModelFitResult
+
+Fit LIF model to IBI data using Bayesian inference or gradient-based optimization.
+"""
+function fit(model::LIF, data::Vector{Float64};
+             method::Symbol=:bayesian,
+             chains::Int=4,
+             samples::Int=1000,
+             kwargs...)
+
+    if method == :bayesian
+        # Define Turing model for Bayesian inference
+        @model function lif_model(ibi_data)
+            n_beats = length(ibi_data)
+
+            # Priors
+            τ ~ TruncatedNormal(50.0, 15.0, 10.0, 100.0)
+            I_base ~ TruncatedNormal(0.8, 0.2, 0.5, 1.5)
+            threshold ~ TruncatedNormal(1.0, 0.2, 0.5, 1.5)
+            noise_amp ~ TruncatedNormal(0.15, 0.1, 0.05, 0.5)
+            σ_noise ~ Exponential(10.0)
+
+            # Simulate model with these parameters
+            params = (τ=τ, I_base=I_base, threshold=threshold, noise_amp=noise_amp)
+            try
+                predicted_ibi = simulate(model, params, n_beats)
+                # Likelihood: observed IBIs ~ predicted IBIs with Gaussian noise
+                ibi_data ~ MvNormal(predicted_ibi, σ_noise)
+            catch
+                # If simulation fails, assign very low likelihood
+                Turing.@addlogprob! -Inf
+            end
+        end
+
+        # Fit using NUTS sampler
+        turing_model = lif_model(data)
+        chain = sample(turing_model, NUTS(0.65), MCMCThreads(),
+                      samples, chains, progress=true)
+
+        # Extract MAP estimates
+        params_map = (
+            τ = mean(chain[:τ]),
+            I_base = mean(chain[:I_base]),
+            threshold = mean(chain[:threshold]),
+            noise_amp = mean(chain[:noise_amp])
+        )
+
+        # Extract diagnostics
+        diagnostics = Dict(
+            "method" => "NUTS (Turing.jl)",
+            "chains" => chains,
+            "samples_per_chain" => samples,
+            "total_samples" => samples * chains,
+            "rhat_tau" => rhat(chain[:τ])[1],
+            "rhat_I_base" => rhat(chain[:I_base])[1],
+            "rhat_threshold" => rhat(chain[:threshold])[1],
+            "rhat_noise_amp" => rhat(chain[:noise_amp])[1],
+            "rhat_sigma_noise" => rhat(chain[:σ_noise])[1]
+        )
+
+        # Extract posterior samples
+        posterior = Dict(
+            "τ" => vec(chain[:τ]),
+            "I_base" => vec(chain[:I_base]),
+            "threshold" => vec(chain[:threshold]),
+            "noise_amp" => vec(chain[:noise_amp]),
+            "σ_noise" => vec(chain[:σ_noise])
+        )
+
+        return ModelFitResult(
+            model,
+            :bayesian,
+            params_map,
+            posterior,
+            diagnostics,
+            data
+        )
+
+    elseif method == :gradient
+        # Gradient-based optimization using feature-space distance minimization
+        real_features = extract_feature_set(data)
+
+        # Define loss function: MSE of key HRV features
+        function loss(params_vec)
+            τ, I_base, threshold, noise_amp = params_vec
+
+            # Simulate with current parameters
+            params = (τ=τ, I_base=I_base, threshold=threshold, noise_amp=noise_amp)
+            try
+                synthetic = simulate(model, params, length(data))
+                synth_features = extract_feature_set(synthetic)
+
+                # Compute normalized feature-space distance
+                diff = (real_features .- synth_features) ./ (abs.(real_features) .+ 1e-6)
+                return sum(diff .^ 2)
+            catch
+                return 1e10  # Large penalty for failed simulations
+            end
+        end
+
+        # Optimize using Fminbox(LBFGS())
+        lower = [10.0, 0.5, 0.5, 0.05]
+        upper = [100.0, 1.5, 1.5, 0.5]
+        initial_x = [50.0, 0.8, 1.0, 0.15]
+
+        result = optimize(loss, lower, upper, initial_x, Fminbox(LBFGS()),
+                         Optim.Options(iterations=500))
+
+        # Extract optimized parameters
+        params_opt = result.minimizer
+        params_map = (
+            τ = params_opt[1],
+            I_base = params_opt[2],
+            threshold = params_opt[3],
+            noise_amp = params_opt[4]
+        )
+
+        # Extract diagnostics
+        diagnostics = Dict(
+            "method" => "LBFGS",
+            "converged" => Optim.converged(result),
+            "iterations" => result.iterations,
+            "loss_final" => result.minimum
+        )
+
+        return ModelFitResult(
+            model,
+            :gradient,
+            params_map,
+            nothing,
+            diagnostics,
+            data
+        )
+
+    else
+        error("LIF supports :bayesian and :gradient fitting methods")
+    end
+end
+
 end  # Models
