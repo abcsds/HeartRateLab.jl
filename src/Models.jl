@@ -996,4 +996,9 @@ function simulate(model::DMD, params::Union{NamedTuple,Nothing}, n_beats::Int)::
     return reconstructed
 end
 
+# Export model types and key functions
+export AbstractHRVModel, ModelFitResult
+export VanDerPol, Lorenz, LIF, DMD
+export simulate, fit, parameter_space
+
 end  # Models
