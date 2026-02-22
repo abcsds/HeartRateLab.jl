@@ -110,16 +110,16 @@ end
     # Test 5: Standard deviation is reasonable
     @test std(ibis) > 5.0
 
-    # Test 6: parameter_space() - NOT YET IMPLEMENTED
-    @test_broken begin
-        ps = HeartRateLab.Models.parameter_space(vdp)
-        @test haskey(ps, :μ)
-        @test haskey(ps, :heart_rate)
-        @test ps.μ.lower < ps.μ.upper
-        @test ps.heart_rate.lower < ps.heart_rate.upper
-    end
+    # Test 6: parameter_space() - NOW IMPLEMENTED
+    ps = HeartRateLab.Models.parameter_space(vdp)
+    @test haskey(ps, :μ)
+    @test haskey(ps, :heart_rate)
+    @test haskey(ps, :σ_noise)
+    @test ps.μ.lower < ps.μ.upper
+    @test ps.heart_rate.lower < ps.heart_rate.upper
+    @test ps.σ_noise.lower < ps.σ_noise.upper
 
-    # Test 7: fit(:gradient) - NOT YET IMPLEMENTED
+    # Test 7: fit(:gradient) - NOT YET IMPLEMENTED (Phase C)
     @test_broken begin
         synthetic_data = HeartRateLab.Models.simulate(vdp, params, n_beats=200)
         fitted_result = HeartRateLab.Models.fit(vdp, synthetic_data; method=:gradient)
@@ -130,15 +130,33 @@ end
         @test haskey(fitted_result.params, :heart_rate)
     end
 
-    # Test 8: fit(:bayesian) - NOT YET IMPLEMENTED
-    @test_broken begin
-        synthetic_data = HeartRateLab.Models.simulate(vdp, params, n_beats=200)
-        fitted_result = HeartRateLab.Models.fit(vdp, synthetic_data; method=:bayesian, chains=2, samples=100)
+    # Test 8: fit(:bayesian) - NOW IMPLEMENTED (Phase B)
+    synthetic_data = HeartRateLab.Models.simulate(vdp, params, n_beats=150)
+    fitted_result = HeartRateLab.Models.fit(vdp, synthetic_data; method=:bayesian, chains=2, samples=200)
 
-        @test fitted_result.model isa HeartRateLab.Models.VanDerPol
-        @test fitted_result.method == :bayesian
-        @test fitted_result.posterior !== nothing
-    end
+    @test fitted_result.model isa HeartRateLab.Models.VanDerPol
+    @test fitted_result.method == :bayesian
+    @test fitted_result.posterior !== nothing
+    @test haskey(fitted_result.posterior, "μ")
+    @test haskey(fitted_result.posterior, "heart_rate")
+    @test haskey(fitted_result.posterior, "σ_noise")
+
+    # Test 9: Bayesian fit produces valid parameters
+    @test haskey(fitted_result.params, :μ)
+    @test haskey(fitted_result.params, :heart_rate)
+    @test fitted_result.params.μ > 0
+    @test fitted_result.params.heart_rate > 0
+
+    # Test 10: Posterior samples have expected length
+    expected_samples = 200 * 2  # samples * chains
+    @test length(fitted_result.posterior["μ"]) == expected_samples
+    @test length(fitted_result.posterior["heart_rate"]) == expected_samples
+
+    # Test 11: Diagnostics include R-hat values
+    @test haskey(fitted_result.diagnostics, "rhat_mu")
+    @test haskey(fitted_result.diagnostics, "rhat_heart_rate")
+    @test haskey(fitted_result.diagnostics, "rhat_sigma_noise")
+    @test fitted_result.diagnostics["rhat_mu"] > 0
 end
 
 # ============================================================================

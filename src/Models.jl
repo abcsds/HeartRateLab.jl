@@ -23,6 +23,10 @@ Optional implementations:
 module Models
 
 using Random
+using Distributions
+using DifferentialEquations
+using Turing
+using Optim
 
 """
     AbstractHRVModel
@@ -122,6 +126,120 @@ function simulate(model::VanDerPol, params::NamedTuple, n_beats::Int)::Vector{Fl
     ibi = min.(ibi, 2000)
 
     return ibi
+end
+
+"""
+    parameter_space(model::VanDerPol) -> NamedTuple
+
+Return the parameter space for Van der Pol model with priors for Bayesian fitting.
+
+# Returns
+NamedTuple with keys: `μ`, `heart_rate`, `σ_noise`
+Each parameter has: `lower`, `upper`, `prior` (TruncatedNormal or Exponential)
+"""
+function parameter_space(model::VanDerPol)
+    return (
+        μ = (
+            lower = 0.1,
+            upper = 3.0,
+            prior = TruncatedNormal(1.0, 0.5, 0.1, 3.0)
+        ),
+        heart_rate = (
+            lower = 40.0,
+            upper = 120.0,
+            prior = TruncatedNormal(70.0, 15.0, 40.0, 120.0)
+        ),
+        σ_noise = (
+            lower = 1.0,
+            upper = 50.0,
+            prior = Exponential(10.0)
+        )
+    )
+end
+
+"""
+    fit(model::VanDerPol, data::Vector{Float64}; method=:bayesian, kwargs...) -> ModelFitResult
+
+Fit Van der Pol model to IBI data using Bayesian or gradient-based optimization.
+
+# Arguments
+- `model::VanDerPol`: Van der Pol model instance
+- `data::Vector{Float64}`: IBI time series in milliseconds
+- `method::Symbol`: `:bayesian` (NUTS MCMC) or `:gradient` (LBFGS)
+- `chains::Int`: Number of MCMC chains (default: 4, for Bayesian only)
+- `samples::Int`: Samples per chain (default: 1000, for Bayesian only)
+
+# Returns
+`ModelFitResult` with posterior samples, MAP estimates, and diagnostics
+"""
+function fit(model::VanDerPol, data::Vector{Float64};
+             method::Symbol=:bayesian,
+             chains::Int=4,
+             samples::Int=1000,
+             kwargs...)
+
+    if method == :bayesian
+        # Define Turing model for Bayesian inference
+        @model function vanderpol_model(ibi_data)
+            n_beats = length(ibi_data)
+
+            # Priors
+            μ ~ TruncatedNormal(1.0, 0.5, 0.1, 3.0)
+            heart_rate ~ TruncatedNormal(70.0, 15.0, 40.0, 120.0)
+            σ_noise ~ Exponential(10.0)
+
+            # Simulate model with these parameters
+            params = (μ=μ, heart_rate=heart_rate)
+            predicted_ibi = simulate(model, params, n_beats)
+
+            # Likelihood: observed IBIs ~ predicted IBIs with Gaussian noise
+            ibi_data ~ MvNormal(predicted_ibi, σ_noise)
+        end
+
+        # Fit using NUTS sampler with threading
+        turing_model = vanderpol_model(data)
+        chain = sample(turing_model, NUTS(0.65), MCMCThreads(),
+                      samples, chains, progress=true)
+
+        # Extract MAP estimates (posterior mean)
+        params_map = (
+            μ = mean(chain[:μ]),
+            heart_rate = mean(chain[:heart_rate])
+        )
+
+        # Extract diagnostics
+        diagnostics = Dict(
+            "method" => "NUTS (Turing.jl)",
+            "chains" => chains,
+            "samples_per_chain" => samples,
+            "total_samples" => samples * chains,
+            "rhat_mu" => rhat(chain[:μ])[1],
+            "rhat_heart_rate" => rhat(chain[:heart_rate])[1],
+            "rhat_sigma_noise" => rhat(chain[:σ_noise])[1]
+        )
+
+        # Extract posterior samples as dict
+        posterior = Dict(
+            "μ" => vec(chain[:μ]),
+            "heart_rate" => vec(chain[:heart_rate]),
+            "σ_noise" => vec(chain[:σ_noise])
+        )
+
+        return ModelFitResult(
+            model,
+            :bayesian,
+            params_map,
+            posterior,
+            diagnostics,
+            data
+        )
+
+    elseif method == :gradient
+        error("Gradient fitting not yet implemented for VanDerPol. Use method=:bayesian")
+
+    else
+        error("Unknown fitting method: $method. Use :bayesian or :gradient")
+    end
 end
 
 end  # Models
