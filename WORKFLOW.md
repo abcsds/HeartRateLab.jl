@@ -1,345 +1,386 @@
-# HeartRateLab.jl — Agent TDD Workflow
+# HeartRateLab Development Workflow
 
-This document describes how agents (AI or human) develop and test HeartRateLab independently using test-driven development.
+**Last Updated**: February 22, 2026
+**Intended For**: All agents and developers working on this repository
+
+## TL;DR: Quick Start
+
+```bash
+# 1. First time working on this repo? Read this file!
+
+# 2. Setup (once per feature branch)
+nix run .#build
+
+# 3. Develop (repeat as needed)
+# Edit code...
+nix run .#test
+# If tests fail, fix code and re-run nix run .#test
+
+# 4. When done
+git add <files>
+git commit -m "Your message"
+# (Don't push unless explicitly asked or authorized)
+```
 
 ---
 
-## 1. Execution Methods
+## Environment
 
-Three ways to run tests, from simplest to most reproducible:
+### System Requirements
 
-### Method A: Plain Julia (recommended for development)
+You need **ONE** of:
+- **Docker** installed + `nix flake` (preferred)
+- **Docker Desktop** on macOS/Windows
+- Or: Follow the "Docker alternative" section below
+
+### Julia Version
+
+This project targets **Julia 1.11+**. All testing/rendering uses:
+- Official `julia:1.11-bookworm` Docker image
+- Reproducible across Linux, macOS, Windows
+
+### WFDB Tools
+
+Input reading tests require `ann2rr` (from PhysioNet WFDB toolkit). The Docker container includes this. Local testing will skip WFDB tests gracefully if missing.
+
+---
+
+## The Nix Build System
+
+### What is Nix?
+
+Nix ensures reproducible builds across developers and CI/CD:
+- **Pinned dependencies**: Same Julia 1.11, same packages for everyone
+- **Declarative**: `flake.nix` defines exactly what tools you get
+- **Isolated**: No conflicts with your system's Julia or Python
+
+### Available Commands
+
+| Command | Purpose | Output | Time |
+|---------|---------|--------|------|
+| `nix run .#build` | Build dev Docker image | `hrlab:latest` (3.8 GB) | 3-5 min |
+| `nix run .#test` | Run full test suite | Test results, exit code 0/1 | 2-10 min |
+| `nix run .#build-render` | Build render image with Quarto | `hrlab:render` (4.8 GB) | 5-10 min |
+| `nix run .#render` | Render .qmd notebook to HTML | `docs/flagship_demo.html` | 1-5 min |
+| `nix run` | Interactive Julia REPL | Julia prompt in container | Instant |
+| `nix run .#act` | GitHub Actions local test | CI workflow output | Varies |
+
+---
+
+## Development Workflows by Task Type
+
+### ✅ Workflow 1: Implementing Features (Models, Functions, etc.)
+
+When implementing Phase B-G from PLAN.md:
 
 ```bash
-# Full test suite
-julia --project=. -e 'using Pkg; Pkg.test()'
+# 1. Setup workspace (once at start)
+nix run .#build
+# Wait for Docker image to build (~3-5 min)
 
-# Single test file (from project root)
-julia --project=. test/test_preprocessing.jl
+# 2. Edit code
+vim src/Models.jl          # Make your changes
 
-# Ad-hoc subset (inline)
-julia --project=. -e '
-cd("test")
-using HeartRateLab: HeartRateLab
-using Test
-include("test_preprocessing.jl")
-'
+# 3. Test your changes
+nix run .#test
+# Watch for:
+#   - @test_broken = expected (not yet implemented)
+#   - Error = bug in your code
+#   - Pass = feature works!
+
+# 4. Iterate: repeat steps 2-3 until tests pass
+
+# 5. Verify all tests pass
+nix run .#test
+# Exit code should be 0
+
+# 6. Commit your work
+git add src/Models.jl test/test_models.jl
+git commit -m "Implement VanDerPol Bayesian fitting with Turing.jl"
 ```
 
-**Requirements:** Julia 1.11+, project dependencies resolved (`Pkg.instantiate()`).
-**WFDB tests:** Require `ann2rr` on PATH. Skip gracefully if missing.
-**Network tests:** Require internet. Tagged `@network`, skipped by default.
+### ✅ Workflow 2: Rendering Notebooks (Quarto)
 
-### Method B: Docker (reproducible, includes WFDB)
+When creating/updating .qmd demo notebooks:
 
 ```bash
-# Volume-mount method (uses local source, fast iteration)
-docker run --rm -v "$(pwd)":/workdir -w /workdir julia:1.11-bookworm \
+# 1. Build render image (includes Quarto + IJulia)
+nix run .#build-render
+# Wait for image (~5-10 min, only needed once)
+
+# 2. Edit your notebook
+vim docs/flagship_demo.qmd
+
+# 3. Render to HTML
+nix run .#render
+
+# 4. Preview the output
+ls -lh docs/flagship_demo.html
+# Check file size and modification time
+
+# 5. If render failed
+# Read the error message carefully:
+#   - "Render failed - output file does not exist" → run build-render first
+#   - Execution error → fix your notebook code
+#   - Missing package → add to Project.toml
+
+# 6. Verify notebook runs correctly
+# (Either manually inspect HTML or run tests)
+nix run .#test
+
+# 7. Commit the notebook
+git add docs/flagship_demo.qmd
+git commit -m "Update flagship demo with new visualization"
+```
+
+### ✅ Workflow 3: Debugging/Interactive Session
+
+When you need to test code manually or debug:
+
+```bash
+# 1. Start interactive session
+nix run
+
+# 2. You're now in a Julia REPL inside the container
+julia> using HeartRateLab
+julia> # Try your code here
+
+# 3. Load and run a specific test file
+julia> include("test/test_models.jl")
+
+# 4. Exit when done
+julia> exit()
+# Back to your terminal
+```
+
+### ✅ Workflow 4: Just Running Tests (Minimal)
+
+Quick test run after small changes:
+
+```bash
+nix run .#test
+
+# That's it! Exit code tells you if tests pass:
+# Exit code 0 = ✅ all tests pass
+# Exit code 1 = ❌ some tests failed (read output)
+```
+
+---
+
+## Understanding Test Output
+
+### Example: Successful Run
+```
+Testing HeartRateLab
+  ...package loading...
+Test Summary: 14 passed
+✓ Tests passed (exit code 0)
+```
+
+### Example: With @test_broken (Expected)
+```
+Test Summary:
+  14 passed
+  4 broken  ← These are @test_broken blocks (not yet implemented)
+✓ Tests passed (exit code 0)  ← Still passes! Broken tests are expected
+```
+
+### Example: Actual Failure (Needs Fixing)
+```
+Test Summary:
+  14 passed
+  1 failed  ← This is an actual error
+❌ Tests FAILED (exit code 1)
+
+...error message showing which test failed...
+```
+
+### How to Read Error Messages
+
+1. **Look for line numbers**: `Error in test/test_models.jl:153`
+2. **Identify the failing test**: Find that line in the test file
+3. **Read the error type**: `ArgumentError: ...`, `MethodError: ...`, etc.
+4. **Stack trace**: Shows which functions called which (bottom-most is usually the problem)
+
+---
+
+## Common Scenarios
+
+### Scenario 1: Test Hangs or Takes Forever
+
+**Symptom**: Test hangs after "Precompiling HeartRateLab"
+
+**Likely Cause**: Code bug causing infinite loop or exponential behavior
+
+**Solution**:
+1. Press `Ctrl+C` to stop
+2. Review the last code change you made
+3. Look for loops that might not terminate
+4. Fix the code and try again
+
+### Scenario 2: "ann2rr not found" Error
+
+**Symptom**: Some tests skip with "ann2rr not found"
+
+**Normal behavior**: WFDB tools are optional. Some Input tests skip gracefully.
+
+**If this is blocking your work**: Run inside the container:
+```bash
+nix run
+# Inside container:
+julia> using Pkg
+julia> Pkg.test()  # Full tests with WFDB available
+```
+
+### Scenario 3: "Package manifest mismatch" Warnings
+
+**Symptom**: Lots of manifest warnings but tests still run
+
+**Normal behavior**: Expected when fresh container. Warnings are harmless.
+
+**Not an error**: Tests will still run and complete successfully.
+
+### Scenario 4: Docker Image Build Fails
+
+**Symptom**: `nix run .#build` errors
+
+**Common Causes**:
+1. Disk space full → Free up space
+2. Network issue → Check internet connection
+3. Docker daemon not running → Start Docker
+4. Dockerfile syntax error → Review recent Dockerfile changes
+
+**Solution**:
+```bash
+# Remove old images and try again
+docker image prune -a
+nix run .#build
+```
+
+### Scenario 5: "fit() method not found"
+
+**Symptom**: Tests fail because `fit()` doesn't exist
+
+**Normal during Phase B-F implementation**: The fit() method is being implemented incrementally
+
+**Expected behavior**:
+- Phase A: Tests marked as `@test_broken`
+- Phase B-F: Tests gradually move from `@test_broken` to passing
+- When complete: All tests pass
+
+---
+
+## Docker Alternative (If Nix Unavailable)
+
+If you don't have Nix flakes but have Docker:
+
+```bash
+# Build dev image
+docker build . -t hrlab:latest
+
+# Run tests
+docker run --rm -v .:/workdir -w /workdir hrlab:latest \
   julia --project=. -e 'using Pkg; Pkg.test()'
 
-# Run single test file
-docker run --rm -v "$(pwd)":/workdir -w /workdir julia:1.11-bookworm \
-  julia --project=. test/test_preprocessing.jl
+# Build render image (with Quarto)
+docker build --build-arg INSTALL_QUARTO=true . -t hrlab:render
 
-# Full environment with WFDB (requires built hrlab image)
-docker run --rm -v "$(pwd)":/workdir -w /workdir hrlab:latest \
-  julia --project=. -e 'using Pkg; Pkg.test()'
-```
-
-**Note:** The `hrlab` image includes WFDB tools (`ann2rr`). Build it with:
-```bash
-docker build --network=host . -t hrlab
-```
-
-**Known issue:** Dockerfile must copy both `Project.toml` AND `Manifest.toml` because `DFA` is an unregistered package installed from [abcsds/DFA.jl](https://github.com/abcsds/DFA.jl). Without the Manifest, `Pkg.instantiate()` cannot resolve it.
-
-### Method C: Nix (full reproducibility)
-
-```bash
-nix run .#build   # Build Docker image + instantiate
-nix run .#test    # Run tests in Docker container
-nix run           # Open Julia REPL in container
-nix run .#act     # Run GitHub CI locally via act
-```
-
-**Fallback:** If the nix-built Docker image fails, nix should fall back to a volume-mount Docker run. See the `test` app in `flake.nix`.
-
-**Current status:** `nix run .#build` is broken because the Dockerfile doesn't copy `Manifest.toml`. Fix this first.
-
----
-
-## 2. Test Suite Architecture
-
-Tests are split into independent files so agents can run only the tests relevant to their work. No agent needs to wait for another's tests to pass.
-
-### Test File Layout
-
-```
-test/
-├── runtests.jl              # Dispatcher: includes all test files
-├── test_input.jl            # Input: read_xdf, read_txt, read_wfdb
-├── test_preprocessing.jl    # Preprocessing: outliers, interpolation, windowing
-├── test_features.jl         # Features: 44 features, baseline CSV comparison
-├── test_frequency.jl        # Frequency: Welch, Lomb-Scargle, band power
-├── test_models.jl           # Models: simulate() validity, fit() convergence
-├── test_evaluation.jl       # Evaluation: pipeline functions
-├── test_datasets.jl         # Datasets: PhysioNet download + feature extraction (@network)
-├── test_visualization.jl    # Visualization: plot functions produce Figure objects
-├── testdata/                # Static test data (committed)
-│   ├── example.txt          # 4193 IBI samples
-│   ├── example.xdf          # Same data in XDF format
-│   ├── *.atr, *.dat, *.hea  # WFDB records for read_wfdb tests
-│   └── README.md
-└── target/                  # Baseline CSVs for regression testing
-    ├── example.csv           # 44 features for example.txt
-    └── example_windowed_60_10.csv
-```
-
-### Dependency Map
-
-```
-test_input.jl            → testdata/*, optionally ann2rr
-test_preprocessing.jl    → synthetic data only (no file deps)
-test_features.jl         → testdata/example.txt, target/*.csv
-test_frequency.jl        → testdata/example.txt
-test_models.jl           → synthetic data only
-test_evaluation.jl       → synthetic data + test_models helpers
-test_datasets.jl         → network (@network tag), Downloads.jl
-test_visualization.jl    → synthetic data, GLMakie
-```
-
-### Which Agent Runs What
-
-| Working on... | Run this test file | Blocks others? |
-|---------------|-------------------|----------------|
-| Input readers | `test_input.jl` | No |
-| Preprocessing | `test_preprocessing.jl` | No |
-| Features / @register | `test_features.jl` | No |
-| Frequency analysis | `test_frequency.jl` | No |
-| Any model (LIF, VdP, ...) | `test_models.jl` | No |
-| Evaluation pipeline | `test_evaluation.jl` | No |
-| Dataset loading | `test_datasets.jl` | No |
-| Visualization | `test_visualization.jl` | No |
-| **Everything (CI)** | `runtests.jl` | — |
-
-### Independence Rules
-
-1. **No cross-file imports.** Each test file includes its own `using` statements and loads its own data.
-2. **Preprocessing tests use synthetic data.** They do NOT depend on `read_txt` working.
-3. **Model tests use synthetic IBI series.** They do NOT depend on Input or Features.
-4. **Evaluation tests create mock model results.** They do NOT depend on actual model implementations.
-5. **Dataset tests are network-gated.** They run only when `ENV["HEARTRATE_NETWORK_TESTS"] == "true"`.
-6. **Visualization tests check Figure creation.** They do NOT render or display.
-
----
-
-## 3. TDD Workflow for Agents
-
-### Step 1: Identify your scope
-
-Read the task assignment. Determine which module(s) you'll modify and which test file(s) are relevant.
-
-### Step 2: Run existing tests (red/green baseline)
-
-```bash
-# Run ONLY your relevant test file
-julia --project=. test/test_preprocessing.jl
-```
-
-Record what passes and what fails. Anything already failing is NOT your responsibility unless your task says to fix it.
-
-### Step 3: Write the test first
-
-Add your test to the appropriate test file. Follow the existing pattern:
-
-```julia
-@testset "your_function" begin
-    @testset "description" begin
-        # Arrange
-        input = ...
-        expected = ...
-        # Act
-        result = HeartRateLab.your_function(input)
-        # Assert
-        @test result == expected          # exact match
-        @test result ≈ expected atol=1e-6 # floating point
-        @test result isa Vector{Float64}  # type check
-    end
-end
-```
-
-### Step 4: Run and confirm failure
-
-```bash
-julia --project=. test/test_your_module.jl
-```
-
-The new test should fail (red). If it passes, the test may be trivial or wrong.
-
-### Step 5: Implement
-
-Write the minimum code to make the test pass. Follow BlueStyle conventions.
-
-### Step 6: Run and confirm pass
-
-```bash
-julia --project=. test/test_your_module.jl
-```
-
-All tests should pass (green), including the ones that passed before.
-
-### Step 7: Run the full suite (before committing)
-
-```bash
-julia --project=. -e 'using Pkg; Pkg.test()'
-```
-
-Verify you haven't broken other modules. Known failures (WFDB errors without `ann2rr`, floating-point precision in Features) are acceptable.
-
----
-
-## 4. Test Tags and Filtering
-
-### Network tests
-
-Tests that download data are gated:
-
-```julia
-# In test_datasets.jl:
-const RUN_NETWORK = get(ENV, "HEARTRATE_NETWORK_TESTS", "false") == "true"
-
-@testset "Datasets" begin
-    if !RUN_NETWORK
-        @info "Skipping network tests. Set HEARTRATE_NETWORK_TESTS=true to enable."
-        return
-    end
-    # ... network tests here
-end
-```
-
-Run with: `HEARTRATE_NETWORK_TESTS=true julia --project=. test/test_datasets.jl`
-
-### WFDB tests
-
-```julia
-# In test_input.jl:
-const HAS_WFDB = !isnothing(Sys.which("ann2rr"))
-
-@testset "read_wfdb" begin
-    if !HAS_WFDB
-        @info "Skipping WFDB tests. Install wfdb-10.7.0 or use Docker (hrlab image)."
-        return
-    end
-    # ... wfdb tests here
-end
-```
-
-### Visualization tests
-
-```julia
-# In test_visualization.jl:
-const HAS_DISPLAY = haskey(ENV, "DISPLAY") || Sys.iswindows()
-
-@testset "Visualization" begin
-    if !HAS_DISPLAY
-        @info "Skipping visualization tests. No display available."
-        return
-    end
-    # ... visualization tests here
-end
+# Render notebook
+docker run --rm -v .:/workdir hrlab:render \
+  quarto render /workdir/docs/flagship_demo.qmd --to html --execute
 ```
 
 ---
 
-## 5. Baseline Regression Testing
+## Key Files You'll Interact With
 
-Feature extraction tests compare against stored CSV baselines in `test/target/`.
-
-### Updating baselines
-
-When a feature computation is intentionally changed:
-
-1. Run feature extraction and inspect the diff
-2. Verify the new values are correct
-3. Regenerate the baseline:
-   ```julia
-   julia --project=. -e '
-   cd("test")
-   using HeartRateLab, CSV, DataFrames
-   data = HeartRateLab.read_txt("testdata/example.txt")
-   fr = HeartRateLab.Features.feature_registry
-   ds = HeartRateLab.Features.extract_feature_set(data, features=String.(keys(fr)))
-   CSV.write("target/example.csv", ds)
-   '
-   ```
-4. Run the full test suite to confirm
-5. Commit the updated CSV with a clear message explaining why values changed
-
-### Floating-point comparisons
-
-Use `isapprox` (not `isequal`) for computed feature values:
-
-```julia
-# Prefer:
-@test isapprox(ds, target, rtol=1e-10)
-
-# Not:
-@test isequal(ds, target)  # fails on harmless precision differences
-```
+| File | Purpose | Edit when... |
+|------|---------|--------------|
+| `src/Models.jl` | Model implementations | Implementing Phase B-F |
+| `test/test_models.jl` | Model tests | Tests need updates (already fixed in Phase A) |
+| `docs/flagship_demo.qmd` | Flagship demo notebook | Creating/updating demos |
+| `docs/comprehensive_demo.qmd` | Comprehensive demo | Phase G (creating new) |
+| `Project.toml` | Dependencies | Adding new packages needed by models |
+| `flake.nix` | Nix configuration | Rarely (unless changing Julia version) |
+| `Dockerfile` | Container definition | Rarely (unless adding new system tools) |
 
 ---
 
-## 6. Dataset Tests as Scientific Benchmarks
+## Testing Best Practices
 
-Dataset tests serve a dual purpose:
+### ✅ DO:
+- Run `nix run .#test` after every code change
+- Read test output carefully (error messages tell you what's wrong)
+- Use `@test_broken` for unimplemented features
+- Write tests BEFORE writing implementation (TDD)
+- Commit only when `nix run .#test` passes
 
-1. **Software testing:** verify that download, parsing, feature extraction, model fitting, and evaluation all work end-to-end
-2. **Scientific benchmarking:** produce normative populational statistics across PhysioNet datasets
-
-### Structure
-
-```julia
-# test/test_datasets.jl
-
-@testset "NSRDB normative statistics" begin
-    records = ["16265", "16272", "16273", ...]  # curated list
-    all_features = DataFrame()
-    for record in records
-        data = HeartRateLab.load_nsrdb(record)
-        features = HeartRateLab.Features.extract_feature_set(data)
-        features.record = [record]
-        append!(all_features, features)
-    end
-    # Basic sanity tests
-    @test nrow(all_features) == length(records)
-    @test all(all_features.mean .> 0)
-    @test all(300 .< all_features.mean .< 1500)  # plausible IBI range
-
-    # Normative statistics (scientific output)
-    # These are logged, not just tested — they accumulate as more datasets are added
-    @info "NSRDB normative statistics" mean_hr=mean(all_features.mean_hr) std_hr=std(all_features.mean_hr)
-end
-```
-
-### Adding new datasets
-
-To extend normative benchmarks:
-
-1. Add the dataset wrapper to `src/Datasets.jl` (e.g., `load_newdb(record)`)
-2. Add a `@testset` block in `test_datasets.jl` with the curated record list
-3. Add sanity checks (plausible ranges, no NaN pollution)
-4. Run with `HEARTRATE_NETWORK_TESTS=true`
-
-Over time, these benchmarks accumulate populational statistics that serve as reference values for the scientific community.
+### ❌ DON'T:
+- Run `julia --project=. -e 'Pkg.test()'` directly (missing WFDB tools)
+- Use `try/catch` to hide test failures (sham tests)
+- Commit code that makes tests fail
+- Ignore @test_broken markers (they're expected)
+- Skip the `nix run .#build` step for new features
 
 ---
 
-## 7. Known Issues
+## Commit Message Convention
 
-| Issue | Impact | Workaround |
-|-------|--------|------------|
-| `DFA` package unregistered | Docker build fails without Manifest.toml | Copy Manifest.toml in Dockerfile |
-| No `ann2rr` in base Julia image | WFDB tests skip | Use `hrlab` Docker image or install WFDB |
-| Feature baselines use `isequal` | 2 false failures from fp precision | Switch to `isapprox` with `rtol=1e-10` |
-| `nix run .#build` broken | Cascades from DFA issue | Fix Dockerfile first |
-| GLMakie requires display | Visualization tests fail headless | Gate on `DISPLAY` env var |
+When committing your work:
+
+```bash
+git commit -m "Phase B: Implement VanDerPol Bayesian fitting with Turing.jl
+
+- Add parameter_space() for priors (μ, heart_rate, σ_noise)
+- Implement fit() with NUTS MCMC sampling
+- Extract MAP estimates and posterior diagnostics
+- All R-hat values < 1.1 for convergence
+
+Fixes sham tests, enables downstream Phases C-G"
+```
+
+Good commit messages:
+- Describe WHAT and WHY, not just WHAT
+- Reference the phase (Phase B, C, etc.)
+- Mention any blockers resolved
+- Keep under 72 characters for title
+
+---
+
+## Reproducibility Guarantees
+
+This workflow ensures:
+
+✅ **Same environment for all developers**: Docker pins Julia version, WFDB, all packages
+✅ **Same results locally and in CI**: GitHub Actions use identical containers
+✅ **Version control of dependencies**: Manifest.toml pins every package version
+✅ **Fast iteration**: Docker layer caching makes rebuilds quick
+✅ **No "works on my machine"**: All tests run in reproducible container
+
+---
+
+## Getting Help
+
+If you're stuck:
+
+1. **Read this file** (you're already doing great!)
+2. **Check AGENTS.md** for architecture context
+3. **Check PLAN.md** for current implementation status
+4. **Read error messages carefully** (they're usually very helpful)
+5. **Try running `nix run` for interactive debugging**
+6. **Check test output**: Sometimes error is in a test, not your code
+
+---
+
+## Summary
+
+| Action | Command |
+|--------|---------|
+| Setup once | `nix run .#build` |
+| Test your code | `nix run .#test` |
+| Debug interactively | `nix run` |
+| Render notebook | `nix run .#build-render && nix run .#render` |
+| Check status | `git status` |
+| Commit work | `git commit -m "..."` |
+
+**Remember**: Always test with `nix run .#test` before committing!
