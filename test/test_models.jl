@@ -119,16 +119,27 @@ end
     @test ps.heart_rate.lower < ps.heart_rate.upper
     @test ps.σ_noise.lower < ps.σ_noise.upper
 
-    # Test 7: fit(:gradient) - NOT YET IMPLEMENTED (Phase C)
-    @test_broken begin
-        synthetic_data = HeartRateLab.Models.simulate(vdp, params, n_beats=200)
-        fitted_result = HeartRateLab.Models.fit(vdp, synthetic_data; method=:gradient)
+    # Test 7: fit(:gradient) - NOW IMPLEMENTED (Phase C)
+    synthetic_data = HeartRateLab.Models.simulate(vdp, params, n_beats=200)
+    fitted_grad = HeartRateLab.Models.fit(vdp, synthetic_data; method=:gradient)
 
-        @test fitted_result.model isa HeartRateLab.Models.VanDerPol
-        @test fitted_result.method == :gradient
-        @test haskey(fitted_result.params, :μ)
-        @test haskey(fitted_result.params, :heart_rate)
-    end
+    @test fitted_grad.model isa HeartRateLab.Models.VanDerPol
+    @test fitted_grad.method == :gradient
+    @test haskey(fitted_grad.params, :μ)
+    @test haskey(fitted_grad.params, :heart_rate)
+    @test fitted_grad.posterior === nothing  # No posterior for gradient
+
+    # Test 7b: Gradient fit produces valid parameters
+    @test fitted_grad.params.μ > 0
+    @test fitted_grad.params.heart_rate > 0
+    @test 0.1 <= fitted_grad.params.μ <= 3.0
+    @test 40.0 <= fitted_grad.params.heart_rate <= 120.0
+
+    # Test 7c: Diagnostics contain optimization info
+    @test haskey(fitted_grad.diagnostics, "converged")
+    @test haskey(fitted_grad.diagnostics, "iterations")
+    @test haskey(fitted_grad.diagnostics, "loss_final")
+    @test fitted_grad.diagnostics["method"] == "LBFGS"
 
     # Test 8: fit(:bayesian) - NOW IMPLEMENTED (Phase B)
     synthetic_data = HeartRateLab.Models.simulate(vdp, params, n_beats=150)

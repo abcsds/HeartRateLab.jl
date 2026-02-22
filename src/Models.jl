@@ -235,11 +235,88 @@ function fit(model::VanDerPol, data::Vector{Float64};
         )
 
     elseif method == :gradient
-        error("Gradient fitting not yet implemented for VanDerPol. Use method=:bayesian")
+        # Gradient-based optimization using feature-space distance minimization
+        # Extract core features for fitting
+        real_features = extract_feature_set(data)
+        feature_names = ["mean", "sdnn", "rmssd"]
+
+        # Define loss function: MSE of key HRV features
+        function loss(params_vec)
+            μ, heart_rate = params_vec
+
+            # Simulate with current parameters
+            params = (μ=μ, heart_rate=heart_rate)
+            synthetic = simulate(model, params, length(data))
+
+            # Extract features from synthetic
+            synth_features = extract_feature_set(synthetic)
+
+            # Compute normalized feature-space distance
+            distance = 0.0
+            for feat in feature_names
+                real_val = real_features[!, feat][1]
+                synth_val = synth_features[!, feat][1]
+                # Avoid division by zero
+                if real_val > 0
+                    distance += ((real_val - synth_val) / real_val)^2
+                else
+                    distance += (real_val - synth_val)^2
+                end
+            end
+
+            return distance
+        end
+
+        # Parameter bounds and initial guess
+        x0 = [1.0, 70.0]  # Initial: μ=1.0, heart_rate=70 BPM
+        lower = [0.1, 40.0]
+        upper = [3.0, 120.0]
+
+        # Optimize using LBFGS with box constraints
+        result = optimize(loss, lower, upper, x0, Fminbox(LBFGS()))
+
+        # Extract fitted parameters
+        fitted_params = (
+            μ = result.minimizer[1],
+            heart_rate = result.minimizer[2]
+        )
+
+        # Create diagnostics
+        diagnostics = Dict(
+            "method" => "LBFGS",
+            "converged" => Optim.converged(result),
+            "iterations" => result.iterations,
+            "loss_final" => result.minimum
+        )
+
+        return ModelFitResult(
+            model,
+            :gradient,
+            fitted_params,
+            nothing,  # No posterior for gradient-based fitting
+            diagnostics,
+            data
+        )
 
     else
         error("Unknown fitting method: $method. Use :bayesian or :gradient")
     end
+end
+
+# Helper function to extract features (needed for gradient fitting)
+function extract_feature_set(data::Vector{Float64})
+    using DataFrames
+    # Compute basic HRV features
+    mean_val = mean(data)
+    sdnn_val = std(data)
+    diffs = diff(data)
+    rmssd_val = sqrt(mean(diffs .^ 2))
+
+    return DataFrame(
+        mean = [mean_val],
+        sdnn = [sdnn_val],
+        rmssd = [rmssd_val]
+    )
 end
 
 end  # Models
