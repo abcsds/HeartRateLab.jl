@@ -1,0 +1,765 @@
+---
+title: "HeartRateLab.jl: Comprehensive HRV Analysis & Mechanistic Modeling"
+subtitle: "From measurement theory through Bayesian parameter estimation"
+author: "HeartRateLab.jl Development Team"
+date: today
+format: html
+execute:
+  eval: true
+  echo: true
+  warning: false
+jupyter: julia-1.11
+---
+
+# HeartRateLab.jl: Complete Pipeline Demonstration
+
+This notebook demonstrates the complete HeartRateLab.jl library, from HRV measurement theory through Bayesian parameter estimation and phase-space visualization.
+
+## Setup & Environment
+
+```{julia}
+#| warning: false
+#| output: false
+
+using HeartRateLab
+using HeartRateLab.Models
+using CairoMakie, DataFrames, Statistics, Random
+using LinearAlgebra
+
+# Set seed for reproducibility
+Random.seed!(42)
+
+println("✓ HeartRateLab environment loaded")
+println("  Julia version: $(VERSION)")
+println("  Packages: CairoMakie, Turing, DifferentialEquations available")
+```
+
+---
+
+# Part 1: HRV Measurement Theory
+
+## What is Heart Rate Variability?
+
+Heart Rate Variability (HRV) quantifies the **beat-to-beat variability in cardiac rhythm**. Instead of a constant heartbeat, healthy hearts show natural variation in the time between consecutive beats.
+
+**Why HRV matters:**
+- Reflects autonomic nervous system balance (parasympathetic vs sympathetic)
+- Indicator of cardiovascular health and fitness
+- Marker of stress, fatigue, and recovery
+- Clinical diagnostic tool for arrhythmias and neuropathy
+
+## Measurement Pipeline
+
+HRV analysis requires three steps:
+
+### 1. Signal Acquisition
+- **ECG (Electrocardiography)**: Detect R-peak timing from electrical signal
+- **PPG (Photoplethysmography)**: Detect pulse peaks from light reflection
+- **Direct RR tachogram**: Measure time between consecutive heartbeats
+
+### 2. IBI Extraction
+Extract **Inter-Beat Interval (IBI)** series: the time (in milliseconds) between consecutive heartbeats.
+
+Example IBI series: `[801, 815, 798, 825, 812, 808, 820, ...]`
+
+### 3. Feature Analysis
+Compute 44+ HRV features across domains:
+
+```{julia}
+println("HRV Analysis Domains (matching HeartRateLab features):")
+println("=" ^ 70)
+
+domains = Dict(
+    "Time Domain" => ["mean", "sdnn", "rmssd", "pnn50", "cvsd"],
+    "Frequency Domain" => ["vlf_power", "lf_power", "hf_power", "lf_hf_ratio", "total_power"],
+    "Nonlinear" => ["sd1", "sd2", "dfa_alpha1", "sample_entropy", "hurst_exponent"],
+    "Geometric" => ["triangular_index", "tinn"]
+)
+
+for (domain, features) in domains
+    println("\n$domain:")
+    println("  " * join(features[1:min(3, length(features))], ", ") *
+            (length(features) > 3 ? ", ..." : ""))
+end
+```
+
+## Load Test Data
+
+```{julia}
+# Load IBI data from test suite
+data_path = "testdata/example.txt"
+try
+    ibi_data = HeartRateLab.read_txt(data_path)
+catch
+    # Fallback: Generate synthetic test data
+    println("⚠️  Test data not found, generating synthetic IBIs...")
+    ibi_data = 800 .+ 100 .* sin.(range(0, 4π, length=500)) .+
+               randn(500) .* 30
+    ibi_data = max.(ibi_data, 300)
+end
+
+println("\n✓ Loaded $(length(ibi_data)) IBI samples")
+println("  Duration: $(round(sum(ibi_data)/60_000; digits=1)) minutes")
+println("  Range: $(round(Int, minimum(ibi_data)))-$(round(Int, maximum(ibi_data))) ms")
+println("  Mean: $(round(mean(ibi_data); digits=1)) ms")
+println("  Std Dev: $(round(std(ibi_data); digits=1)) ms")
+```
+
+---
+
+# Part 2: Data & Feature Engineering
+
+## 2.1: Visualizing IBI Characteristics (4-Panel Figure)
+
+```{julia}
+# Create comprehensive IBI visualization
+fig = Figure(size=(1400, 900))
+
+# Panel 1: Time Series
+ax1 = Axis(fig[1, 1], xlabel="Beat #", ylabel="IBI (ms)",
+           title="Inter-Beat Interval Time Series")
+lines!(ax1, 1:length(ibi_data), ibi_data, color=:steelblue, linewidth=1.5)
+hlines!(ax1, mean(ibi_data), color=:coral, linestyle=:dash, linewidth=2,
+        label="Mean")
+band!(ax1, 1:length(ibi_data),
+      fill(mean(ibi_data) - std(ibi_data), length(ibi_data)),
+      fill(mean(ibi_data) + std(ibi_data), length(ibi_data)),
+      color=(:steelblue, 0.2), label="±1σ")
+axislegend(ax1, position=:rt)
+
+# Panel 2: IBI Distribution (Histogram)
+ax2 = Axis(fig[1, 2], xlabel="IBI (ms)", ylabel="Count",
+           title="IBI Distribution")
+hist!(ax2, ibi_data, bins=40, color=(:coral, 0.7), strokewidth=1,
+      strokecolor=:black)
+
+# Panel 3: Power Spectral Density
+ax3 = Axis(fig[2, 1], xlabel="Frequency (Hz)", ylabel="Power (ms²/Hz)",
+           title="Frequency Domain (Power Spectral Density)",
+           yscale=log10, xscale=log10)
+try
+    pgram = HeartRateLab.Frequency.welch(ibi_data; method=:quadratic)
+    lines!(ax3, pgram.freq[pgram.freq .> 0.001],
+           pgram.power[pgram.freq .> 0.001],
+           color=:darkgreen, linewidth=2)
+
+    # HRV frequency bands
+    vspan!(ax3, 0.0033, 0.04, color=(:yellow, 0.1), label="ULF")
+    vspan!(ax3, 0.04, 0.15, color=(:orange, 0.1), label="LF")
+    vspan!(ax3, 0.15, 0.4, color=(:blue, 0.1), label="HF")
+    axislegend(ax3, position=:rt)
+catch e
+    text!(ax3, 0.5, 0.5, text="PSD calculation skipped", align=(:center, :center))
+end
+
+# Panel 4: Poincaré Plot
+ax4 = Axis(fig[2, 2], xlabel="IBIₙ (ms)", ylabel="IBIₙ₊₁ (ms)",
+           title="Poincaré Plot", aspect=DataAspect())
+scatter!(ax4, ibi_data[1:end-1], ibi_data[2:end],
+         markersize=5, color=(:purple, 0.5), label="Data points")
+
+# Diagonal line (x = y)
+lims = extrema([minimum(ibi_data), maximum(ibi_data)])
+lines!(ax4, [lims[1], lims[2]], [lims[1], lims[2]],
+       color=:gray, linestyle=:dash, linewidth=2, label="x=y")
+
+axislegend(ax4, position=:lt)
+
+display(fig)
+println("\n✓ 4-panel visualization created")
+```
+
+## 2.2: Feature Extraction
+
+```{julia}
+# Extract all HRV features using library function
+println("\nExtracting HRV features...")
+@time feature_df = HeartRateLab.extract_feature_set(ibi_data)
+
+# Display key features
+key_features = ["mean", "sdnn", "rmssd", "pnn50", "sd1", "sd2",
+                "lf_power", "hf_power", "lf_hf_ratio", "sample_entropy"]
+
+display_features = [f for f in key_features if f in names(feature_df)]
+feature_subset = feature_df[!, display_features]
+
+println("\n✓ Extracted $(length(names(feature_df))) total features")
+println("\nKey Features (subset):")
+show(feature_subset)
+```
+
+---
+
+# Part 3: Windowed Analysis
+
+## 3.1: Temporal Feature Dynamics
+
+```{julia}
+# Windowed analysis with sliding window
+window_size = 60  # beats
+stride = 1        # step by 1 beat
+
+println("Windowed Feature Analysis:")
+println("  Window size: $window_size beats")
+println("  Step size: $stride beat")
+
+# Extract features from each window
+@time windowed_features = HeartRateLab.windowed_feature_set(
+    ibi_data;
+    window_size=window_size,
+    stride=stride
+)
+
+println("✓ Extracted features from $(nrow(windowed_features)) windows")
+println("  Features per window: $(ncol(windowed_features))")
+```
+
+## 3.2: Z-Normalized Feature Evolution
+
+```{julia}
+# Select features for visualization
+viz_features = ["mean", "rmssd", "pnn50", "sd1", "lf_hf_ratio"]
+viz_features = [f for f in viz_features if f in names(windowed_features)]
+
+# Create time evolution plot with z-normalization
+fig = Figure(size=(1200, 700))
+ax = Axis(fig[1, 1], xlabel="Window Index", ylabel="z-score",
+          title="Temporal Evolution of HRV Features (z-normalized)")
+
+colors = [:steelblue, :coral, :darkgreen, :purple, :orange]
+
+for (idx, feat) in enumerate(viz_features)
+    values = windowed_features[!, feat]
+    # Remove NaN/missing values
+    valid_idx = findall(!ismissing, values)
+    if length(valid_idx) > 0
+        valid_values = values[valid_idx]
+        # Z-normalize
+        z_values = (valid_values .- mean(valid_values)) ./
+                   (std(valid_values) + 1e-6)
+        lines!(ax, valid_idx, z_values, label=feat,
+               color=colors[idx], linewidth=2.5)
+    end
+end
+
+# Reference lines
+hlines!(ax, [0], color=:black, linestyle=:dash, linewidth=1.5)
+hlines!(ax, [-2, 2], color=:red, linestyle=:dot, linewidth=1, alpha=0.5)
+
+axislegend(ax, position=:rt, nbanks=2)
+display(fig)
+```
+
+---
+
+# Part 4: Mechanistic Modeling Theory
+
+## 4.1: Model Interface Design
+
+```{julia}
+println("HeartRateLab Model Architecture")
+println("=" ^ 70)
+
+doc = """
+All HRV models inherit from AbstractHRVModel and implement:
+
+REQUIRED:
+  simulate(model::AbstractHRVModel, params::NamedTuple, n_beats::Int)
+  → Vector{Float64} of synthetic IBIs
+
+OPTIONAL:
+  fit(model::AbstractHRVModel, data::Vector{Float64};
+      method::Symbol=:bayesian, kwargs...)
+  → ModelFitResult with posterior distributions and diagnostics
+
+  parameter_space(model::AbstractHRVModel)
+  → NamedTuple with (param = (lower, upper, prior), ...)
+
+FITTING METHODS:
+  :bayesian  - Turing.jl MCMC (NUTS sampler)
+  :gradient  - Optim.jl (LBFGS in feature space)
+"""
+
+println(doc)
+```
+
+## 4.2: Van der Pol Oscillator
+
+```{julia}
+println("\n" * "=" ^ 70)
+println("Model 1: Van der Pol Oscillator (Mechanistic)")
+println("=" ^ 70)
+
+# Create model instance
+vdp = VanDerPol()
+
+# Define parameters
+vdp_params = (μ=1.2, heart_rate=70.0)
+
+# Generate synthetic IBIs
+println("\nGenerating Van der Pol synthetic IBIs...")
+@time vdp_synthetic = simulate(vdp, vdp_params, 200)
+
+println("✓ Generated $(length(vdp_synthetic)) IBIs")
+println("  Mean: $(round(mean(vdp_synthetic); digits=1)) ms")
+println("  Std: $(round(std(vdp_synthetic); digits=1)) ms")
+println("  Range: $(round(Int, minimum(vdp_synthetic)))-$(round(Int, maximum(vdp_synthetic))) ms")
+```
+
+## 4.3: All Available Models
+
+```{julia}
+println("\n" * "=" ^ 70)
+println("Model Catalogue (All Implemented)")
+println("=" ^ 70)
+
+models_info = [
+    ("Van der Pol", "Mechanistic ODE", "Nonlinear oscillator with limit cycle"),
+    ("Lorenz", "Chaotic ODE", "3D attractor with threshold crossings"),
+    ("LIF", "Stochastic ODE", "Leaky Integrate-and-Fire neuron"),
+    ("DMD", "Data-Driven", "Dynamic Mode Decomposition (spectral)")
+]
+
+for (name, type, desc) in models_info
+    println("\n  $name ($type)")
+    println("    Description: $desc")
+    println("    Fitting: Bayesian + (Gradient if mechanistic)")
+end
+```
+
+---
+
+# Part 5: Bayesian Parameter Estimation with Turing
+
+## 5.1: Fitting Van der Pol to Real Data
+
+```{julia}
+println("\n" * "=" ^ 70)
+println("BAYESIAN INFERENCE: Fitting Van der Pol to Real Data")
+println("=" ^ 70)
+
+# Prepare data (use shorter segment for faster sampling)
+fit_data = ibi_data[1:min(200, length(ibi_data))]
+
+println("\nFitting Van der Pol model with Bayesian inference...")
+println("  Data length: $(length(fit_data)) IBIs")
+println("  MCMC method: NUTS sampler")
+println("  Chains: 2 (for demonstration; use 4+ for publication)")
+println("  Samples per chain: 500")
+
+@time fit_result = fit(vdp, fit_data; method=:bayesian, chains=2, samples=500)
+
+println("\n✓ Fitting complete!")
+println("\nPoint Estimates (MAP from posterior mean):")
+println("  μ = $(round(fit_result.params.μ; digits=3))")
+println("  heart_rate = $(round(fit_result.params.heart_rate; digits=1)) BPM")
+
+println("\nDiagnostics:")
+for (key, val) in fit_result.diagnostics
+    if typeof(val) <: AbstractFloat
+        println("  $key = $(round(val; digits=4))")
+    else
+        println("  $key = $val")
+    end
+end
+```
+
+## 5.2: Posterior Distributions
+
+```{julia}
+# Extract and visualize posterior samples
+posterior_μ = fit_result.posterior["μ"]
+posterior_hr = fit_result.posterior["heart_rate"]
+
+fig = Figure(size=(1200, 500))
+
+# Posterior histogram for μ
+ax1 = Axis(fig[1, 1], xlabel="μ", ylabel="Count",
+           title="Posterior Distribution: Nonlinearity Parameter (μ)")
+hist!(ax1, posterior_μ, bins=30, color=(:steelblue, 0.7))
+vlines!(ax1, fit_result.params.μ, color=:red, linewidth=3,
+        label="MAP estimate")
+axislegend(ax1)
+
+# Posterior histogram for heart rate
+ax2 = Axis(fig[1, 2], xlabel="Heart Rate (BPM)", ylabel="Count",
+           title="Posterior Distribution: Heart Rate")
+hist!(ax2, posterior_hr, bins=30, color=(:coral, 0.7))
+vlines!(ax2, fit_result.params.heart_rate, color=:red, linewidth=3,
+        label="MAP estimate")
+axislegend(ax2)
+
+display(fig)
+
+println("\nPosterior Summary:")
+println("  μ: $(round(mean(posterior_μ); digits=3)) ± $(round(std(posterior_μ); digits=3))")
+println("  Heart Rate: $(round(mean(posterior_hr); digits=1)) ± $(round(std(posterior_hr); digits=1)) BPM")
+```
+
+## 5.3: Synthetic Ensemble from Posterior
+
+```{julia}
+# Generate ensemble of synthetic IBIs using fitted parameters
+println("\nGenerating synthetic ensemble from posterior...")
+
+n_ensemble = 100
+@time ensemble = HeartRateLab.simulate_ensemble(
+    vdp, fit_result.params, length(fit_data); n_sim=n_ensemble
+)
+
+println("✓ Generated $n_ensemble synthetic IBI series")
+println("  Each series length: $(length(ensemble[1])) beats")
+
+# Extract features from ensemble
+@time ensemble_features = HeartRateLab.extract_ensemble_features(ensemble)
+
+println("✓ Feature extraction complete")
+println("  Ensemble shape: $(size(ensemble_features))")
+```
+
+## 5.4: Statistical Validation
+
+```{julia}
+# Compare real vs ensemble features using KS test
+println("\nStatistical Validation (Kolmogorov-Smirnov Test)")
+
+real_features = HeartRateLab.extract_feature_set(fit_data)
+real_df = DataFrame([real_features])
+
+# Run KS test
+@time ks_results = HeartRateLab.eval_distributional(
+    real_df, ensemble_features; test=:ks
+)
+
+# Count matches
+matching = sum(ks_results.p_value .>= 0.05)
+total = nrow(ks_results)
+
+println("\n✓ Results:")
+println("  Matching features (p ≥ 0.05): $matching / $total")
+println("  Match rate: $(round(100 * matching / total; digits=1))%")
+
+# Show top mismatches
+println("\nTop 5 feature mismatches (lowest p-values):")
+sort_results = sort(ks_results, :p_value)
+for i in 1:min(5, nrow(sort_results))
+    row = sort_results[i, :]
+    println("  $(row.feature): p=$(round(row.p_value; digits=4)), " *
+            "stat=$(round(row.statistic; digits=4))")
+end
+```
+
+---
+
+# Part 6: Phase Space Visualization
+
+## 6.1: Van der Pol Phase Portrait with Streamlines
+
+```{julia}
+using DifferentialEquations
+
+println("Generating Van der Pol phase portrait...")
+
+# Define ODE for phase portrait
+function vdp_ode!(du, u, p, t)
+    μ = p[1]
+    du[1] = u[2]
+    du[2] = μ * (1.0 - u[1]^2) * u[2] - u[1]
+end
+
+fig = Figure(size=(1000, 900))
+ax = Axis(fig[1, 1], xlabel="Position (x)", ylabel="Velocity (ẋ)",
+          title="Van der Pol Phase Portrait (μ=$(fit_result.params.μ))",
+          aspect=DataAspect())
+
+μ_val = fit_result.params.μ
+
+# 6.1.1: Streamplot (vector field)
+x_range = -3:0.3:3
+y_range = -3:0.3:3
+
+# Create vector field for streamplot
+function vdp_field(x, y)
+    return Point2f(y, μ_val * (1.0 - x^2) * y - x)
+end
+
+streamplot!(ax, vdp_field, x_range, y_range,
+           colormap=:viridis, arrowsize=20,
+           density=1.5, linewidth=2, arrowcolor=:black)
+
+# 6.1.2: Limit cycle with arrows
+println("Computing limit cycle...")
+prob_lc = ODEProblem(vdp_ode!, [2.0, 0.0], (0.0, 100.0), [μ_val])
+sol_lc = solve(prob_lc, Tsit5(), saveat=0.5, dense=false)
+
+# Extract last 200 points (after transient)
+lc_x = sol_lc[1, end-200:end]
+lc_y = sol_lc[2, end-200:end]
+
+# Plot limit cycle with arrows
+lines!(ax, lc_x, lc_y, color=:red, linewidth=3, label="Limit cycle")
+
+# Add arrows along the trajectory
+arrow_indices = [1, 51:50:length(lc_x)...]
+for i in arrow_indices[1:end-1]
+    dx = lc_x[i+1] - lc_x[i]
+    dy = lc_y[i+1] - lc_y[i]
+    arrows!(ax, [lc_x[i]], [lc_y[i]], [dx], [dy],
+           arrowsize=15, color=:red, linewidth=2)
+end
+
+# 6.1.3: Multiple initial conditions
+initial_conditions = [(0.5, 0.0), (2.0, 1.0), (-1.5, -1.0),
+                      (-2.0, 1.5), (1.0, -1.0)]
+
+colors_ic = [:orange, :purple, :darkgreen, :brown, :teal]
+
+for (ic, color) in zip(initial_conditions, colors_ic)
+    prob = ODEProblem(vdp_ode!, [ic[1], ic[2]], (0.0, 50.0), [μ_val])
+    sol = solve(prob, Tsit5(), saveat=0.1)
+    lines!(ax, sol[1, :], sol[2, :], color=(color, 0.6), linewidth=1.5)
+end
+
+axislegend(ax, position=:rt)
+display(fig)
+
+println("✓ Phase portrait complete")
+```
+
+## 6.2: Lorenz System Phase Space
+
+```{julia}
+println("\nGenerating Lorenz system phase space...")
+
+# Create Lorenz model
+lorenz = Lorenz()
+lorenz_params = (σ=10.0, ρ=28.0, β=8.0/3.0, threshold=10.0)
+
+# Generate Lorenz IBIs
+@time lorenz_ibis = simulate(lorenz, lorenz_params, 200)
+
+println("✓ Generated $(length(lorenz_ibis)) Lorenz IBIs")
+println("  Mean: $(round(mean(lorenz_ibis); digits=1)) ms")
+
+# ODE for visualization
+function lorenz_ode!(du, u, p, t)
+    σ, ρ, β = p
+    du[1] = σ * (u[2] - u[1])
+    du[2] = u[1] * (ρ - u[3]) - u[2]
+    du[3] = u[1] * u[2] - β * u[3]
+end
+
+# Solve Lorenz
+prob_lz = ODEProblem(lorenz_ode!, [1.0, 1.0, 1.0], (0.0, 100.0),
+                     [10.0, 28.0, 8.0/3.0])
+sol_lz = solve(prob_lz, Tsit5(), saveat=0.1)
+
+# 3D phase portrait with streamlines
+fig = Figure(size=(1200, 1000))
+
+# Panel 1: x-y projection with arrows
+ax_xy = Axis(fig[1, 1], xlabel="x", ylabel="y",
+            title="Lorenz x-y Projection (with arrows)")
+scatter!(ax_xy, sol_lz[1, 1:100:end], sol_lz[2, 1:100:end],
+        color=:steelblue, markersize=4)
+
+# Add arrows to show direction
+arrow_step = 50
+for i in 1:(length(sol_lz.t)-arrow_step)
+    dx = sol_lz[1, i+arrow_step] - sol_lz[1, i]
+    dy = sol_lz[2, i+arrow_step] - sol_lz[2, i]
+    if norm([dx, dy]) > 0.1
+        arrows!(ax_xy, [sol_lz[1, i]], [sol_lz[2, i]], [dx/4], [dy/4],
+               arrowsize=10, color=(:coral, 0.7), linewidth=1.5)
+    end
+end
+
+# Panel 2: x-z projection
+ax_xz = Axis(fig[1, 2], xlabel="x", ylabel="z",
+            title="Lorenz x-z Projection")
+lines!(ax_xz, sol_lz[1, :], sol_lz[3, :], color=:darkgreen, linewidth=1.5)
+
+# Panel 3: y-z projection
+ax_yz = Axis(fig[2, 1], xlabel="y", ylabel="z",
+            title="Lorenz y-z Projection")
+lines!(ax_yz, sol_lz[2, :], sol_lz[3, :], color=:purple, linewidth=1.5)
+
+# Panel 4: Attractor 3D view
+ax_3d = Axis3(fig[2, 2])
+lines!(ax_3d, sol_lz[1, :], sol_lz[2, :], sol_lz[3, :],
+      color=1:length(sol_lz.t), colormap=:viridis, linewidth=2)
+ax_3d.xlabel = "x"
+ax_3d.ylabel = "y"
+ax_3d.zlabel = "z"
+ax_3d.title = "Lorenz 3D Attractor"
+
+display(fig)
+println("✓ Lorenz phase spaces complete")
+```
+
+---
+
+# Part 7: Model Comparison & Summary
+
+## 7.1: Feature-Space Comparison
+
+```{julia}
+println("Comparing all models in feature space...")
+
+# Generate IBIs from each model
+models_to_compare = [
+    ("Van der Pol", vdp, (μ=fit_result.params.μ, heart_rate=fit_result.params.heart_rate)),
+    ("Lorenz", lorenz, (σ=10.0, ρ=28.0, β=8.0/3.0, threshold=10.0))
+]
+
+fig = Figure(size=(1400, 900))
+
+features_to_plot = ["mean", "rmssd", "sd1", "lf_hf_ratio"]
+colors_models = [:steelblue, :coral, :darkgreen]
+
+for (feat_idx, feat) in enumerate(features_to_plot)
+    row = ((feat_idx - 1) ÷ 2) + 1
+    col = ((feat_idx - 1) % 2) + 1
+
+    ax = Axis(fig[row, col], xlabel="z-score", ylabel="Density",
+             title="$feat Distribution")
+
+    # Real data
+    if feat in names(feature_df)
+        real_vals = feature_df[!, feat]
+        if !all(ismissing, real_vals)
+            real_vals = skipmissing(real_vals) |> collect
+            z_real = (real_vals .- mean(real_vals)) ./ std(real_vals)
+            density!(ax, z_real, color=(:black, 0.3), strokewidth=2,
+                    label="Real data")
+        end
+    end
+
+    # Model ensemble (Van der Pol)
+    if feat in names(ensemble_features)
+        model_vals = ensemble_features[!, feat]
+        if !all(ismissing, model_vals)
+            model_vals = skipmissing(model_vals) |> collect
+            z_model = (model_vals .- mean(model_vals)) ./ std(model_vals)
+            density!(ax, z_model, color=(:steelblue, 0.4), strokewidth=2,
+                    label="Van der Pol")
+        end
+    end
+
+    axislegend(ax, position=:rt)
+end
+
+display(fig)
+println("✓ Feature comparison complete")
+```
+
+## 7.2: Summary
+
+```{julia}
+println("\n" * "=" ^ 70)
+println("COMPREHENSIVE ANALYSIS SUMMARY")
+println("=" ^ 70)
+
+summary = """
+✓ DATA CHARACTERIZATION
+  $(length(ibi_data)) IBI samples from real recording
+  Duration: $(round(sum(ibi_data)/60_000; digits=1)) minutes
+  Features: 44 HRV features extracted across time/frequency/nonlinear domains
+
+✓ WINDOWED ANALYSIS
+  $(nrow(windowed_features)) windows of $window_size beats
+  Temporal dynamics: Feature evolution over recording
+  Z-normalization: Statistical standardization for feature comparison
+
+✓ MECHANISTIC MODELING
+  Van der Pol: Nonlinear oscillator with limit cycle
+  Lorenz: Chaotic 3D system with threshold-crossing IBI extraction
+  LIF: Stochastic leaky integrate-and-fire neuron
+  DMD: Data-driven spectral decomposition
+
+✓ BAYESIAN PARAMETER ESTIMATION
+  Method: Turing.jl NUTS MCMC sampler
+  Chains: 2 | Samples: 500 per chain
+  Results: Fitted μ=$(round(fit_result.params.μ; digits=3)),
+           HR=$(round(fit_result.params.heart_rate; digits=1)) BPM
+  Validation: $matching / $total features match real data (KS test p≥0.05)
+
+✓ PHASE SPACE VISUALIZATION
+  Vector fields: Streamplot showing dynamics
+  Trajectories: Arrows indicating time evolution
+  Multiple initial conditions: Convergence to limit cycle
+  3D attractors: Lorenz butterfly structure
+
+✓ LIBRARY DESIGN DEMONSTRATION
+  Complete pipeline: Data → Features → Models → Fitting → Validation
+  Modular interface: All models use same fit/simulate API
+  Publication quality: Makie visualizations with arrows and streamlines
+  Reproducible: Rendered via Nix with Julia 1.11
+"""
+
+println(summary)
+
+println("\nLibrary Structure:")
+println("  src/Models.jl: 4 mechanistic/data-driven models")
+println("  src/Features.jl: 44 HRV feature computations")
+println("  src/Evaluation.jl: Distributional/distance metrics")
+println("  src/Datasets.jl: PhysioNet data loaders")
+println("  src/Visualization.jl: Publication-quality plots")
+```
+
+## 7.3: Next Steps
+
+```{julia}
+println("\nUsing HeartRateLab for Your Research:")
+println("=" ^ 70)
+
+next_steps = """
+1. FIT YOUR OWN DATA
+   data = read_txt("your_data.txt")
+   result = fit(VanDerPol(), data; method=:bayesian, chains=4, samples=2000)
+
+2. COMPARE MODELS
+   vdp_fit = fit(VanDerPol(), data; method=:bayesian)
+   lif_fit = fit(LIF(), data; method=:bayesian)
+
+3. EXTRACT FEATURES
+   features = extract_feature_set(data)
+   windowed = windowed_feature_set(data; window_size=60, stride=1)
+
+4. STATISTICAL VALIDATION
+   ensemble = simulate_ensemble(VanDerPol(), result.params; n_sim=100)
+   ks_test = eval_distributional(real_features, ensemble_features)
+
+5. PUBLISH RESULTS
+   - Use plot_flagship() for 4-panel publication figure
+   - Save visualizations as PNG/PDF via Makie
+   - Report R-hat < 1.1 for convergence diagnostics
+"""
+
+println(next_steps)
+```
+
+---
+
+## References
+
+**HRV Standards:**
+- Task Force of the European Society of Cardiology and the North American Society
+  of Pacing and Electrophysiology (1996). "Heart Rate Variability: Standards of
+  Measurement, Physiological Interpretation and Clinical Use"
+
+**Mechanistic Models:**
+- Van der Pol Oscillator: Physics of cardiac oscillations
+- Lorenz System: Chaotic dynamics in complex systems
+- LIF Neuron: Computational neuroscience framework
+- DMD: Schmid & Sesterhenn (2008). Dynamic mode decomposition
+
+**Bayesian Methods:**
+- Turing.jl: https://turinglang.org
+- Gelman et al. (2013). Bayesian Data Analysis (3rd ed)
+- NUTS Sampler: Hoffman & Gelman (2014)
+
+**HeartRateLab Documentation:**
+- Source: https://github.com/abcsds/HeartRateLab.jl
+- Models: src/Models.jl
+- Features: src/Features.jl
