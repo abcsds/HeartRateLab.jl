@@ -312,7 +312,6 @@ end
 
 # Helper function to extract features (needed for gradient fitting)
 function extract_feature_set(data::Vector{Float64})
-    using DataFrames
     # Compute basic HRV features
     mean_val = mean(data)
     sdnn_val = std(data)
