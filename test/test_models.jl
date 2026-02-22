@@ -5,68 +5,64 @@ using Test
 cd(@__DIR__)
 
 # ============================================================================
-# DMD Model - NOT YET IMPLEMENTED
+# DMD Model - IMPLEMENTED
 # ============================================================================
-@testset "DMD Model (NOT YET IMPLEMENTED)" begin
-    @test_broken begin
-        using LinearAlgebra
+@testset "DMD Model" begin
+    using LinearAlgebra
 
-        # Create synthetic IBI data from a simple oscillatory pattern
-        t = range(0, 10, length=50)
-        synthetic_ibis = 800 .+ 100 .* sin.(2π .* t / 10) .+ randn(50) .* 10
+    # Create synthetic IBI data from a simple oscillatory pattern
+    t = range(0, 10, length=50)
+    synthetic_ibis = 800 .+ 100 .* sin.(2π .* t / 10) .+ randn(50) .* 10
 
-        # Create a DMD model instance
-        dmd = HeartRateLab.Models.DMD(rank=5)
+    # Test 1: Model can be created
+    dmd = HeartRateLab.Models.DMD(rank=5)
+    @test dmd.rank == 5
+    @test isempty(dmd.modes)
+    @test isempty(dmd.evals)
 
-        # Test 1: Model can be created
-        @test dmd.rank == 5
-        @test isempty(dmd.modes)
-        @test isempty(dmd.evals)
+    # Test 2: fit() works and updates the model
+    fitted_dmd = HeartRateLab.Models.fit(dmd, synthetic_ibis)
 
-        # Test 2: fit() works and updates the model
-        fitted_dmd = HeartRateLab.Models.fit(dmd, synthetic_ibis)
+    @test !isempty(fitted_dmd.modes)
+    @test !isempty(fitted_dmd.evals)
+    @test size(fitted_dmd.modes, 2) <= fitted_dmd.rank
+    @test length(fitted_dmd.evals) == size(fitted_dmd.modes, 2)
 
-        @test !isempty(fitted_dmd.modes)
-        @test !isempty(fitted_dmd.evals)
-        @test length(fitted_dmd.modes) <= fitted_dmd.rank
-        @test length(fitted_dmd.evals) == length(fitted_dmd.modes)
+    # Test 3: simulate() produces valid IBIs
+    reconstructed = HeartRateLab.Models.simulate(fitted_dmd, nothing, length(synthetic_ibis))
 
-        # Test 3: simulate() produces valid IBIs
-        reconstructed = HeartRateLab.Models.simulate(fitted_dmd, nothing, length(synthetic_ibis))
+    @test length(reconstructed) ≈ length(synthetic_ibis)
+    @test all(reconstructed .> 0)
+    @test all(300 .< reconstructed .< 2000)
 
-        @test length(reconstructed) ≈ length(synthetic_ibis)
-        @test all(reconstructed .> 0)
-        @test all(300 .< reconstructed .< 2000)
+    # Test 4: Reconstruction captures mean of original data
+    orig_mean = mean(synthetic_ibis)
+    recon_mean = mean(reconstructed)
 
-        # Test 4: Reconstruction captures mean of original data
-        orig_mean = mean(synthetic_ibis)
-        recon_mean = mean(reconstructed)
+    @test abs(orig_mean - recon_mean) < 50.0
 
-        @test abs(orig_mean - recon_mean) < 50.0
+    # Test 5: round-trip has reasonable fidelity
+    orig_centered = synthetic_ibis .- mean(synthetic_ibis)
+    recon_centered = reconstructed .- mean(reconstructed)
 
-        # Test 5: round-trip has reasonable fidelity
-        orig_centered = synthetic_ibis .- mean(synthetic_ibis)
-        recon_centered = reconstructed .- mean(reconstructed)
-
-        if std(orig_centered) > 0 && std(recon_centered) > 0
-            correlation = cor(orig_centered, recon_centered)
-            @test correlation > 0.3
-        end
-
-        # Test 6: Different rank produces different reconstructions
-        dmd_rank2 = HeartRateLab.Models.DMD(rank=2)
-        fitted_dmd2 = HeartRateLab.Models.fit(dmd_rank2, synthetic_ibis)
-        recon2 = HeartRateLab.Models.simulate(fitted_dmd2, nothing, length(synthetic_ibis))
-
-        dmd_rank10 = HeartRateLab.Models.DMD(rank=10)
-        fitted_dmd10 = HeartRateLab.Models.fit(dmd_rank10, synthetic_ibis)
-        recon10 = HeartRateLab.Models.simulate(fitted_dmd10, nothing, length(synthetic_ibis))
-
-        error2 = sum(abs.(synthetic_ibis .- recon2))
-        error10 = sum(abs.(synthetic_ibis .- recon10))
-
-        @test error10 <= error2
+    if std(orig_centered) > 0 && std(recon_centered) > 0
+        correlation = cor(orig_centered, recon_centered)
+        @test correlation > 0.3
     end
+
+    # Test 6: Different rank produces different reconstructions
+    dmd_rank2 = HeartRateLab.Models.DMD(rank=2)
+    fitted_dmd2 = HeartRateLab.Models.fit(dmd_rank2, synthetic_ibis)
+    recon2 = HeartRateLab.Models.simulate(fitted_dmd2, nothing, length(synthetic_ibis))
+
+    dmd_rank10 = HeartRateLab.Models.DMD(rank=10)
+    fitted_dmd10 = HeartRateLab.Models.fit(dmd_rank10, synthetic_ibis)
+    recon10 = HeartRateLab.Models.simulate(fitted_dmd10, nothing, length(synthetic_ibis))
+
+    error2 = sum(abs.(synthetic_ibis .- recon2))
+    error10 = sum(abs.(synthetic_ibis .- recon10))
+
+    @test error10 <= error2
 end
 
 # ============================================================================
