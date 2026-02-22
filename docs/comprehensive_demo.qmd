@@ -87,18 +87,31 @@ end
 
 ```{julia}
 # Load IBI data from test suite
-data_path = "testdata/example.txt"
-try
-    ibi_data = HeartRateLab.read_txt(data_path)
-catch
-    # Fallback: Generate synthetic test data
-    println("⚠️  Test data not found, generating synthetic IBIs...")
-    ibi_data = 800 .+ 100 .* sin.(range(0, 4π, length=500)) .+
-               randn(500) .* 30
+println("Loading IBI data...")
+ibi_data = nothing
+
+# Try multiple paths
+for data_path in ["test/testdata/example.txt", "/workdir/test/testdata/example.txt"]
+    if isfile(data_path)
+        try
+            ibi_data = HeartRateLab.read_txt(data_path)
+            println("✓ Loaded from: $data_path")
+            break
+        catch e
+            println("  (failed to load: $data_path)")
+        end
+    end
+end
+
+# Always use fallback if loading failed
+if ibi_data === nothing || length(ibi_data) == 0
+    println("⚠️  Generating synthetic IBIs...")
+    # Synthetic data with realistic HRV
+    ibi_data = 800 .+ 100 .* sin.(range(0, 4π, length=500)) .+ randn(500) .* 30
     ibi_data = max.(ibi_data, 300)
 end
 
-println("\n✓ Loaded $(length(ibi_data)) IBI samples")
+println("\n✓ IBI data ready: $(length(ibi_data)) samples")
 println("  Duration: $(round(sum(ibi_data)/60_000; digits=1)) minutes")
 println("  Range: $(round(Int, minimum(ibi_data)))-$(round(Int, maximum(ibi_data))) ms")
 println("  Mean: $(round(mean(ibi_data); digits=1)) ms")
