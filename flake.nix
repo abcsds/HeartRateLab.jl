@@ -78,12 +78,21 @@
             #!${pkgs.runtimeShell}
             set -e
 
-            echo "📝 Rendering flagship demo notebook with code execution..."
+            NOTEBOOK=''${1:-comprehensive_demo}
+            NOTEBOOK_FILE="docs/$NOTEBOOK.qmd"
+            OUTPUT_FILE="docs/$NOTEBOOK.html"
+
+            echo "📝 Rendering $NOTEBOOK notebook with code execution..."
             echo "   (make sure to run 'nix run .#build-render' first)"
             echo ""
 
+            if [ ! -f "$NOTEBOOK_FILE" ]; then
+              echo "✗ Notebook file not found: $NOTEBOOK_FILE"
+              exit 1
+            fi
+
             # Record modification time before render
-            MTIME_BEFORE=$(stat -c %Y docs/flagship_demo.html 2>/dev/null || echo 0)
+            MTIME_BEFORE=$(stat -c %Y "$OUTPUT_FILE" 2>/dev/null || echo 0)
 
             # Run Quarto render with explicit bash entrypoint to show all output
             # Mount entire project directory to ensure fresh source code
@@ -91,18 +100,18 @@
             docker run --rm \
               -v "$(pwd):/workdir" \
               --entrypoint bash hrlab:render \
-              -c "rm -rf /root/.julia/compiled && cd /workdir && quarto render docs/flagship_demo.qmd --to html --execute"
+              -c "rm -rf /root/.julia/compiled && cd /workdir && quarto render $NOTEBOOK_FILE --to html --execute"
             RENDER_EXIT=$?
             echo "--- Quarto render completed (exit code: $RENDER_EXIT) ---"
 
             # Verify the output file exists and was actually modified
-            if [ ! -f docs/flagship_demo.html ]; then
+            if [ ! -f "$OUTPUT_FILE" ]; then
               echo ""
-              echo "✗ Render failed - output file does not exist"
+              echo "✗ Render failed - output file does not exist: $OUTPUT_FILE"
               exit 1
             fi
 
-            MTIME_AFTER=$(stat -c %Y docs/flagship_demo.html)
+            MTIME_AFTER=$(stat -c %Y "$OUTPUT_FILE")
             if [ "$MTIME_AFTER" -le "$MTIME_BEFORE" ]; then
               echo ""
               echo "✗ Render failed - output file was not modified (render did not complete)"
