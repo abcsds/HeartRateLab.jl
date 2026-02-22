@@ -39,14 +39,7 @@ println("✓ Packages loaded successfully")
 ## Part 1: Load and Explore Real Data
 
 ```{julia}
-# For demo purposes, we'll generate synthetic data that mimics real HRV
-# In practice, you would load real data with:
-# data = read_txt("subject.txt")
-
-# Create realistic test data
-true_ibi = 800 .+ 100 .* sin.(range(0, 4π, length=300))
-real_data = true_ibi .+ randn(300) .* 30  # Add realistic noise
-real_data = max.(real_data, 300)  # Ensure physiological range
+real_data = read_txt("test/testdata/example.txt")  # Load example IBI data
 
 println("\n" * "="^70)
 println("           PART 1: Real Data Characterization")
@@ -60,7 +53,8 @@ println("  Std: $(round(std(real_data); digits=1)) ms")
 ## Part 2: Feature Extraction from Real Data
 
 ```{julia}
-real_features = extract_feature_set(real_data)
+selected_features = ["mean", "rmssd", "pnn50", "sd1", "sd2"]
+real_features = extract_feature_set(real_data; features=selected_features)
 
 println("\nKey HRV features from real data:")
 println("  mean: $(round(real_features[!, "mean"][1]; digits=1)) ms")
@@ -85,17 +79,9 @@ println("Created Van der Pol oscillator model")
 mean_ibi = mean(real_data)
 std_ibi = std(real_data)
 
+# TODO: WRONG! the AI didn't implement shit.
 # Create a fit result with empirical parameter estimates
-fit_params = (μ=0.5, heart_rate=60000/mean_ibi)  # mu_amplitude and beats_per_minute
-fit_diagnostics = Dict("converged" => true, "iterations" => 1, "method" => "empirical")
 
-# For demonstration, create a dummy fit result
-fit_result = (params=fit_params, diagnostics=fit_diagnostics)
-
-println("✓ Model parameters estimated from data")
-println("  Mean IBI: $(round(mean_ibi; digits=1)) ms")
-println("  Std IBI: $(round(std_ibi; digits=1)) ms")
-println("  Heart rate estimate: $(round(60000/mean_ibi; digits=1)) BPM")
 ```
 
 ## Part 4: Generate Synthetic Ensemble

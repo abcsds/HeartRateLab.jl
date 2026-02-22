@@ -218,9 +218,11 @@ function fit(model::VanDerPol, data::Vector{Float64};
             "method" => "NUTS (Turing.jl)",
             "chains" => chains,
             "samples_per_chain" => samples,
-            "total_samples" => samples * chains
+            "total_samples" => samples * chains,
+            "rhat_mu" => rhat(chain[:μ])[1],
+            "rhat_heart_rate" => rhat(chain[:heart_rate])[1],
+            "rhat_sigma_noise" => rhat(chain[:σ_noise])[1]
         )
-        # TODO: Add rhat diagnostics from MCMCDiagnosticTools when needed
 
         # Extract posterior samples as dict
         posterior = Dict(
@@ -357,27 +359,27 @@ function parameter_space(model::Lorenz)
         σ = (
             lower = 5.0,
             upper = 15.0,
-            prior = TruncatedNormal(10.0, 2.0, 5.0, 15.0)
+            prior = Distributions.truncated(Distributions.Normal(10.0, 2.0), 5.0, 15.0)
         ),
         ρ = (
             lower = 20.0,
             upper = 35.0,
-            prior = TruncatedNormal(28.0, 3.0, 20.0, 35.0)
+            prior = Distributions.truncated(Distributions.Normal(28.0, 3.0), 20.0, 35.0)
         ),
         β = (
             lower = 1.0,
             upper = 4.0,
-            prior = TruncatedNormal(8/3, 0.5, 1.0, 4.0)
+            prior = Distributions.truncated(Distributions.Normal(8/3, 0.5), 1.0, 4.0)
         ),
         threshold = (
             lower = 5.0,
             upper = 15.0,
-            prior = TruncatedNormal(10.0, 2.0, 5.0, 15.0)
+            prior = Distributions.truncated(Distributions.Normal(10.0, 2.0), 5.0, 15.0)
         ),
         σ_noise = (
             lower = 1.0,
             upper = 50.0,
-            prior = Exponential(10.0)
+            prior = Distributions.Exponential(10.0)
         )
     )
 end
@@ -475,12 +477,11 @@ function fit(model::Lorenz, data::Vector{Float64};
             n_beats = length(ibi_data)
 
             # Priors
-            σ ~ TruncatedNormal(10.0, 2.0, 5.0, 15.0)
-            ρ ~ TruncatedNormal(28.0, 3.0, 20.0, 35.0)
-            β ~ TruncatedNormal(8/3, 0.5, 1.0, 4.0)
-            threshold ~ TruncatedNormal(10.0, 2.0, 5.0, 15.0)
-            σ_noise ~ Exponential(10.0)
-
+            σ ~ Distributions.truncated(Distributions.Normal(10.0, 2.0), 5.0, 15.0)
+            ρ ~ Distributions.truncated(Distributions.Normal(28.0, 3.0), 20.0, 35.0)
+            β ~ Distributions.truncated(Distributions.Normal(8/3, 0.5), 1.0, 4.0)
+            threshold ~ Distributions.truncated(Distributions.Normal(10.0, 2.0), 5.0, 15.0)
+            σ_noise ~ Distributions.Exponential(10.0)
             # Simulate model with these parameters
             params = (σ=σ, ρ=ρ, β=β, threshold=threshold)
             try
@@ -577,27 +578,27 @@ function parameter_space(model::LIF)
         τ = (
             lower = 10.0,
             upper = 100.0,
-            prior = TruncatedNormal(50.0, 15.0, 10.0, 100.0)
+            prior = Distributions.truncated(Distributions.Normal(50.0, 15.0), 10.0, 100.0)
         ),
         I_base = (
             lower = 0.5,
             upper = 1.5,
-            prior = TruncatedNormal(0.8, 0.2, 0.5, 1.5)
+            prior = Distributions.truncated(Distributions.Normal(0.8, 0.2), 0.5, 1.5)
         ),
         threshold = (
             lower = 0.5,
             upper = 1.5,
-            prior = TruncatedNormal(1.0, 0.2, 0.5, 1.5)
+            prior = Distributions.truncated(Distributions.Normal(1.0, 0.2), 0.5, 1.5)
         ),
         noise_amp = (
             lower = 0.05,
             upper = 0.5,
-            prior = TruncatedNormal(0.15, 0.1, 0.05, 0.5)
+            prior = Distributions.truncated(Distributions.Normal(0.15, 0.1), 0.05, 0.5)
         ),
         σ_noise = (
             lower = 1.0,
             upper = 50.0,
-            prior = Exponential(10.0)
+            prior = Distributions.Exponential(10.0)
         )
     )
 end
@@ -703,12 +704,11 @@ function fit(model::LIF, data::Vector{Float64};
             n_beats = length(ibi_data)
 
             # Priors
-            τ ~ TruncatedNormal(50.0, 15.0, 10.0, 100.0)
-            I_base ~ TruncatedNormal(0.8, 0.2, 0.5, 1.5)
-            threshold ~ TruncatedNormal(1.0, 0.2, 0.5, 1.5)
-            noise_amp ~ TruncatedNormal(0.15, 0.1, 0.05, 0.5)
-            σ_noise ~ Exponential(10.0)
-
+            τ ~ Distributions.truncated(Distributions.Normal(50.0, 15.0), 10.0, 100.0)
+            I_base ~ Distributions.truncated(Distributions.Normal(0.8, 0.2), 0.5, 1.5)
+            threshold ~ Distributions.truncated(Distributions.Normal(1.0, 0.2), 0.5, 1.5)
+            noise_amp ~ Distributions.truncated(Distributions.Normal(0.15, 0.1), 0.05, 0.5)
+            σ_noise ~ Distributions.Exponential(10.0)
             # Simulate model with these parameters
             params = (τ=τ, I_base=I_base, threshold=threshold, noise_amp=noise_amp)
             try
@@ -995,10 +995,5 @@ function simulate(model::DMD, params::Union{NamedTuple,Nothing}, n_beats::Int)::
 
     return reconstructed
 end
-
-# Export model types and key functions
-export AbstractHRVModel, ModelFitResult
-export VanDerPol, Lorenz, LIF, DMD
-export simulate, fit, parameter_space
 
 end  # Models
