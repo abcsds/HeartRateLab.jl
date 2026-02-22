@@ -8,3 +8,4 @@ wfdb-10.7.0
 LOG.md
 VizHRV
 examples*.quarto_ipynb
+docs/*_files/
