@@ -1,0 +1,28 @@
+---
+title: "Test Render"
+format: html
+execute:
+  eval: true
+  echo: true
+jupyter: julia-1.11
+---
+
+# Test
+
+This is a simple test.
+
+```{julia}
+using HeartRateLab
+println("✓ HeartRateLab loaded")
+```
+
+```{julia}
+using Random
+Random.seed!(42)
+data = randn(10)
+println("✓ Generated data: $data")
+```
+
+```{julia}
+println("✓ Test complete")
+```
