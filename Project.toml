@@ -5,6 +5,7 @@ version = "1.0.0"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+DFA = "2556a7c9-976d-46bb-b923-66b4a6f0a5bd"
 DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DataInterpolations = "82cc6244-b520-54b8-b5a6-8a565e85f1d0"
@@ -22,6 +23,7 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 Turing = "fce5fe82-541a-59a6-adf8-730c64b5f694"
 Trapz = "592b5752-818d-11e9-1e9a-2b8ca4a44cd1"
+XDF = "31bc19ec-0089-417f-990e-a2b5e7515868"
 
 [weakdeps]
 BlackBoxOptim = "a9c8d775-2e60-50d4-8760-7a7fde672fa3"
@@ -29,7 +31,9 @@ DiffEqFlux = "aae7a2af-3d4f-5e19-a356-7da93b79d9d0"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
 GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
 LSL = "57c3d5b1-721f-43a0-b20c-e9152d812276"
+Optim = "429524aa-4258-5aef-a3af-852621145aeb"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+Turing = "fce5fe82-541a-59a6-adf8-730c64b5f694"
 
 [extensions]
 HeartRateLabDeepExt = ["Flux", "DiffEqFlux"]
@@ -40,6 +44,7 @@ HeartRateLabVisualizationExt = ["GLMakie"]
 [compat]
 BlackBoxOptim = "0.6"
 CSV = "0.10"
+DFA = "1.0.0"
 DSP = "0.6"
 DataFrames = "1"
 DataInterpolations = "4"
@@ -59,6 +64,7 @@ Statistics = "1.11.1"
 StatsBase = "0.33"
 Trapz = "2"
 Turing = "0.29"
+XDF = "0.2.0"
 julia = "1.11"
 
 [extras]

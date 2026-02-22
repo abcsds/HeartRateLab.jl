@@ -39,14 +39,7 @@ COPY Project.toml /workdir/
 ENV DISPLAY=${DISPLAY:-:0}
 ENV LD_LIBRARY_PATH="/run/opengl-driver/lib"
 
-# Add packages via Pkg.add() to let Julia's Pkg system resolve correct UUIDs
-# Git dependencies must be added before instantiate() to populate the Manifest correctly
-RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.add("DifferentialEquations")'
-RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.add(url="https://github.com/abcsds/DFA.jl.git")'
-RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.add(url="https://github.com/abcsds/XDF.jl.git")'
-
 # Resolve and instantiate Julia packages
-# Pkg.instantiate() will lock all dependency versions in Manifest.toml
 RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.instantiate()'
 
 # Precompile packages to speed up first use
