@@ -86,10 +86,10 @@ end
 
     # Test 3: Different μ produces different IBIs
     params_low_mu = (μ=0.8, heart_rate=70.0)
-    ibis_low_mu = HeartRateLab.Models.simulate(vdp, params_low_mu, n_beats=50)
+    ibis_low_mu = HeartRateLab.Models.simulate(vdp, params_low_mu, 50)
 
     params_high_mu = (μ=2.5, heart_rate=70.0)
-    ibis_high_mu = HeartRateLab.Models.simulate(vdp, params_high_mu, n_beats=50)
+    ibis_high_mu = HeartRateLab.Models.simulate(vdp, params_high_mu, 50)
 
     mean_low = mean(ibis_low_mu)
     mean_high = mean(ibis_high_mu)
@@ -97,10 +97,10 @@ end
 
     # Test 4: heart_rate parameter affects timing
     params_slow_hr = (μ=1.5, heart_rate=50.0)
-    ibis_slow_hr = HeartRateLab.Models.simulate(vdp, params_slow_hr, n_beats=50)
+    ibis_slow_hr = HeartRateLab.Models.simulate(vdp, params_slow_hr, 50)
 
     params_fast_hr = (μ=1.5, heart_rate=100.0)
-    ibis_fast_hr = HeartRateLab.Models.simulate(vdp, params_fast_hr, n_beats=50)
+    ibis_fast_hr = HeartRateLab.Models.simulate(vdp, params_fast_hr, 50)
 
     @test mean(ibis_slow_hr) > mean(ibis_fast_hr)
 
@@ -117,7 +117,7 @@ end
     @test ps.σ_noise.lower < ps.σ_noise.upper
 
     # Test 7: fit(:gradient) - NOW IMPLEMENTED (Phase C)
-    synthetic_data = HeartRateLab.Models.simulate(vdp, params, n_beats=200)
+    synthetic_data = HeartRateLab.Models.simulate(vdp, params, 200)
     fitted_grad = HeartRateLab.Models.fit(vdp, synthetic_data; method=:gradient)
 
     @test fitted_grad.model isa HeartRateLab.Models.VanDerPol
@@ -139,7 +139,7 @@ end
     @test fitted_grad.diagnostics["method"] == "LBFGS"
 
     # Test 8: fit(:bayesian) - NOW IMPLEMENTED (Phase B)
-    synthetic_data = HeartRateLab.Models.simulate(vdp, params, n_beats=150)
+    synthetic_data = HeartRateLab.Models.simulate(vdp, params, 150)
     fitted_result = HeartRateLab.Models.fit(vdp, synthetic_data; method=:bayesian, chains=2, samples=200)
 
     @test fitted_result.model isa HeartRateLab.Models.VanDerPol
@@ -190,7 +190,7 @@ end
 
         # Test 3: simulate() produces valid IBIs
         params = (σ=10.0, ρ=28.0, β=8/3, threshold=10.0)
-        ibis = HeartRateLab.Models.simulate(lorenz, params, n_beats=40)
+        ibis = HeartRateLab.Models.simulate(lorenz, params, 40)
 
         @test length(ibis) ≈ 40 atol=8
         @test all(ibis .> 0)
@@ -198,17 +198,17 @@ end
 
         # Test 4: Different ρ (chaos parameter) produces different IBIs
         params_low_rho = (σ=10.0, ρ=20.0, β=8/3, threshold=10.0)
-        ibis_low_rho = HeartRateLab.Models.simulate(lorenz, params_low_rho, n_beats=40)
+        ibis_low_rho = HeartRateLab.Models.simulate(lorenz, params_low_rho, 40)
 
         params_high_rho = (σ=10.0, ρ=35.0, β=8/3, threshold=10.0)
-        ibis_high_rho = HeartRateLab.Models.simulate(lorenz, params_high_rho, n_beats=40)
+        ibis_high_rho = HeartRateLab.Models.simulate(lorenz, params_high_rho, 40)
 
         mean_low = mean(ibis_low_rho)
         mean_high = mean(ibis_high_rho)
         @test abs(mean_low - mean_high) / mean_low > 0.05
 
         # Test 5: fit(:bayesian) produces valid result
-        synthetic_data = HeartRateLab.Models.simulate(lorenz, params, n_beats=150)
+        synthetic_data = HeartRateLab.Models.simulate(lorenz, params, 150)
         fitted_result = HeartRateLab.Models.fit(lorenz, synthetic_data; method=:bayesian, chains=2, samples=100)
 
         @test fitted_result.model isa HeartRateLab.Models.Lorenz
@@ -261,7 +261,7 @@ end
 
         # Test 3: simulate() produces valid IBIs
         params = (τ=50.0, I_base=0.8, threshold=1.0, noise_amp=0.15)
-        ibis = HeartRateLab.Models.simulate(lif, params, n_beats=50)
+        ibis = HeartRateLab.Models.simulate(lif, params, 50)
 
         @test length(ibis) == 50
         @test all(ibis .> 0)
@@ -269,7 +269,7 @@ end
 
         # Test 4: Different parameters produce different dynamics
         params_slow_tau = (τ=80.0, I_base=0.8, threshold=1.0, noise_amp=0.15)
-        ibis_slow = HeartRateLab.Models.simulate(lif, params_slow_tau, n_beats=50)
+        ibis_slow = HeartRateLab.Models.simulate(lif, params_slow_tau, 50)
 
         # Slower time constant should affect variability
         @test std(ibis_slow) != std(ibis)
