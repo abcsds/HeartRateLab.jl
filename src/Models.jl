@@ -26,7 +26,6 @@ using Random
 using Distributions
 using Turing
 using MCMCChains
-using MCMCChains: rhat
 using Optim
 using DataFrames
 using LinearAlgebra
@@ -223,11 +222,9 @@ function fit(model::VanDerPol, data::Vector{Float64};
             "method" => "NUTS (Turing.jl)",
             "chains" => chains,
             "samples_per_chain" => samples,
-            "total_samples" => samples * chains,
-            "rhat_mu" => rhat(chain[:μ])[1],
-            "rhat_heart_rate" => rhat(chain[:heart_rate])[1],
-            "rhat_sigma_noise" => rhat(chain[:σ_noise])[1]
+            "total_samples" => samples * chains
         )
+        # TODO: Add rhat diagnostics from MCMCDiagnosticTools when needed
 
         # Extract posterior samples as dict
         posterior = Dict(
