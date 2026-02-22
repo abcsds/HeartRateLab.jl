@@ -609,79 +609,69 @@ end
 Simulate IBI time series using LIF stochastic neural model with threshold crossings.
 
 # Parameters
-- `τ`: Membrane time constant (ms)
-- `I_base`: Base input current
-- `threshold`: Spike threshold voltage
-- `noise_amp`: Noise amplitude in dynamics
+- `τ`: Membrane time constant (ms) - controls membrane integration speed
+- `I_base`: Base input current (dimensionless, typical ~0.8)
+- `threshold`: Spike threshold voltage (dimensionless, typical ~1.0)
+- `noise_amp`: Noise amplitude in dynamics (dimensionless, typical ~0.15)
+
+# Model
+The Leaky Integrate-and-Fire neuron model:
+  τ dV/dt = -V + I_base + noise_amp * ξ(t)
+
+When V crosses threshold, a spike occurs and V resets to 0.
 
 # Returns
-Vector of inter-beat intervals in milliseconds
+Vector of inter-beat intervals in milliseconds (time between spike events)
 """
 function simulate(model::LIF, params::NamedTuple, n_beats::Int)::Vector{Float64}
-    if !hasDiffEq
-        error("LIF model requires DifferentialEquations.jl. Install with: Pkg.add(\"DifferentialEquations\")")
-    end
-
     # Extract parameters
-    τ = get(params, :τ, model.τ)
-    I_base = get(params, :I_base, model.I_base)
-    threshold = get(params, :threshold, model.threshold)
-    noise_amp = get(params, :noise_amp, model.noise_amp)
+    τ = get(params, :τ, model.τ)              # time constant in ms
+    I_base = get(params, :I_base, model.I_base)  # base input current
+    threshold = get(params, :threshold, model.threshold)  # spike threshold
+    noise_amp = get(params, :noise_amp, model.noise_amp)  # noise amplitude
 
-    # LIF ODE: τ dV/dt = -V + I_base + noise
-    function lif!(du, u, p, t)
-        τ_param, I_base_param, noise_amp_param = p
-        V = u[1]
-        du[1] = (-V + I_base_param) / τ_param + noise_amp_param * randn()
-    end
+    # Euler-Maruyama stochastic integration (more robust than ODE solver)
+    dt = 0.1  # Time step in milliseconds
+    T_max = 50000.0  # Maximum simulation time in ms
 
-    # Simulate until we get n_beats
-    ibis = Float64[]
-    u0 = [0.0]  # Start below threshold
-    t = 0.0
-    dt = 0.1   # Time step in ms
-    last_spike_time = -Inf
+    # State variables
+    V = 0.0  # Membrane voltage (start below threshold)
+    t = 0.0  # Current time in ms
+    last_spike_time = -Inf  # Time of last spike
+    ibis = Float64[]  # Inter-beat intervals
 
-    max_iterations = n_beats * 100  # Safety limit
+    # Simulate until we have enough IBIs
+    while length(ibis) < n_beats && t < T_max
+        # Stochastic Euler step for LIF ODE
+        # dV = (-V + I_base) * dt/τ + noise_amp * sqrt(dt) * randn()
+        dV = (-V + I_base) / τ * dt + noise_amp * sqrt(dt) * randn()
+        V_new = V + dV
 
-    for iteration = 1:max_iterations
-        # Solve for short interval (100ms)
-        tspan = (t, t + 100.0)
-        prob = ODEProblem(lif!, u0, tspan, [τ, I_base, noise_amp])
+        # Check for threshold crossing
+        if V < threshold && V_new >= threshold
+            # Spike occurred
+            spike_time = t + dt * (threshold - V) / (V_new - V)  # Interpolate exact crossing time
 
-        try
-            sol = solve(prob, Tsit5(), saveat=dt, verbose=false)
-
-            # Check for threshold crossings
-            for i in 2:length(sol.t)
-                if sol[1, i] >= threshold && sol[1, i-1] < threshold
-                    spike_time = sol.t[i]
-                    if last_spike_time > -Inf
-                        ibi = spike_time - last_spike_time
-                        if 300 < ibi < 2000  # Physiological bounds
-                            push!(ibis, ibi)
-                        end
-                    end
-                    last_spike_time = spike_time
-                    u0 = [0.0]  # Reset voltage after spike
-                    break
+            if last_spike_time > -Inf
+                ibi = spike_time - last_spike_time  # Time between spikes in ms
+                # Only include physiologically valid IBIs
+                if 300.0 < ibi < 2000.0
+                    push!(ibis, ibi)
                 end
             end
 
-            t += 100.0
-            u0 = [sol[1, end]]
-
-            if length(ibis) >= n_beats
-                return ibis[1:n_beats]
-            end
-        catch
-            # If ODE solve fails, stop
-            break
+            last_spike_time = spike_time
+            V_new = 0.0  # Reset voltage after spike
         end
+
+        V = V_new
+        t += dt
     end
 
+    # Check if we got enough IBIs
     if length(ibis) < n_beats
-        error("LIF simulation: got $(length(ibis)) IBIs but needed $n_beats. Try adjusting parameters.")
+        error("LIF simulation failed: only generated $(length(ibis))/$n_beats IBIs. " *
+              "Try increasing τ or I_base, or reducing noise_amp.")
     end
 
     return ibis[1:n_beats]
