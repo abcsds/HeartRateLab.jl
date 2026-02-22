@@ -5,11 +5,11 @@ version = "1.0.0"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
-DFA = "2556a7c9-976d-46bb-b923-66b4a6f0a5bd"
 DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DataInterpolations = "82cc6244-b520-54b8-b5a6-8a565e85f1d0"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+DifferentialEquations = "0c46a032-eb83-5123-8c6c-5d4b8ad5c47d"
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 EntropyHub = "3938faea-3bfa-4bc3-8092-0c6746ff9af1"
 Hurst = "f5425a1d-c389-4276-87b1-4aa2dfb12528"
@@ -23,7 +23,6 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 Turing = "fce5fe82-541a-59a6-adf8-730c64b5f694"
 Trapz = "592b5752-818d-11e9-1e9a-2b8ca4a44cd1"
-XDF = "31bc19ec-0089-417f-990e-a2b5e7515868"
 
 [weakdeps]
 BlackBoxOptim = "a9c8d775-2e60-50d4-8760-7a7fde672fa3"
@@ -42,7 +41,6 @@ HeartRateLabVisualizationExt = ["GLMakie"]
 [compat]
 BlackBoxOptim = "0.6"
 CSV = "0.10"
-DFA = "1.0.0"
 DSP = "0.6"
 DataFrames = "1"
 DataInterpolations = "4"
@@ -63,7 +61,6 @@ Statistics = "1.11.1"
 StatsBase = "0.33"
 Trapz = "2"
 Turing = "0.29"
-XDF = "0.2.0"
 julia = "1.11"
 
 [extras]

@@ -39,11 +39,13 @@ COPY Project.toml /workdir/
 ENV DISPLAY=${DISPLAY:-:0}
 ENV LD_LIBRARY_PATH="/run/opengl-driver/lib"
 
-# Add missing dependencies via Pkg to ensure proper resolution
-# DifferentialEquations is required by Lorenz and LIF models
-RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.add("DifferentialEquations")'
+# Add git dependencies first (DFA, XDF are from git repos, not registered)
+# These must be added before instantiate() to populate the Manifest correctly
+RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.add(url="https://github.com/abcsds/DFA.jl.git")'
+RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.add(url="https://github.com/abcsds/XDF.jl.git")'
 
 # Resolve and instantiate Julia packages
+# Pkg.instantiate() will resolve all Project.toml dependencies and git URLs
 RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.instantiate()'
 
 # Precompile packages to speed up first use
