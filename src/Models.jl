@@ -25,6 +25,8 @@ module Models
 using Random
 using Distributions
 using Turing
+using MCMCChains
+using MCMCChains: rhat
 using Optim
 using DataFrames
 using LinearAlgebra
@@ -108,7 +110,7 @@ Simulate IBI time series using Van der Pol oscillator.
 # Returns
 Vector of inter-beat intervals in milliseconds
 """
-function simulate(model::VanDerPol, params::NamedTuple, n_beats::Int)::Vector{Float64}
+function simulate(model::VanDerPol, params::NamedTuple, n_beats::Int)
     # Extract parameters with defaults
     μ = get(params, :μ, 0.5)  # Non-linearity
     hr = get(params, :heart_rate, 70)  # Heart rate in BPM
@@ -192,17 +194,17 @@ function fit(model::VanDerPol, data::Vector{Float64};
         @model function vanderpol_model(ibi_data)
             n_beats = length(ibi_data)
 
-            # Priors
-            μ ~ TruncatedNormal(1.0, 0.5, 0.1, 3.0)
-            heart_rate ~ TruncatedNormal(70.0, 15.0, 40.0, 120.0)
-            σ_noise ~ Exponential(10.0)
+            # Priors using truncated() function
+            μ ~ Distributions.truncated(Distributions.Normal(1.0, 0.5), 0.1, 3.0)
+            heart_rate ~ Distributions.truncated(Distributions.Normal(70.0, 15.0), 40.0, 120.0)
+            σ_noise ~ Distributions.Exponential(10.0)
 
             # Simulate model with these parameters
             params = (μ=μ, heart_rate=heart_rate)
             predicted_ibi = simulate(model, params, n_beats)
 
             # Likelihood: observed IBIs ~ predicted IBIs with Gaussian noise
-            ibi_data ~ MvNormal(predicted_ibi, σ_noise)
+            ibi_data ~ Distributions.MvNormal(predicted_ibi, σ_noise)
         end
 
         # Fit using NUTS sampler with threading
