@@ -911,13 +911,13 @@ function fit(model::DMD, data::Vector{Float64}; kwargs...)
 
     # Compute mode amplitudes b via least squares
     # We want: data ≈ Φ * b (approximately, for reconstruction)
+    b = nothing  # Initialize b to ensure it's defined in function scope
     try
         b = modes \ data[1:size(modes, 1)]
     catch
         # If direct solve fails, use pinv
         b = pinv(modes) * data[1:size(modes, 1)]
     end
-
     # Create fitted model
     fitted_model = DMD(r, modes, evals, b)
 
