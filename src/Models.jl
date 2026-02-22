@@ -27,6 +27,7 @@ using Distributions
 using Turing
 using Optim
 using DataFrames
+using LinearAlgebra
 
 # DifferentialEquations is optional, only needed for Lorenz model
 const hasDiffEq = try
@@ -869,8 +870,6 @@ Returns a new DMD model instance with fitted modes and eigenvalues.
 `ModelFitResult` with fitted DMD model containing modes and eigenvalues
 """
 function fit(model::DMD, data::Vector{Float64}; kwargs...)
-    using LinearAlgebra
-
     n = length(data)
     r = min(model.rank, n - 1)  # Rank cannot exceed n-1
 
