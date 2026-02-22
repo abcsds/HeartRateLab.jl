@@ -611,38 +611,962 @@ HeartRateLab (core)
 
 ---
 
-## 8. Current Goal & Next Steps
+## 8. ⚠️ CRITICAL UPDATE: Model Implementation Status (Feb 22, 2026)
 
-### 🔴 CURRENT PRIORITY: Test Flagship Demo Rendering
+### 🔴 SEVERE DISCREPANCY DISCOVERED: PLAN.md vs Actual Codebase
 
-**Goal:** Ensure `quarto render docs/flagship_demo.qmd --to html` works
+**Context:** During comprehensive demo notebook design session, systematic codebase audit revealed major discrepancies between PLAN.md claims and actual implementation.
 
-**Why important:**
-- Demonstrates end-to-end pipeline functionality
-- Serves as reproducible workflow documentation
-- Will be the primary showcase for users/reviewers
-- Validates all components work together (data → fit → ensemble → validate → visualize)
+### What PLAN.md Claims (Section 2)
 
-**After rendering:**
-- Compact context (save ~2000 lines of summarized progress)
-- Begin publication preparation phase (version bump, LICENSE, CITATION.bib)
+| Component | Claimed Status | Evidence Cited |
+|-----------|---------------|----------------|
+| Models (LIF, VdP, Lorenz, DMD) | ✅ COMPLETE | Commits 13e590c, b79f352 (1,200 lines) |
+| Model Fitting (Gradient + Bayesian) | ✅ COMPLETE | Commits b5ee81a, b9cb99c, 5c36ff2 (426 lines) |
+| All ODE models support Bayesian fitting | ✅ COMPLETE | "R-hat diagnostics" |
 
-### 📋 Publication Preparation Checklist (Phase 5)
+### What Actually Exists in src/Models.jl
+
+**Audit findings (Feb 22, 2026):**
+
+```bash
+$ grep -n "function fit\(" src/Models.jl
+# NO RESULTS - fit() does NOT exist
+
+$ grep -n "struct.*<: AbstractHRVModel" src/Models.jl
+84:struct VanDerPol <: AbstractHRVModel end
+# ONLY VanDerPol exists - no DMD, Lorenz, or LIF
+
+$ wc -l src/Models.jl
+127 src/Models.jl
+# Total: 127 lines (NOT 1,200 as claimed)
+```
+
+**Actual Implementation:**
+- ✅ `struct VanDerPol <: AbstractHRVModel end` (line 84)
+- ✅ `simulate(::VanDerPol, params::NamedTuple, n_beats::Int)` (lines 98-125)
+- ❌ **NO fit() method** - aspirational documentation only (lines 17, 36)
+- ❌ **NO parameter_space() method**
+- ❌ **NO DMD, Lorenz, LIF models**
+- ❌ **NO Turing.jl integration**
+- ❌ **NO Bayesian inference**
+
+### Sham Tests Discovered
+
+**test/test_models.jl contains "sham tests":**
+
+```julia
+# Lines 7-74: DMD tests
+try
+    @testset "DMD Model" begin
+        dmd = HeartRateLab.Models.DMD(rank=5)  # DMD doesn't exist!
+        @test dmd.rank == 5
+    end
+catch err
+    @warn "Skipping DMD model tests - LinearAlgebra not available" exception=err
+end
+```
+
+**Why this is toxic:**
+1. Error message lies: "LinearAlgebra not available" (it IS available - we verified)
+2. Real issue: DMD model doesn't exist in src/Models.jl
+3. Tests silently skip instead of failing
+4. CI shows green but functionality is missing
+5. Violates TDD: tests should fail until implementation exists
+
+**Same pattern for:**
+- DMD (lines 7-74)
+- VanDerPol fit() / parameter_space() (lines 81-167)
+- Lorenz (lines 169-270)
+- LIF (lines 272-448)
+
+All wrapped in try/catch blocks that make tests pass when models don't exist.
+
+### Impact on Comprehensive Demo Notebook
+
+**Design Status:** ✅ Complete (docs/plans/2026-02-22-comprehensive-demo-notebook-design.md)
+
+**Implementation Status:** ❌ **BLOCKED**
+
+**Blockers:**
+1. **fit() method** - Documented in ModelFitResult but NOT implemented
+   - Expected: Turing.jl MCMC sampling with posterior distributions
+   - Reality: Only simulate() works for VanDerPol
+   - Impact: Cannot demonstrate Bayesian parameter estimation
+
+2. **parameter_space() method** - Documented in interface but NOT implemented
+   - Expected: Return prior distributions for parameters
+   - Reality: Method doesn't exist
+   - Impact: Cannot define priors or validate bounds
+
+3. **Other models (DMD, Lorenz, LIF)** - Have tests but NO implementations
+   - Tests: Comprehensive test specs in test/test_models.jl
+   - Reality: Only VanDerPol struct exists
+   - Impact: Cannot demonstrate model comparison
+
+### What Can Be Implemented (Partial Notebook)
+
+**Parts 1-3: ✅ Ready** (No blockers)
+- Part 1: HRV Measurement Theory
+- Part 2: Data & Feature Engineering (4-panel viz, feature extraction)
+- Part 3: Windowed Analysis (z-score normalization)
+
+**Part 4: ⚠️ Partial** (VanDerPol only)
+- Show VanDerPol simulate() usage
+- Educational phase portraits (manual ODE visualization)
+- Document DMD/Lorenz/LIF as "planned" (show test specs)
+
+**Parts 5-6: ❌ Blocked** (Requires fit())
+- Part 5: Model fitting with Bayesian inference (CANNOT IMPLEMENT)
+- Part 6: Animated visualization with fitted parameters (CANNOT IMPLEMENT)
+- Workaround: Use empirical parameters (not fitted)
+
+### Documentation Updates Made
+
+**Created:**
+- ✅ `docs/plans/2026-02-22-comprehensive-demo-notebook-design.md` (7,644 lines)
+  - Complete notebook specification
+  - Documents all blockers and missing features
+  - Shows workarounds for Parts 5-6 with empirical parameters
+
+**Updated:**
+- ✅ `AGENTS.md` - Added "Testing Standards and Anti-Patterns" section
+  - Documents sham test anti-pattern
+  - Prohibits try/catch blocks that hide missing functionality
+  - Mandates @test_broken for unimplemented features
+
+**Proposed:**
+- ✅ `test/test_models_FIXED_PROPOSAL.jl` - Proper test structure
+  - Uses @test_broken for unimplemented features
+  - Tests fail loudly, not silently skip
+  - Accurate error messages
+
+### Corrective Actions Required
+
+**CRITICAL (Restore TDD Integrity):**
+1. Replace sham tests with @test_broken for unimplemented features
+2. Make test suite fail until implementation exists
+3. Update PLAN.md to reflect actual implementation status
+4. Remove false claims about "COMPLETE" status
+
+**OPTIONAL (If Implementing):**
+1. Implement fit() with Turing.jl for VanDerPol
+2. Implement parameter_space() for VanDerPol
+3. Implement DMD, Lorenz, LIF models
+4. Complete notebook Parts 5-6 with real Bayesian fitting
+
+### Recommendations
+
+**Immediate:**
+1. ✅ Update PLAN.md with accurate status (THIS SECTION)
+2. Fix sham tests in test/test_models.jl
+3. Document notebook as "Partial Implementation"
+4. Implement Parts 1-4 only (no fit() dependency)
+
+**Future Work:**
+1. Implement Turing.jl integration (fit() method)
+2. Implement missing models (DMD, Lorenz, LIF)
+3. Complete notebook Parts 5-6
+4. Validate entire pipeline end-to-end
+
+---
+
+## 9. Current Goal & Next Steps
+
+### 🔴 CURRENT PRIORITY: Fix Test Suite & Documentation
+
+**PREVIOUS Goal (Obsolete):** Ensure `quarto render docs/flagship_demo.qmd --to html` works
+
+**Status:** ❌ **Blocked** - flagship_demo.qmd depends on fit() which doesn't exist
+
+**NEW Goal:** Align documentation with reality, fix sham tests
+
+**Actions Taken:**
+1. ✅ Created comprehensive notebook design (docs/plans/2026-02-22-comprehensive-demo-notebook-design.md)
+2. ✅ Documented sham test anti-pattern in AGENTS.md
+3. ✅ Proposed test fixes (test/test_models_FIXED_PROPOSAL.jl)
+4. ✅ Updated PLAN.md with actual implementation status (Section 8)
+
+**Actions Required:**
+1. Fix sham tests in test/test_models.jl
+2. Implement partial notebook (Parts 1-4 only)
+3. Document fit() as future work
+4. Update Section 2 of PLAN.md to remove false claims
+
+### 📋 Implementation Tasks (Priority Order)
+
+#### **Phase A: Fix Test Integrity (IMMEDIATE)**
 
 ```
-BLOCKING (Must complete before release):
-- [ ] Test quarto render works (CURRENT)
+- [ ] Fix sham tests in test/test_models.jl
+  - Replace try/catch @warn with @test_broken for unimplemented features
+  - DMD tests (lines 7-74)
+  - VanDerPol fit()/parameter_space() tests (lines 81-167)
+  - Lorenz tests (lines 169-270)
+  - LIF tests (lines 272-448)
+- [ ] Update Section 2 of PLAN.md to reflect actual status
+- [ ] Verify test suite fails correctly for missing features
+```
+
+#### **Phase B: VanDerPol Model - Bayesian Fitting (HIGH PRIORITY)**
+
+Based on https://turinglang.org/docs/tutorials/bayesian-differential-equations/
+
+**Task B1: Add Dependencies**
+```
+- [ ] Add Turing.jl to Project.toml [deps]
+- [ ] Add DifferentialEquations.jl to Project.toml [deps]
+- [ ] Add Optim.jl to Project.toml [deps]
+- [ ] Add Distributions.jl to Project.toml [deps]
+- [ ] Run Pkg.instantiate() and verify no conflicts
+```
+
+**Task B2: Implement parameter_space() for VanDerPol**
+```julia
+# Add to src/Models.jl after VanDerPol struct
+
+using Distributions
+
+function parameter_space(model::VanDerPol)
+    return (
+        μ = (
+            lower = 0.1,
+            upper = 3.0,
+            prior = TruncatedNormal(1.0, 0.5, 0.1, 3.0)
+        ),
+        heart_rate = (
+            lower = 40.0,
+            upper = 120.0,
+            prior = TruncatedNormal(70.0, 15.0, 40.0, 120.0)
+        ),
+        σ_noise = (
+            lower = 1.0,
+            upper = 50.0,
+            prior = Exponential(10.0)
+        )
+    )
+end
+```
+
+**Task B3: Implement fit(::VanDerPol; method=:bayesian)**
+```julia
+# Add to src/Models.jl
+
+using Turing, DifferentialEquations
+
+@model function vanderpol_model(ibi_data, n_beats)
+    # Priors
+    μ ~ TruncatedNormal(1.0, 0.5, 0.1, 3.0)
+    heart_rate ~ TruncatedNormal(70.0, 15.0, 40.0, 120.0)
+    σ_noise ~ Exponential(10.0)
+
+    # Simulate model with these parameters
+    params = (μ=μ, heart_rate=heart_rate)
+    predicted_ibi = simulate(VanDerPol(), params, n_beats)
+
+    # Likelihood: observed IBIs ~ predicted IBIs + noise
+    ibi_data ~ MvNormal(predicted_ibi, σ_noise)
+end
+
+function fit(model::VanDerPol, data::Vector{Float64};
+             method::Symbol=:bayesian,
+             chains::Int=4,
+             samples::Int=1000,
+             kwargs...)
+
+    if method == :bayesian
+        # Define Turing model
+        turing_model = vanderpol_model(data, length(data))
+
+        # Sample posterior using NUTS
+        chain = sample(turing_model, NUTS(0.65), MCMCThreads(),
+                      samples, chains, progress=true)
+
+        # Extract MAP estimates
+        params_map = (
+            μ = mean(chain[:μ]),
+            heart_rate = mean(chain[:heart_rate])
+        )
+
+        # Extract diagnostics
+        diagnostics = Dict(
+            "method" => "NUTS (Turing.jl)",
+            "chains" => chains,
+            "samples_per_chain" => samples,
+            "total_samples" => samples * chains,
+            "rhat_mu" => rhat(chain[:μ])[1],
+            "rhat_heart_rate" => rhat(chain[:heart_rate])[1],
+            "rhat_sigma" => rhat(chain[:σ_noise])[1]
+        )
+
+        # Convert chain to posterior dict
+        posterior = Dict(
+            "μ" => vec(chain[:μ]),
+            "heart_rate" => vec(chain[:heart_rate]),
+            "σ_noise" => vec(chain[:σ_noise])
+        )
+
+        return ModelFitResult(
+            model,
+            :bayesian,
+            params_map,
+            posterior,
+            diagnostics,
+            data
+        )
+
+    elseif method == :gradient
+        # Gradient-based optimization (feature-space distance)
+        error("Gradient fitting not yet implemented for VanDerPol")
+
+    else
+        error("Unknown fitting method: $method. Use :bayesian or :gradient")
+    end
+end
+```
+
+**Task B4: Test VanDerPol Bayesian Fitting**
+```
+- [ ] Update test/test_models.jl VanDerPol section
+- [ ] Remove @test_broken wrappers from fit() tests
+- [ ] Verify posterior sampling works
+- [ ] Verify R-hat diagnostics < 1.1
+- [ ] Verify MAP estimates are reasonable
+```
+
+#### **Phase C: VanDerPol - Gradient Fitting (HIGH PRIORITY)**
+
+**Task C1: Implement fit(::VanDerPol; method=:gradient)**
+```julia
+# Add to src/Models.jl
+
+using Optim
+
+function fit(model::VanDerPol, data::Vector{Float64}; method::Symbol=:gradient, kwargs...)
+    # ... (keep :bayesian case) ...
+
+    elseif method == :gradient
+        # Define loss function: distance in feature space
+        function loss(params_vec)
+            μ, heart_rate = params_vec
+            params = (μ=μ, heart_rate=heart_rate)
+
+            # Simulate with current parameters
+            synthetic = simulate(model, params, length(data))
+
+            # Extract features from both
+            real_features = extract_feature_set(data)
+            synth_features = extract_feature_set(synthetic)
+
+            # Compute feature-space distance (normalized)
+            feature_names = ["mean", "sdnn", "rmssd", "sd1", "sd2"]
+            distance = 0.0
+            for feat in feature_names
+                real_val = real_features[!, feat][1]
+                synth_val = synth_features[!, feat][1]
+                distance += ((real_val - synth_val) / real_val)^2
+            end
+
+            return distance
+        end
+
+        # Initial guess
+        x0 = [1.0, 70.0]  # μ, heart_rate
+
+        # Bounds
+        lower = [0.1, 40.0]
+        upper = [3.0, 120.0]
+
+        # Optimize
+        result = optimize(loss, lower, upper, x0, Fminbox(LBFGS()))
+
+        # Extract fitted parameters
+        fitted_params = (
+            μ = result.minimizer[1],
+            heart_rate = result.minimizer[2]
+        )
+
+        diagnostics = Dict(
+            "method" => "LBFGS",
+            "converged" => Optim.converged(result),
+            "iterations" => result.iterations,
+            "loss_final" => result.minimum
+        )
+
+        return ModelFitResult(
+            model,
+            :gradient,
+            fitted_params,
+            nothing,  # No posterior for gradient
+            diagnostics,
+            data
+        )
+    end
+end
+```
+
+**Task C2: Test Gradient Fitting**
+```
+- [ ] Update tests for gradient method
+- [ ] Verify convergence
+- [ ] Verify fitted params are within bounds
+```
+
+#### **Phase D: Lorenz Model (HIGH PRIORITY)**
+
+**Task D1: Implement Lorenz Structure**
+```julia
+# Add to src/Models.jl
+
+struct Lorenz <: AbstractHRVModel
+    σ::Float64
+    ρ::Float64
+    β::Float64
+    threshold::Float64
+end
+
+Lorenz(; σ=10.0, ρ=28.0, β=8/3, threshold=10.0) = Lorenz(σ, ρ, β, threshold)
+```
+
+**Task D2: Implement parameter_space(::Lorenz)**
+```julia
+function parameter_space(model::Lorenz)
+    return (
+        σ = (lower=5.0, upper=15.0, prior=TruncatedNormal(10.0, 2.0, 5.0, 15.0)),
+        ρ = (lower=20.0, upper=35.0, prior=TruncatedNormal(28.0, 3.0, 20.0, 35.0)),
+        β = (lower=1.0, upper=4.0, prior=TruncatedNormal(8/3, 0.5, 1.0, 4.0)),
+        threshold = (lower=5.0, upper=15.0, prior=TruncatedNormal(10.0, 2.0, 5.0, 15.0)),
+        σ_noise = (lower=1.0, upper=50.0, prior=Exponential(10.0))
+    )
+end
+```
+
+**Task D3: Implement simulate(::Lorenz, params, n_beats)**
+```julia
+using DifferentialEquations
+
+function simulate(model::Lorenz, params::NamedTuple, n_beats::Int)::Vector{Float64}
+    # Extract parameters
+    σ = get(params, :σ, model.σ)
+    ρ = get(params, :ρ, model.ρ)
+    β = get(params, :β, model.β)
+    threshold = get(params, :threshold, model.threshold)
+
+    # Lorenz ODE system
+    function lorenz!(du, u, p, t)
+        σ, ρ, β = p
+        du[1] = σ * (u[2] - u[1])
+        du[2] = u[1] * (ρ - u[3]) - u[2]
+        du[3] = u[1] * u[2] - β * u[3]
+    end
+
+    # Solve ODE (longer timespan to ensure enough beats)
+    u0 = [1.0, 1.0, 1.0]
+    tspan = (0.0, n_beats * 2.0)  # Oversample
+    prob = ODEProblem(lorenz!, u0, tspan, [σ, ρ, β])
+    sol = solve(prob, Tsit5(), saveat=0.01)
+
+    # Extract IBIs from z-threshold crossings
+    z = sol[3, :]
+    crossing_times = Float64[]
+
+    for i in 2:length(z)
+        if z[i-1] < threshold && z[i] >= threshold
+            push!(crossing_times, sol.t[i])
+        end
+    end
+
+    # Compute IBIs (in milliseconds)
+    ibis = diff(crossing_times) .* 1000
+
+    # Ensure we have enough IBIs
+    if length(ibis) < n_beats
+        error("Not enough threshold crossings. Try adjusting threshold parameter.")
+    end
+
+    # Return requested number of IBIs
+    return ibis[1:n_beats]
+end
+```
+
+**Task D4: Implement fit(::Lorenz; method=:bayesian)**
+```julia
+@model function lorenz_model(ibi_data, n_beats)
+    # Priors
+    σ ~ TruncatedNormal(10.0, 2.0, 5.0, 15.0)
+    ρ ~ TruncatedNormal(28.0, 3.0, 20.0, 35.0)
+    β ~ TruncatedNormal(8/3, 0.5, 1.0, 4.0)
+    threshold ~ TruncatedNormal(10.0, 2.0, 5.0, 15.0)
+    σ_noise ~ Exponential(10.0)
+
+    # Simulate
+    params = (σ=σ, ρ=ρ, β=β, threshold=threshold)
+    predicted_ibi = simulate(Lorenz(), params, n_beats)
+
+    # Likelihood
+    ibi_data ~ MvNormal(predicted_ibi, σ_noise)
+end
+
+function fit(model::Lorenz, data::Vector{Float64};
+             method::Symbol=:bayesian,
+             chains::Int=4,
+             samples::Int=1000,
+             kwargs...)
+
+    if method == :bayesian
+        turing_model = lorenz_model(data, length(data))
+        chain = sample(turing_model, NUTS(0.65), MCMCThreads(),
+                      samples, chains, progress=true)
+
+        params_map = (
+            σ = mean(chain[:σ]),
+            ρ = mean(chain[:ρ]),
+            β = mean(chain[:β]),
+            threshold = mean(chain[:threshold])
+        )
+
+        diagnostics = Dict(
+            "method" => "NUTS (Turing.jl)",
+            "chains" => chains,
+            "samples_per_chain" => samples,
+            "total_samples" => samples * chains,
+            "rhat_sigma" => rhat(chain[:σ])[1],
+            "rhat_rho" => rhat(chain[:ρ])[1],
+            "rhat_beta" => rhat(chain[:β])[1],
+            "rhat_threshold" => rhat(chain[:threshold])[1]
+        )
+
+        posterior = Dict(
+            "σ" => vec(chain[:σ]),
+            "ρ" => vec(chain[:ρ]),
+            "β" => vec(chain[:β]),
+            "threshold" => vec(chain[:threshold]),
+            "σ_noise" => vec(chain[:σ_noise])
+        )
+
+        return ModelFitResult(model, :bayesian, params_map, posterior, diagnostics, data)
+    else
+        error("Lorenz only supports :bayesian fitting (chaotic system)")
+    end
+end
+```
+
+**Task D5: Test Lorenz Model**
+```
+- [ ] Update test/test_models.jl Lorenz section
+- [ ] Remove @test_broken wrappers
+- [ ] Verify simulate() produces valid IBIs
+- [ ] Verify fit(:bayesian) converges
+- [ ] Verify R-hat < 1.1 for all parameters
+```
+
+---
+
+#### **Phase E: LIF Model (HIGH PRIORITY)**
+
+**Task E1: Implement LIF Structure**
+```julia
+struct LIF <: AbstractHRVModel
+    τ::Float64
+    I_base::Float64
+    threshold::Float64
+    noise_amp::Float64
+end
+
+LIF(; τ=50.0, I_base=0.8, threshold=1.0, noise_amp=0.15) = LIF(τ, I_base, threshold, noise_amp)
+```
+
+**Task E2: Implement parameter_space(::LIF)**
+```julia
+function parameter_space(model::LIF)
+    return (
+        τ = (lower=10.0, upper=100.0, prior=TruncatedNormal(50.0, 15.0, 10.0, 100.0)),
+        I_base = (lower=0.5, upper=1.5, prior=TruncatedNormal(0.8, 0.2, 0.5, 1.5)),
+        threshold = (lower=0.5, upper=1.5, prior=TruncatedNormal(1.0, 0.2, 0.5, 1.5)),
+        noise_amp = (lower=0.05, upper=0.5, prior=TruncatedNormal(0.15, 0.1, 0.05, 0.5)),
+        σ_noise = (lower=1.0, upper=50.0, prior=Exponential(10.0))
+    )
+end
+```
+
+**Task E3: Implement simulate(::LIF, params, n_beats)**
+```julia
+function simulate(model::LIF, params::NamedTuple, n_beats::Int)::Vector{Float64}
+    τ = get(params, :τ, model.τ)
+    I_base = get(params, :I_base, model.I_base)
+    threshold = get(params, :threshold, model.threshold)
+    noise_amp = get(params, :noise_amp, model.noise_amp)
+
+    # LIF ODE: τ dV/dt = -V + I_base + noise
+    function lif!(du, u, p, t)
+        τ, I_base, noise_amp = p
+        V = u[1]
+        du[1] = (-V + I_base) / τ + noise_amp * randn()
+    end
+
+    # Simulate until we get n_beats
+    ibis = Float64[]
+    u0 = [0.0]  # Start below threshold
+    t = 0.0
+    dt = 0.1  # Time step in ms
+    last_spike_time = 0.0
+
+    while length(ibis) < n_beats
+        # Solve for short interval
+        tspan = (t, t + 100.0)  # 100ms intervals
+        prob = ODEProblem(lif!, u0, tspan, [τ, I_base, noise_amp])
+        sol = solve(prob, Tsit5(), saveat=dt)
+
+        # Check for threshold crossings
+        for i in 2:length(sol.t)
+            if sol[1, i] >= threshold && sol[1, i-1] < threshold
+                spike_time = sol.t[i]
+                if last_spike_time > 0
+                    ibi = spike_time - last_spike_time
+                    push!(ibis, ibi)
+                end
+                last_spike_time = spike_time
+                u0 = [0.0]  # Reset
+                break
+            end
+        end
+
+        t += 100.0
+        u0 = [sol[1, end]]
+
+        # Safety: prevent infinite loop
+        if t > n_beats * 2000  # Max 2000ms per beat
+            error("LIF simulation timeout. Adjust parameters.")
+        end
+    end
+
+    return ibis[1:n_beats]
+end
+```
+
+**Task E4: Implement fit(::LIF; method=:bayesian)**
+```julia
+@model function lif_model(ibi_data, n_beats)
+    τ ~ TruncatedNormal(50.0, 15.0, 10.0, 100.0)
+    I_base ~ TruncatedNormal(0.8, 0.2, 0.5, 1.5)
+    threshold ~ TruncatedNormal(1.0, 0.2, 0.5, 1.5)
+    noise_amp ~ TruncatedNormal(0.15, 0.1, 0.05, 0.5)
+    σ_noise ~ Exponential(10.0)
+
+    params = (τ=τ, I_base=I_base, threshold=threshold, noise_amp=noise_amp)
+    predicted_ibi = simulate(LIF(), params, n_beats)
+
+    ibi_data ~ MvNormal(predicted_ibi, σ_noise)
+end
+
+# Similar implementation to VanDerPol/Lorenz
+```
+
+**Task E5: Implement fit(::LIF; method=:gradient)**
+```julia
+# Similar to VanDerPol gradient implementation
+# Feature-space distance minimization
+```
+
+**Task E6: Test LIF Model**
+```
+- [ ] Remove @test_broken wrappers
+- [ ] Test simulate()
+- [ ] Test fit(:bayesian)
+- [ ] Test fit(:gradient)
+- [ ] Verify all diagnostics
+```
+
+---
+
+#### **Phase F: DMD Model (HIGH PRIORITY)**
+
+**Task F1: Implement DMD Structure**
+```julia
+mutable struct DMD <: AbstractHRVModel
+    rank::Int
+    modes::Matrix{Float64}      # Dynamic modes
+    evals::Vector{ComplexF64}   # Eigenvalues
+    b::Vector{ComplexF64}       # Mode amplitudes
+end
+
+DMD(; rank::Int=5) = DMD(rank, Matrix{Float64}(undef, 0, 0), ComplexF64[], ComplexF64[])
+```
+
+**Task F2: Implement fit(::DMD, data) - SVD Decomposition**
+```julia
+using LinearAlgebra
+
+function fit(model::DMD, data::Vector{Float64}; kwargs...)
+    n = length(data)
+    r = min(model.rank, n-1)
+
+    # Create Hankel matrix from time series
+    X = zeros(r, n-r)
+    for i in 1:r
+        X[i, :] = data[i:i+n-r-1]
+    end
+
+    X1 = X[:, 1:end-1]
+    X2 = X[:, 2:end]
+
+    # SVD of X1
+    U, Σ, V = svd(X1)
+
+    # Truncate to rank
+    U_r = U[:, 1:r]
+    Σ_r = Diagonal(Σ[1:r])
+    V_r = V[:, 1:r]
+
+    # DMD matrix
+    A_tilde = U_r' * X2 * V_r * inv(Σ_r)
+
+    # Eigendecomposition
+    evals, W = eigen(A_tilde)
+
+    # Dynamic modes
+    modes = X2 * V_r * inv(Σ_r) * W
+
+    # Mode amplitudes
+    b = modes \ data[1:r]
+
+    # Update model
+    fitted_model = DMD(r, real(modes), evals, b)
+
+    diagnostics = Dict(
+        "method" => "SVD",
+        "rank" => r,
+        "reconstruction_error" => norm(X1 - modes * Diagonal(b) * W' * U_r')
+    )
+
+    return ModelFitResult(
+        fitted_model,
+        :gradient,  # DMD is deterministic
+        NamedTuple(),  # No continuous parameters
+        nothing,
+        diagnostics,
+        data
+    )
+end
+```
+
+**Task F3: Implement simulate(::DMD, nothing, n_beats)**
+```julia
+function simulate(model::DMD, params::Union{NamedTuple,Nothing}, n_beats::Int)::Vector{Float64}
+    if isempty(model.modes)
+        error("DMD model must be fitted before simulation. Call fit() first.")
+    end
+
+    # Reconstruct time series using modes
+    reconstructed = zeros(n_beats)
+
+    for i in 1:n_beats
+        # Time evolution: x(t) = Φ * diag(λ^t) * b
+        for (j, λ) in enumerate(model.evals)
+            reconstructed[i] += real(model.modes[:, j]' * (λ^i) * model.b[j])
+        end
+    end
+
+    # Ensure physiological bounds
+    reconstructed = max.(reconstructed, 300.0)
+    reconstructed = min.(reconstructed, 2000.0)
+
+    return reconstructed
+end
+```
+
+**Task F4: Test DMD Model**
+```
+- [ ] Remove @test_broken wrappers
+- [ ] Test fit() produces modes
+- [ ] Test simulate() reconstructs signal
+- [ ] Verify rank selection works
+- [ ] Test on synthetic oscillatory data
+```
+
+---
+
+#### **Phase G: Comprehensive Demo Notebook (AFTER ALL MODELS COMPLETE)**
+
+Once ALL models (VanDerPol, Lorenz, LIF, DMD) are implemented:
+
+**Task G1: Implement Notebook Parts 1-3**
+```
+- [ ] Create docs/comprehensive_demo.qmd
+- [ ] Implement Part 1: HRV Measurement Theory (markdown + data loading)
+- [ ] Implement Part 2: Data & Feature Engineering (4-panel Makie viz)
+- [ ] Implement Part 3: Windowed Analysis (z-score normalized)
+- [ ] Implement Part 4: Model Theory (VanDerPol only, show library code)
+- [ ] Test: quarto render docs/comprehensive_demo.qmd --to html
+```
+
+**Task G2: Implement Notebook Part 4 - All Models**
+```
+- [ ] Part 4: Mechanistic Modeling Theory
+  - Show all 4 models (VanDerPol, Lorenz, LIF, DMD)
+  - Equations + phase portraits for each
+  - Library code examples for each
+  - Parameter spaces and priors
+```
+
+**Task G3: Implement Notebook Parts 5-6 (Full Pipeline)**
+```
+- [ ] Implement Part 5: Model Fitting & Validation
+  - Use fit(vdp, data; method=:bayesian)
+  - Generate ensemble with fitted parameters
+  - Extract features and run KS tests
+  - Visualize posterior distributions
+- [ ] Implement Part 6: Animated Visualization
+  - Phase space with real data scatter
+  - Animated trajectory using fitted parameters
+  - Signal + IBI extraction panels
+  - Export as GIF
+- [ ] Test: Verify all cells execute without errors
+- [ ] Verify HTML output shows results (not just code)
+```
+
+**Task G4: Model Comparison Section**
+```
+- [ ] Add Part 7: Model Comparison
+  - Fit all 4 models to same data
+  - Compare feature reproduction (KS tests)
+  - Visualize model × feature heatmap
+  - Radar plots showing model differences
+```
+
+**Task G5: Documentation & Integration**
+```
+- [ ] Update FLAGSHIP_VISUALIZATION_GUIDE.md with Bayesian interpretation
+- [ ] Update VISUALIZATION_TESTING_GUIDE.md with new notebook
+- [ ] Add notebook to README.md examples
+- [ ] Create example outputs (screenshots, GIFs)
+```
+
+---
+
+### 📊 Implementation Effort Estimates
+
+| Phase | Tasks | Estimated Lines | Complexity | Priority |
+|-------|-------|----------------|------------|----------|
+| **A: Fix Tests** | 1 | 50 | Low | CRITICAL |
+| **B: VdP Complete** | 6 | 350 | Medium | HIGH |
+| **C: (merged into B)** | - | - | - | - |
+| **D: Lorenz** | 5 | 300 | High | HIGH |
+| **E: LIF** | 6 | 350 | High | HIGH |
+| **F: DMD** | 4 | 250 | Medium | HIGH |
+| **G: Notebook** | 5 | 600 | Medium | HIGH |
+
+**Total (All Phases):** ~1,900 lines, 4-5 sessions
+
+**Critical Path:** A → B → D → E → F → G
+
+---
+
+### 🎯 Recommended Implementation Order
+
+**Session 1: Foundation**
+1. Phase A: Fix sham tests (30 min)
+2. Phase B: VanDerPol complete (Bayesian + Gradient) (4-5 hours)
+   - Add dependencies
+   - Implement parameter_space()
+   - Implement fit(:bayesian)
+   - Implement fit(:gradient)
+   - Test and validate
+
+**Session 2: Chaotic Dynamics**
+1. Phase D: Lorenz model (4-5 hours)
+   - Implement structure, parameter_space(), simulate()
+   - Implement fit(:bayesian)
+   - Handle threshold crossings for IBI extraction
+   - Test on chaotic data
+
+**Session 3: Neural Dynamics**
+1. Phase E: LIF model (4-5 hours)
+   - Implement structure, parameter_space(), simulate()
+   - Implement fit(:bayesian) and fit(:gradient)
+   - Handle spike timing and resets
+   - Test with varying parameters
+
+**Session 4: Data-Driven**
+1. Phase F: DMD model (3-4 hours)
+   - Implement SVD-based decomposition
+   - Implement reconstruction from modes
+   - Test on oscillatory and real data
+   - Validate reconstruction accuracy
+
+**Session 5: Showcase**
+1. Phase G: Comprehensive demo notebook (4-5 hours)
+   - Implement all 7 parts
+   - Test all 4 models on same data
+   - Create model comparison visualizations
+   - Render and validate HTML output
+   - Documentation integration
+
+---
+
+### 🔧 Technical References
+
+**Turing.jl Bayesian ODE Inference:**
+- Tutorial: https://turinglang.org/docs/tutorials/bayesian-differential-equations/
+- Key pattern: Define priors → Solve ODE inside @model → Define likelihood → Sample with NUTS
+
+**DifferentialEquations.jl:**
+- Docs: https://diffeq.sciml.ai/stable/
+- Use Tsit5() solver for Van der Pol
+
+**Optim.jl:**
+- Docs: https://julianlsolvers.github.io/Optim.jl/stable/
+- Use Fminbox(LBFGS()) for constrained optimization
+
+---
+
+### ✅ Definition of Done
+
+**Library Complete (Phases A-F) When:**
+- [ ] All sham tests replaced with @test_broken or real tests
+- [ ] All 4 models implemented: VanDerPol, Lorenz, LIF, DMD
+- [ ] Each model has: structure, parameter_space(), simulate()
+- [ ] VanDerPol, LIF have fit(:bayesian) and fit(:gradient)
+- [ ] Lorenz has fit(:bayesian) (gradient not needed for chaotic)
+- [ ] DMD has fit() (SVD-based, deterministic)
+- [ ] All tests pass (41+ tests, no @test_broken remaining)
+- [ ] All R-hat < 1.1 for Bayesian fits
+- [ ] Can fit and simulate all 4 models independently
+
+**Notebook Complete (Phase G) When:**
+- [ ] All 7 parts implemented and execute without errors
+- [ ] Demonstrates all 4 models on same real data
+- [ ] Model comparison visualizations working
+- [ ] HTML renders with code AND outputs visible
+- [ ] Animation GIFs export correctly
+- [ ] Statistical validation (KS tests) for all models
+- [ ] Documentation integrated (guides, references)
+- [ ] End-to-end workflow validated
+
+```
+
+See detailed implementation tasks in "Phase A-E" sections above.
+
+---
+
+### 📋 Post-Implementation Checklist
+
+**After Phases A-C+E Complete:**
+
+```
+PUBLICATION PREP:
 - [ ] Fix version: 1.0.0 → 0.1.0 in Project.toml
 - [ ] Verify LICENSE file (MIT)
 - [ ] Create CITATION.bib file
 - [ ] Fix README: Correct DMD citation (Yeh 2010 is EMD, not DMD)
 - [ ] Test Docker build completes without errors
-
-OPTIONAL (Nice to have):
 - [ ] Update CONTRIBUTORS file
+
+OPTIONAL:
 - [ ] Add GitHub Actions CI/CD badges
 - [ ] Deploy docs to GitHub Pages
 - [ ] Submit to JOSS (Journal of Open Source Software)
+- [ ] Implement additional models (Lorenz, LIF, DMD)
 ```
 
 ### 🎯 Roadmap to Release

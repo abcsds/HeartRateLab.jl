@@ -27,6 +27,14 @@ using Distributions
 using Turing
 using Optim
 
+# DifferentialEquations is optional, only needed for Lorenz model
+const hasDiffEq = try
+    using DifferentialEquations
+    true
+catch
+    false
+end
+
 """
     AbstractHRVModel
 
@@ -316,6 +324,226 @@ function extract_feature_set(data::Vector{Float64})
         sdnn = [sdnn_val],
         rmssd = [rmssd_val]
     )
+end
+
+# ============================================================================
+# Lorenz Oscillator Model for HRV Simulation
+# ============================================================================
+
+"""
+    Lorenz <: AbstractHRVModel
+
+Lorenz chaotic oscillator model for HRV simulation.
+Generates complex, nonlinear cardiac dynamics through threshold crossings.
+
+# Parameters
+- `σ`: Prandtl number (typically ~10)
+- `ρ`: Rayleigh number (controls chaos, typically ~28)
+- `β`: Aspect ratio (typically 8/3)
+- `threshold`: z-value threshold for IBI detection
+"""
+struct Lorenz <: AbstractHRVModel
+    σ::Float64
+    ρ::Float64
+    β::Float64
+    threshold::Float64
+end
+
+Lorenz(; σ=10.0, ρ=28.0, β=8/3, threshold=10.0) = Lorenz(σ, ρ, β, threshold)
+
+"""
+    parameter_space(model::Lorenz) -> NamedTuple
+
+Return the parameter space for Lorenz model with priors for Bayesian fitting.
+"""
+function parameter_space(model::Lorenz)
+    return (
+        σ = (
+            lower = 5.0,
+            upper = 15.0,
+            prior = TruncatedNormal(10.0, 2.0, 5.0, 15.0)
+        ),
+        ρ = (
+            lower = 20.0,
+            upper = 35.0,
+            prior = TruncatedNormal(28.0, 3.0, 20.0, 35.0)
+        ),
+        β = (
+            lower = 1.0,
+            upper = 4.0,
+            prior = TruncatedNormal(8/3, 0.5, 1.0, 4.0)
+        ),
+        threshold = (
+            lower = 5.0,
+            upper = 15.0,
+            prior = TruncatedNormal(10.0, 2.0, 5.0, 15.0)
+        ),
+        σ_noise = (
+            lower = 1.0,
+            upper = 50.0,
+            prior = Exponential(10.0)
+        )
+    )
+end
+
+"""
+    simulate(model::Lorenz, params::NamedTuple, n_beats::Int) -> Vector{Float64}
+
+Simulate IBI time series using Lorenz chaotic oscillator with threshold crossings.
+
+# Parameters
+- `σ`, `ρ`, `β`: Lorenz ODE parameters
+- `threshold`: z-value threshold for detecting heartbeats
+
+# Returns
+Vector of inter-beat intervals in milliseconds
+"""
+function simulate(model::Lorenz, params::NamedTuple, n_beats::Int)::Vector{Float64}
+    if !hasDiffEq
+        error("Lorenz model requires DifferentialEquations.jl. Install with: Pkg.add(\"DifferentialEquations\")")
+    end
+
+    # Extract parameters
+    σ = get(params, :σ, model.σ)
+    ρ = get(params, :ρ, model.ρ)
+    β = get(params, :β, model.β)
+    threshold = get(params, :threshold, model.threshold)
+
+    # Lorenz ODE system: dx/dt = σ(y-x), dy/dt = x(ρ-z)-y, dz/dt = xy - βz
+    function lorenz!(du, u, p, t)
+        σ, ρ, β = p
+        du[1] = σ * (u[2] - u[1])
+        du[2] = u[1] * (ρ - u[3]) - u[2]
+        du[3] = u[1] * u[2] - β * u[3]
+    end
+
+    # Initial conditions
+    u0 = [1.0, 1.0, 1.0]
+
+    # Time span - solve for long enough to get enough beats
+    # Empirically, about 200-300 time units gives ~50-100 beats
+    tspan = (0.0, n_beats * 4.0)
+
+    # Problem setup
+    p = [σ, ρ, β]
+    prob = ODEProblem(lorenz!, u0, tspan, p)
+
+    # Solve with fine time resolution for accurate threshold detection
+    sol = solve(prob, Tsit5(), saveat=0.01, dense=true)
+
+    # Extract IBIs from z-coordinate threshold crossings
+    z = sol[3, :]
+    crossing_times = Float64[]
+
+    # Find upward threshold crossings
+    for i in 2:length(z)
+        if z[i-1] < threshold && z[i] >= threshold
+            push!(crossing_times, sol.t[i])
+        end
+    end
+
+    # Compute IBIs (time intervals between crossings) in milliseconds
+    if length(crossing_times) < 2
+        error("Lorenz simulation: insufficient threshold crossings ($(length(crossing_times))). Try adjusting threshold parameter.")
+    end
+
+    ibis = diff(crossing_times) .* 1000  # Convert to ms
+
+    # Ensure physiological bounds (300-2000 ms)
+    ibis = max.(ibis, 300.0)
+    ibis = min.(ibis, 2000.0)
+
+    # Return requested number of IBIs
+    if length(ibis) >= n_beats
+        return ibis[1:n_beats]
+    else
+        error("Lorenz simulation: got $(length(ibis)) IBIs but needed $n_beats. Try increasing simulation time.")
+    end
+end
+
+"""
+    fit(model::Lorenz, data::Vector{Float64}; method=:bayesian, kwargs...) -> ModelFitResult
+
+Fit Lorenz model to IBI data using Bayesian inference.
+Note: Lorenz is a chaotic system, so only Bayesian fitting is supported.
+"""
+function fit(model::Lorenz, data::Vector{Float64};
+             method::Symbol=:bayesian,
+             chains::Int=4,
+             samples::Int=1000,
+             kwargs...)
+
+    if method == :bayesian
+        # Define Turing model for Bayesian inference
+        @model function lorenz_model(ibi_data)
+            n_beats = length(ibi_data)
+
+            # Priors
+            σ ~ TruncatedNormal(10.0, 2.0, 5.0, 15.0)
+            ρ ~ TruncatedNormal(28.0, 3.0, 20.0, 35.0)
+            β ~ TruncatedNormal(8/3, 0.5, 1.0, 4.0)
+            threshold ~ TruncatedNormal(10.0, 2.0, 5.0, 15.0)
+            σ_noise ~ Exponential(10.0)
+
+            # Simulate model with these parameters
+            params = (σ=σ, ρ=ρ, β=β, threshold=threshold)
+            try
+                predicted_ibi = simulate(model, params, n_beats)
+                # Likelihood: observed IBIs ~ predicted IBIs with Gaussian noise
+                ibi_data ~ MvNormal(predicted_ibi, σ_noise)
+            catch
+                # If simulation fails, assign very low likelihood
+                Turing.@addlogprob! -Inf
+            end
+        end
+
+        # Fit using NUTS sampler
+        turing_model = lorenz_model(data)
+        chain = sample(turing_model, NUTS(0.65), MCMCThreads(),
+                      samples, chains, progress=true)
+
+        # Extract MAP estimates
+        params_map = (
+            σ = mean(chain[:σ]),
+            ρ = mean(chain[:ρ]),
+            β = mean(chain[:β]),
+            threshold = mean(chain[:threshold])
+        )
+
+        # Extract diagnostics
+        diagnostics = Dict(
+            "method" => "NUTS (Turing.jl)",
+            "chains" => chains,
+            "samples_per_chain" => samples,
+            "total_samples" => samples * chains,
+            "rhat_sigma" => rhat(chain[:σ])[1],
+            "rhat_rho" => rhat(chain[:ρ])[1],
+            "rhat_beta" => rhat(chain[:β])[1],
+            "rhat_threshold" => rhat(chain[:threshold])[1],
+            "rhat_sigma_noise" => rhat(chain[:σ_noise])[1]
+        )
+
+        # Extract posterior samples
+        posterior = Dict(
+            "σ" => vec(chain[:σ]),
+            "ρ" => vec(chain[:ρ]),
+            "β" => vec(chain[:β]),
+            "threshold" => vec(chain[:threshold]),
+            "σ_noise" => vec(chain[:σ_noise])
+        )
+
+        return ModelFitResult(
+            model,
+            :bayesian,
+            params_map,
+            posterior,
+            diagnostics,
+            data
+        )
+
+    else
+        error("Lorenz only supports :bayesian fitting (chaotic system, non-differentiable)")
+    end
 end
 
 end  # Models

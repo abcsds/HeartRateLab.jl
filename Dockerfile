@@ -32,14 +32,14 @@ ADD https://www.physionet.org/physiotools/archives/wfdb-10.7/wfdb-10.7.0.tar.gz 
 RUN tar -xzf wfdb-10.7.0.tar.gz && rm wfdb-10.7.0.tar.gz
 RUN cd wfdb-10.7.0 && ./configure && make install && cd ..
 
-# Copy project files
-COPY Project.toml Manifest.toml /workdir/
+# Copy project files (only Project.toml, Manifest will be generated)
+COPY Project.toml /workdir/
 
 # Set environment variables
 ENV DISPLAY=${DISPLAY:-:0}
 ENV LD_LIBRARY_PATH="/run/opengl-driver/lib"
 
-# Instantiate Julia packages
+# Resolve and instantiate Julia packages
 RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.instantiate()'
 
 # Precompile packages to speed up first use

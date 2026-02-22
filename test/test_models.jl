@@ -171,25 +171,27 @@ end
 end
 
 # ============================================================================
-# Lorenz Model - NOT YET IMPLEMENTED
+# Lorenz Model - IMPLEMENTED (requires DifferentialEquations.jl)
 # ============================================================================
-@testset "Lorenz Model (NOT YET IMPLEMENTED)" begin
+@testset "Lorenz Model (requires DifferentialEquations)" begin
     @test_broken begin
-        using DifferentialEquations
-
         lorenz = HeartRateLab.Models.Lorenz(σ=10.0, ρ=28.0, β=8/3, threshold=10.0)
 
+        # Test 1: Model can be created
         @test lorenz.σ ≈ 10.0
         @test lorenz.ρ ≈ 28.0
         @test lorenz.β ≈ 8/3
         @test lorenz.threshold ≈ 10.0
 
+        # Test 2: parameter_space() returns expected parameters
         ps = HeartRateLab.Models.parameter_space(lorenz)
         @test haskey(ps, :σ)
         @test haskey(ps, :ρ)
         @test haskey(ps, :β)
         @test haskey(ps, :threshold)
+        @test haskey(ps, :σ_noise)
 
+        # Test 3: simulate() produces valid IBIs
         params = (σ=10.0, ρ=28.0, β=8/3, threshold=10.0)
         ibis = HeartRateLab.Models.simulate(lorenz, params, n_beats=40)
 
@@ -197,7 +199,7 @@ end
         @test all(ibis .> 0)
         @test all(300 .< ibis .< 2000)
 
-        # Test different ρ (chaos parameter)
+        # Test 4: Different ρ (chaos parameter) produces different IBIs
         params_low_rho = (σ=10.0, ρ=20.0, β=8/3, threshold=10.0)
         ibis_low_rho = HeartRateLab.Models.simulate(lorenz, params_low_rho, n_beats=40)
 
@@ -208,7 +210,7 @@ end
         mean_high = mean(ibis_high_rho)
         @test abs(mean_low - mean_high) / mean_low > 0.05
 
-        # Test fit(:bayesian) method
+        # Test 5: fit(:bayesian) produces valid result
         synthetic_data = HeartRateLab.Models.simulate(lorenz, params, n_beats=150)
         fitted_result = HeartRateLab.Models.fit(lorenz, synthetic_data; method=:bayesian, chains=2, samples=100)
 
@@ -216,6 +218,26 @@ end
         @test fitted_result.method == :bayesian
         @test fitted_result.posterior !== nothing
         @test haskey(fitted_result.diagnostics, "method")
+
+        # Test 6: Fitted parameters are within bounds
+        @test 5.0 <= fitted_result.params.σ <= 15.0
+        @test 20.0 <= fitted_result.params.ρ <= 35.0
+        @test 1.0 <= fitted_result.params.β <= 4.0
+        @test 5.0 <= fitted_result.params.threshold <= 15.0
+
+        # Test 7: Posterior samples have expected length
+        expected_samples = 100 * 2  # samples * chains
+        @test length(fitted_result.posterior["σ"]) == expected_samples
+        @test length(fitted_result.posterior["ρ"]) == expected_samples
+        @test length(fitted_result.posterior["β"]) == expected_samples
+        @test length(fitted_result.posterior["threshold"]) == expected_samples
+
+        # Test 8: Diagnostics include R-hat values
+        @test haskey(fitted_result.diagnostics, "rhat_sigma")
+        @test haskey(fitted_result.diagnostics, "rhat_rho")
+        @test haskey(fitted_result.diagnostics, "rhat_beta")
+        @test haskey(fitted_result.diagnostics, "rhat_threshold")
+        @test haskey(fitted_result.diagnostics, "rhat_sigma_noise")
     end
 end
 
