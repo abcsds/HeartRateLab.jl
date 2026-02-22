@@ -39,6 +39,10 @@ COPY Project.toml /workdir/
 ENV DISPLAY=${DISPLAY:-:0}
 ENV LD_LIBRARY_PATH="/run/opengl-driver/lib"
 
+# Add missing dependencies via Pkg to ensure proper resolution
+# DifferentialEquations is required by Lorenz and LIF models
+RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.add("DifferentialEquations")'
+
 # Resolve and instantiate Julia packages
 RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.instantiate()'
 
