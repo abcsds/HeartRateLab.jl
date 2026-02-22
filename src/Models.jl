@@ -127,10 +127,6 @@ function simulate(model::VanDerPol, params::NamedTuple, n_beats::Int)
     # Generate IBI with physiological constraints
     ibi = mean_ibi .* modulation
 
-    # Add small random noise
-    noise = randn(n_beats) .* (0.01 * mean_ibi)
-    ibi = ibi .+ noise
-
     # Ensure physiological bounds (300-2000 ms typical)
     ibi = max.(ibi, 300)
     ibi = min.(ibi, 2000)
