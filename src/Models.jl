@@ -24,7 +24,6 @@ module Models
 
 using Random
 using Distributions
-using DifferentialEquations
 using Turing
 using Optim
 
