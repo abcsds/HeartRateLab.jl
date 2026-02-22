@@ -86,29 +86,39 @@ end
 ## Load Test Data
 
 ```{julia}
-# Load IBI data from test suite
+# Load IBI data from test suite with comprehensive error handling
 println("Loading IBI data...")
 ibi_data = nothing
+data_loaded = false
 
 # Try multiple paths
 for data_path in ["test/testdata/example.txt", "/workdir/test/testdata/example.txt"]
-    if isfile(data_path)
-        try
+    try
+        if isfile(data_path)
             ibi_data = HeartRateLab.read_txt(data_path)
-            println("✓ Loaded from: $data_path")
-            break
-        catch e
-            println("  (failed to load: $data_path)")
+            if !isnothing(ibi_data) && length(ibi_data) > 0
+                println("✓ Loaded from: $data_path ($(length(ibi_data)) samples)")
+                data_loaded = true
+                break
+            end
         end
+    catch e
+        println("  (failed to load: $data_path - $(typeof(e).__name__))")
     end
 end
 
 # Always use fallback if loading failed
-if ibi_data === nothing || length(ibi_data) == 0
+if !data_loaded
     println("⚠️  Generating synthetic IBIs...")
     # Synthetic data with realistic HRV
     ibi_data = 800 .+ 100 .* sin.(range(0, 4π, length=500)) .+ randn(500) .* 30
     ibi_data = max.(ibi_data, 300)
+    data_loaded = true
+end
+
+# Final verification
+if isnothing(ibi_data) || length(ibi_data) == 0
+    error("Failed to load or generate IBI data!")
 end
 
 println("\n✓ IBI data ready: $(length(ibi_data)) samples")
