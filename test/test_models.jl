@@ -1,5 +1,6 @@
 using HeartRateLab: HeartRateLab
 using Test
+using Statistics
 
 # Set working directory to test directory for relative paths
 cd(@__DIR__)
@@ -23,13 +24,13 @@ cd(@__DIR__)
     # Test 2: fit() works and updates the model
     fitted_dmd = HeartRateLab.Models.fit(dmd, synthetic_ibis)
 
-    @test !isempty(fitted_dmd.modes)
-    @test !isempty(fitted_dmd.evals)
-    @test size(fitted_dmd.modes, 2) <= fitted_dmd.rank
-    @test length(fitted_dmd.evals) == size(fitted_dmd.modes, 2)
+    @test !isempty(fitted_dmd.model.modes)
+    @test !isempty(fitted_dmd.model.evals)
+    @test size(fitted_dmd.model.modes, 2) <= fitted_dmd.model.rank
+    @test length(fitted_dmd.model.evals) == size(fitted_dmd.model.modes, 2)
 
     # Test 3: simulate() produces valid IBIs
-    reconstructed = HeartRateLab.Models.simulate(fitted_dmd, nothing, length(synthetic_ibis))
+    reconstructed = HeartRateLab.Models.simulate(fitted_dmd.model, nothing, length(synthetic_ibis))
 
     @test length(reconstructed) ≈ length(synthetic_ibis)
     @test all(reconstructed .> 0)
@@ -53,11 +54,11 @@ cd(@__DIR__)
     # Test 6: Different rank produces different reconstructions
     dmd_rank2 = HeartRateLab.Models.DMD(rank=2)
     fitted_dmd2 = HeartRateLab.Models.fit(dmd_rank2, synthetic_ibis)
-    recon2 = HeartRateLab.Models.simulate(fitted_dmd2, nothing, length(synthetic_ibis))
+    recon2 = HeartRateLab.Models.simulate(fitted_dmd2.model, nothing, length(synthetic_ibis))
 
     dmd_rank10 = HeartRateLab.Models.DMD(rank=10)
     fitted_dmd10 = HeartRateLab.Models.fit(dmd_rank10, synthetic_ibis)
-    recon10 = HeartRateLab.Models.simulate(fitted_dmd10, nothing, length(synthetic_ibis))
+    recon10 = HeartRateLab.Models.simulate(fitted_dmd10.model, nothing, length(synthetic_ibis))
 
     error2 = sum(abs.(synthetic_ibis .- recon2))
     error10 = sum(abs.(synthetic_ibis .- recon10))
@@ -77,7 +78,7 @@ end
 
     # Test 2: simulate() produces valid IBIs
     params = (μ=1.5, heart_rate=70.0)
-    ibis = HeartRateLab.Models.simulate(vdp, params, n_beats=50)
+    ibis = HeartRateLab.Models.simulate(vdp, params, 50)
 
     @test length(ibis) ≈ 50 atol=5
     @test all(ibis .> 0)
