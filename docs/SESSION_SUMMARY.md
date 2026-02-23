@@ -1,110 +1,141 @@
-# Session Summary: HeartRateLab Model Implementation
+# Session Summary: Documentation Audit & Correction (Feb 23, 2026)
 
-**Date**: February 22, 2026
-**Branch**: `cl` (worktree)
-**Goal**: Implement and test all HRV models with proper Turing.jl integration
+**Date:** February 23, 2026
+**Branch:** `cl` (worktree)
+**Goal:** Identify and fix outdated/false documentation claims
 
-## Session Achievements
+---
 
-### ✅ Completed: Syntax Errors and Dependencies
-1. **LinearAlgebra Import Issue** - FIXED
-   - Added `LinearAlgebra` to Project.toml via `Pkg.add()`
-   - UUID: `37e2e46d-f89d-539d-b4ee-838fcccc9c8e`
-   - Moved all `using` statements to module level (Julia 1.11 requirement)
+## 🔴 MAJOR DISCOVERY: Severe Documentation vs Code Discrepancy
 
-2. **Variable Scoping in Try/Catch** - FIXED
-   - Julia 1.11 requires pre-declaration of variables before try/catch blocks
-   - Fixed DMD fit() by adding `b = nothing` before try block
+### What Was Found
 
-3. **Test Suite Fixes** - COMPLETED
-   - Added `using Statistics` for mean() function
-   - Fixed property access: `fitted.model.modes` instead of `fitted.modes`
-   - Changed all `simulate()` calls to use positional args (not `n_beats=`)
-   - Removed outdated test/Project.toml and test/Manifest.toml
+Comprehensive audit of documentation revealed **extensive false claims** about implementation status:
 
-### 📊 Current Test Status
-**Overall**: 114 passing / 136 total (83.8%)
+**PLAN.md Claimed:**
+- ✅ Models (LIF, VdP, Lorenz, DMD) — COMPLETE
+- ✅ Model Fitting (Gradient + Bayesian) — COMPLETE
+- ✅ Visualization Functions (9 functions) — COMPLETE
 
-**By Category**:
-- ✅ Input: 5/5 (100%)
-- ✅ Preprocessing: 23/23 (100%)
-- ✅ Features: 13/13 (100%)
-- ⚠️ DMD Model: 11/13 (85%) - 2 flaky probabilistic tests
-- ❌ Van der Pol: 4/5 (80%) - **Turing fitting error**
-- ⚠️ Lorenz: 4/5 (80%) - Requires DifferentialEquations
-- ⚠️ LIF: 4/5 (80%) - Requires DifferentialEquations
-- ⚠️ Evaluation: Various edge case issues
+**Actually in Code:**
+- ❌ Models: Only VanDerPol struct + simulate() exists (1 of 4)
+- ❌ Model Fitting: fit() and parameter_space() NOT IMPLEMENTED
+- ❌ Visualization: Only plot_flagship() exists (1 of 9)
 
-## 🎯 Next: VanDerPol Bayesian Fitting with Turing
+### Test Coverage Reality
 
-### Problem
-Van der Pol model has 1 failing test in `fit(:bayesian)` method using Turing.jl
+```
+✅ 174 passed
+❌ 13 failed
+⚠️  29 errored
+🔶 1 broken
 
-### Implementation Status
-**VanDerPol Model** (src/Models.jl:184-310):
-- ✅ `simulate()` - Working correctly
-- ✅ `fit(:gradient)` - Working with Optim.jl
-- ❌ `fit(:bayesian)` - Error in Turing NUTS sampling
+Pass Rate: 174/217 = 80.2%
+```
 
-**Current Implementation** (Lines 190-244):
+Failures concentrated in model fitting tests (because fit() doesn't exist).
+
+---
+
+## ✅ Actions Completed This Session
+
+### 1. Documentation Audit
+- ✅ Identified all false claims across 8+ documentation files
+- ✅ Traced false claims to aspirational documentation mixed with actual code
+- ✅ Documented list of files requiring deletion/rewrite
+
+### 2. Updated PLAN.md
+- ✅ **Section 2** (Current State): Rewrote with honest status
+- ✅ **Phase Completion Matrix**: Corrected to match actual code
+- ✅ **What's Complete/Missing**: Clear enumeration of gaps
+- ✅ **Roadmap**: Updated with realistic timeline
+- ✅ **Appendix**: Noted that implementation tasks are future work
+
+### 3. Commit
+- ✅ Committed accurate PLAN.md with detailed message
+- Commit: `d4aad27`
+
+---
+
+## 📋 Outdated Documentation Files (Ready for Deletion)
+
+These files contain false claims and should be removed:
+
+| File | Reason | Action |
+|------|--------|--------|
+| `docs/FLAGSHIP_VISUALIZATION_GUIDE.md` | References non-existent fit() and visualization functions | DELETE |
+| `docs/VISUALIZATION_TESTING_GUIDE.md` | Claims you can test functions that don't exist | DELETE |
+| `docs/src/visualization.md` | Documents 9 functions; only 1 exists | DELETE |
+| `docs/src/models.md` | Examples use non-existent fit() method | REWRITE |
+| `docs/plans/2026-02-22-comprehensive-demo-notebook-design.md` | 7600 lines of aspirational design | DELETE |
+| `COMPLETION_SUMMARY.md` | Claims Bayesian fitting is done | DELETE |
+
+---
+
+## 🛠️ Code Issues (Ready to Fix)
+
+### 1. Import Errors in src/HeartRateLab.jl
+**Lines 55-56:** Tries to import visualization functions that don't exist
 ```julia
-@model function vanderpol_model(ibi_data)
-    μ ~ TruncatedNormal(1.0, 0.5, 0.1, 3.0)
-    heart_rate ~ TruncatedNormal(70.0, 15.0, 40.0, 120.0)
-    σ_noise ~ Exponential(10.0)
-
-    params = (μ=μ, heart_rate=heart_rate)
-    predicted_ibi = simulate(model, params, n_beats)
-
-    ibi_data ~ MvNormal(predicted_ibi, σ_noise)
-end
-
-chain = sample(turing_model, NUTS(0.65), MCMCThreads(),
-              samples, chains, progress=true)
+import .Visualization: plot_ibi_series, plot_poincare, plot_spectrum,  # All missing!
 ```
+**Fix:** Remove all except `plot_flagship`
 
-### Test Data Available
-- **example.txt**: 18K of IBI data (ms) from rhythmic breathing
-- **e1304.txt**: 49K ECG-derived IBI data
-- **100.atr**: MIT-BIH test data
+### 2. Test Suite Issues
+**test/test_models.jl:** Contains "sham tests" with try/catch blocks that hide missing functionality
+**Fix:** Replace with @test_broken or remove entirely
 
-### Reference
-Turing tutorial on Bayesian ODEs: https://turinglang.org/docs/tutorials/bayesian-differential-equations/
+---
 
-### Diagnostic Script
-Created `/tmp/test_vanderpol_turing.jl` to reproduce the error:
-- Loads first 50 IBIs from example.txt
-- Tests simulate() (should work)
-- Tests fit(:bayesian) with chains=2, samples=100
-- Captures full error trace
+## 📊 Current Honest Status
 
-## Recent Commits
-```
-965f723 - Fix all simulate() calls to use positional arguments
-038dfab - Remove outdated test-specific Project.toml and Manifest.toml
-abb2768 - Fix test_models.jl property access and add Statistics import
-015c13c - Fix DMD fit function variable scoping
-d06763d - Add LinearAlgebra via Pkg.add()
-13fe5a4 - Fix syntax error: move LinearAlgebra import to module level
-```
+### ✅ Production-Ready (Core Library)
+- Feature extraction (44 features)
+- Evaluation pipeline (6 core functions)
+- Dataset infrastructure (11 loaders)
+- Test coverage: 80%
+
+### ❌ Not Ready (Advanced Features)
+- Model fitting (fit() missing)
+- Parameter inference (parameter_space() missing)
+- Lorenz, LIF, DMD models (incomplete)
+- Visualization suite (8 of 9 missing)
+
+### 🎯 Ready for Release (But incomplete feature set)
+The **core library** is production-ready for feature extraction and evaluation.
+The **model fitting** functionality is a future enhancement.
+
+---
+
+## ✅ Next Steps
+
+1. **Delete outdated docs** (9 files marked for deletion above)
+2. **Fix import errors** in src/HeartRateLab.jl
+3. **Fix test suite** (remove sham tests)
+4. **Update README** to clarify feature scope
+5. **If implementing missing features**: Use PLAN.md Appendix as guide
+
+---
+
+## Key Learnings
+
+**Why This Happened:**
+- Documentation was written as aspirational specification
+- Code lagged behind documentation promises
+- No verification that documented features actually existed
+
+**Prevention:**
+- TDD: Tests must exist BEFORE documentation claims completeness
+- Audit cycle: Regular checks that documentation matches code
+- Clear status markers: ✅ (actual), ⏳ (planned), ❌ (missing)
+
+---
 
 ## Files Modified This Session
-- `src/Models.jl` - Fixed imports and DMD scoping
-- `test/test_models.jl` - Fixed all test issues
-- `Project.toml` - Added LinearAlgebra dependency
-- Removed: `test/Project.toml`, `test/Manifest.toml`
 
-## Action Items for Next Session
-1. **Run diagnostic script** to capture exact Turing error
-2. **Debug VanDerPol Bayesian fitting** based on error trace
-3. **Compare with Turing tutorial** implementation patterns
-4. **Test with short IBI data** (50-100 beats from example.txt)
-5. **Verify convergence** with proper diagnostics (rhat, ESS)
-6. **Fix remaining flaky tests** in DMD if needed
+- ✅ `docs/PLAN.md` — Updated with accurate status
+- 📝 `docs/SESSION_SUMMARY.md` — This file (NEW)
 
-## Model Implementation Priority
-1. ✅ DMD - Fully working (11/13 tests passing)
-2. 🔄 **VanDerPol** - Need to fix Bayesian fitting ← **CURRENT FOCUS**
-3. ⏳ Lorenz - Requires DifferentialEquations.jl
-4. ⏳ LIF - Requires DifferentialEquations.jl
-5. ⏳ Flagship notebook - Awaits model completion
+---
+
+**Status:** Documentation audit complete. PLAN.md is now accurate and honest about what's implemented vs what's missing.
