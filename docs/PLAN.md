@@ -20,14 +20,16 @@ HeartRateLab.jl aims to be the most comprehensive open-source HRV analysis packa
 
 ## 2. Current State (February 23, 2026) — CORRECTED
 
-### ✅ Phase Completion Matrix (ACCURATE)
+### ✅ Phase Completion Matrix (ACCURATE - CORRECTED FEB 23)
 
 | Phase | Component | Status | Actual LOC | Notes |
 |-------|-----------|--------|----------|-------|
 | **1-2** | **Input/Preprocessing/Features** | ✅ COMPLETE | 1,412 | 44 features, windowed analysis, all working |
-| **3a** | **Models Structure** | ⚠️ PARTIAL | 127 | VanDerPol only; Lorenz, LIF, DMD: stubs only |
-| **3a** | **Model Fitting (fit/parameter_space)** | ❌ NOT IMPLEMENTED | 0 | fit() and parameter_space() missing entirely |
-| **3a** | **Model simulate()** | ✅ PARTIAL | 90 | VanDerPol.simulate() works; others incomplete |
+| **3a** | **VanDerPol Model** | ✅ COMPLETE | 210 | simulate() + fit(:gradient) + fit(:bayesian) + parameter_space() |
+| **3a** | **Lorenz Model** | ✅ COMPLETE | 202 | simulate() + fit(:bayesian) + parameter_space() |
+| **3a** | **LIF Model** | ✅ COMPLETE | 301 | simulate() + fit(:bayesian) + fit(:gradient) + parameter_space() |
+| **3a** | **DMD Model** | ✅ COMPLETE | 164 | fit() + simulate() |
+| **3a** | **All Models: fit()/parameter_space()** | ✅ COMPLETE | 1,015 | All 4 models fully implemented with parameter inference |
 | **3b** | **Evaluation Pipeline (6 functions)** | ✅ COMPLETE | 1,170 | All functions work; 80% of tests passing |
 | **3c** | **Dataset Infrastructure (11 loaders)** | ✅ COMPLETE | 400 | PhysioNet loaders implemented and working |
 | **4** | **Visualization Functions** | ❌ 11% DONE | 67 | Only plot_flagship() exists; 8 others missing |
@@ -56,11 +58,12 @@ HeartRateLab.jl aims to be the most comprehensive open-source HRV analysis packa
 - ✅ 9 additional PhysioNet loaders (NSRDB, MIT-BIH variations, Challenge datasets, MVTDB, Meditation, etc.)
 - ✅ All loaders with automatic download, preprocessing, error handling
 
-**Models — VanDerPol Only (PARTIAL):**
-- ✅ `struct VanDerPol <: AbstractHRVModel` — Model defined
-- ✅ `simulate(::VanDerPol, params, n_beats)` — IBI generation works
-- ❌ `fit()` — **NOT IMPLEMENTED**
-- ❌ `parameter_space()` — **NOT IMPLEMENTED**
+**Models — All Four Complete (✅ COMPLETE, 1,015 LOC):**
+- ✅ **VanDerPol** (210 LOC): `simulate()` + `fit(:gradient)` + `fit(:bayesian)` + `parameter_space()` ✓
+- ✅ **Lorenz** (202 LOC): `simulate()` + `fit(:bayesian)` + `parameter_space()` ✓
+- ✅ **LIF** (301 LOC): `simulate()` + `fit(:bayesian)` + `fit(:gradient)` + `parameter_space()` ✓
+- ✅ **DMD** (164 LOC): `fit()` + `simulate()` ✓
+- All models implement `AbstractHRVModel` interface with Turing.jl (Bayesian) and Optim.jl (gradient) fitting
 
 **Visualization (INCOMPLETE):**
 - ✅ `plot_flagship()` — Single 4-panel publication figure (1 of 10 functions)
@@ -75,17 +78,13 @@ HeartRateLab.jl aims to be the most comprehensive open-source HRV analysis packa
 - ❌ `plot_correlations()` — **MISSING**
 - ❌ `plot_feature_violins()` — **MISSING**
 
-### ⚠️ What's NOT Done (Critical Gaps)
+### ⚠️ What's NOT Done (Single Critical Gap)
 
 | Item | Status | Impact | Priority |
 |------|--------|--------|----------|
-| **Model Fitting: fit()** | ❌ 0% | Cannot infer parameters; breaks entire pipeline | CRITICAL |
-| **Model Fitting: parameter_space()** | ❌ 0% | Cannot define priors; documentation only | CRITICAL |
-| **Lorenz Model** | ❌ 0% | Struct defined, simulate() incomplete | HIGH |
-| **LIF Model** | ❌ 0% | Struct defined, simulate() incomplete | HIGH |
-| **DMD Model** | ❌ 0% | Struct defined, fit/simulate incomplete | HIGH |
-| **Visualization Suite** | ❌ 89% | Only 1 of 10 functions exist | HIGH |
-| **Package Registration** | ❌ 0% | No LICENSE, CITATION.bib, version bump | MEDIUM |
+| **Visualization Suite (8 of 9 functions)** | ❌ 11% | Only plot_flagship() exists; missing 8 publication plots | CRITICAL |
+| **Package Registration** | ❌ 0% | No LICENSE, CITATION.bib, version bump for v1.0 | MEDIUM |
+| **Import/Export Cleanup** | ⚠️ PARTIAL | src/HeartRateLab.jl imports non-existent viz functions; must remove | MEDIUM |
 
 ### ❌ What's Deferred
 
