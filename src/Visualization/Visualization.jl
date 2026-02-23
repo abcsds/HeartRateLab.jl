@@ -66,4 +66,54 @@ function plot_flagship(data::Vector, fit_result; title::String="Flagship Visuali
     return fig
 end
 
+"""
+    plot_ibi_series(data::Vector{Float64}; title="IBI Time Series", show_grid=true) → Figure
+
+Create a simple line plot of inter-beat-interval values over beat index.
+
+# Arguments
+- `data::Vector{Float64}` — IBI series in milliseconds
+- `title::String` — plot title
+- `show_grid::Bool` — whether to show grid lines
+
+# Returns
+- Figure with X-axis=beat index, Y-axis=IBI (ms)
+- Physiological bounds marked as horizontal lines (300-2000 ms typical range)
+
+# Requirements
+Requires Plots.jl to be loaded in the calling environment.
+"""
+function plot_ibi_series(data::Vector{Float64}; title="IBI Time Series", show_grid=true)
+    # Check if Plots is available
+    if !isdefined(Main, :plot)
+        println("Visualization requires Plots.jl. Please run: using Plots")
+        return nothing
+    end
+
+    # Access Plots functions through Main
+    plot = Main.plot
+    plot! = Main.plot!
+    hline! = Main.hline!
+
+    # Create the plot
+    fig = plot(data,
+               label="IBI",
+               xlabel="Beat Index",
+               ylabel="IBI (ms)",
+               title=title,
+               legend=:topright,
+               size=(900, 500))
+
+    # Add physiological bounds as horizontal lines
+    hline!(fig, [300], label="Min bound (300 ms)", line=:dash, color=:red, alpha=0.5)
+    hline!(fig, [2000], label="Max bound (2000 ms)", line=:dash, color=:red, alpha=0.5)
+
+    # Control grid visibility
+    if show_grid
+        plot!(grid=true)
+    end
+
+    return fig
+end
+
 end

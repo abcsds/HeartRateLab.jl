@@ -53,6 +53,7 @@ module HeartRateLabVisualizationExt
 # Import the parent module
 import HeartRateLab
 using HeartRateLab.Models
+using HeartRateLab: ModelFitResult
 
 # Conditional imports based on Julia version
 if !isdefined(Base, :get_extension)
@@ -679,8 +680,6 @@ This is the flagship visualization showing:
 Works with any model supporting both simulation and Bayesian fitting (LIF, VanDerPol, Lorenz).
 """
 function plot_flagship(real_data::Vector{Float64}, fit_result::ModelFitResult; title="HeartRateLab Pipeline Demo")
-    using DataFrames
-
     # Validate inputs
     if isnothing(fit_result.posterior)
         @warn "fit_result has no posterior - using point estimates only"
