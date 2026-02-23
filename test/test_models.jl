@@ -62,7 +62,8 @@ cd(@__DIR__)
     error10 = sum(abs.(ibis .- recon10))
     error20 = sum(abs.(ibis .- recon20))
 
-    @test error20 <= error10 "Higher rank presented higher reconstruction error"
+    @test error20 <= error10
+    # Higher rank should present lower (or equal) reconstruction error
 end
 
 # ============================================================================
