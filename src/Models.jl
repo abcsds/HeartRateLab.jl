@@ -623,16 +623,12 @@ When V crosses threshold, a spike occurs and V resets to 0.
 # Returns
 Vector of inter-beat intervals in milliseconds (time between spike events)
 """
-function simulate(model::LIF, params::NamedTuple, n_beats::Int)::Vector{Float64}
+function simulate(model::LIF, params::NamedTuple, n_beats::Int, dt::Float64=0.1, T_max::Float64=nothing)::Vector{Float64}
     # Extract parameters
     τ = get(params, :τ, model.τ)              # time constant in ms
     I_base = get(params, :I_base, model.I_base)  # base input current
     threshold = get(params, :threshold, model.threshold)  # spike threshold
     noise_amp = get(params, :noise_amp, model.noise_amp)  # noise amplitude
-
-    # Euler-Maruyama stochastic integration (more robust than ODE solver)
-    dt = 0.1  # Time step in milliseconds
-    T_max = 50000.0  # Maximum simulation time in ms
 
     # State variables
     V = 0.0  # Membrane voltage (start below threshold)
@@ -641,7 +637,7 @@ function simulate(model::LIF, params::NamedTuple, n_beats::Int)::Vector{Float64}
     ibis = Float64[]  # Inter-beat intervals
 
     # Simulate until we have enough IBIs
-    while length(ibis) < n_beats && t < T_max
+    while length(ibis) < n_beats && (T_max === nothing || t < T_max)
         # Stochastic Euler step for LIF ODE
         # dV = (-V + I_base) * dt/τ + noise_amp * sqrt(dt) * randn()
         dV = (-V + I_base) / τ * dt + noise_amp * sqrt(dt) * randn()
@@ -684,7 +680,7 @@ Fit LIF model to IBI data using Bayesian inference or gradient-based optimizatio
 """
 function fit(model::LIF, data::Vector{Float64};
              method::Symbol=:bayesian,
-             chains::Int=4,
+             chains::Int=4, # TODO: nprocs()
              samples::Int=1000,
              kwargs...)
 
@@ -693,7 +689,7 @@ function fit(model::LIF, data::Vector{Float64};
         @model function lif_model(ibi_data)
             n_beats = length(ibi_data)
 
-            # Priors
+            # Priors # TODO: take from parameter_space() function
             τ ~ Distributions.truncated(Distributions.Normal(50.0, 15.0), 10.0, 100.0)
             I_base ~ Distributions.truncated(Distributions.Normal(0.8, 0.2), 0.5, 1.5)
             threshold ~ Distributions.truncated(Distributions.Normal(1.0, 0.2), 0.5, 1.5)
@@ -758,8 +754,20 @@ function fit(model::LIF, data::Vector{Float64};
     elseif method == :gradient
         # Gradient-based optimization using feature-space distance minimization
         real_features = extract_feature_set(data)
+        feature_names = ["mean", "sdnn", "rmssd"]
+
+        # Validate that initial parameters can simulate
+        initial_params = (τ=50.0, I_base=0.8, threshold=1.0, noise_amp=0.15)
+        try
+            test_sim = simulate(model, initial_params, min(100, length(data)))
+            @info "LIF gradient fit: Initial simulation successful ($(length(test_sim)) IBIs)"
+        catch e
+            error("LIF gradient fit: Initial simulation failed with default parameters. " *
+                  "Data may be too short or model parameters incompatible. Error: $e")
+        end
 
         # Define loss function: MSE of key HRV features
+        sim_failures = Ref(0)  # Track simulation failures
         function loss(params_vec)
             τ, I_base, threshold, noise_amp = params_vec
 
@@ -770,20 +778,36 @@ function fit(model::LIF, data::Vector{Float64};
                 synth_features = extract_feature_set(synthetic)
 
                 # Compute normalized feature-space distance
-                diff = (real_features .- synth_features) ./ (abs.(real_features) .+ 1e-6)
-                return sum(diff .^ 2)
-            catch
+                distance = 0.0
+                for feat in feature_names
+                    real_val = real_features[!, feat][1]
+                    synth_val = synth_features[!, feat][1]
+                    if real_val > 0
+                        distance += ((real_val - synth_val) / real_val)^2
+                    else
+                        distance += (real_val - synth_val)^2
+                    end
+                end
+                return distance
+            catch e
+                sim_failures[] += 1
                 return 1e10  # Large penalty for failed simulations
             end
         end
 
-        # Optimize using Fminbox(LBFGS())
+        # Optimize using Fminbox(LBFGS()) with relaxed convergence
         lower = [10.0, 0.5, 0.5, 0.05]
         upper = [100.0, 1.5, 1.5, 0.5]
         initial_x = [50.0, 0.8, 1.0, 0.15]
 
         result = optimize(loss, lower, upper, initial_x, Fminbox(LBFGS()),
-                         Optim.Options(iterations=500))
+                         Optim.Options(iterations=500, g_tol=1e-6, f_tol=1e-8))
+
+        # Check if optimization was successful
+        if result.iterations <= 1 && result.minimum >= 1e9
+            @warn "LIF gradient fit: Optimization failed - simulation errors likely. " *
+                  "Sim failures: $(sim_failures[]). Returning initial parameters."
+        end
 
         # Extract optimized parameters
         params_opt = result.minimizer
@@ -799,7 +823,9 @@ function fit(model::LIF, data::Vector{Float64};
             "method" => "LBFGS",
             "converged" => Optim.converged(result),
             "iterations" => result.iterations,
-            "loss_final" => result.minimum
+            "loss_final" => result.minimum,
+            "simulation_failures" => sim_failures[],
+            "optimization_successful" => result.minimum < 1e9
         )
 
         return ModelFitResult(

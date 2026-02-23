@@ -366,7 +366,7 @@ end
     
     Minimum length: 20
     """
-    return sqrt(sum(function_registry["diff"](n) .^ 2))
+    return sqrt(sum(function_registry["diff"](n) .^ 2)) / sqrt(function_registry["length"](n) - 1)
 end
 @register function sdann(n::HRMeasurement)
     """
