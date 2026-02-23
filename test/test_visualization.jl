@@ -77,6 +77,25 @@ try
         end
     end
 
+    @testset "plot_lorenz_3d" begin
+        using HeartRateLab.Models
+
+        # Create a Lorenz model and mock result
+        lorenz = Lorenz()
+        params = (σ=10.0, ρ=28.0, β=8/3, threshold=10.0, σ_noise=0.1)
+        result = Models.ModelFitResult(lorenz, :gradient, params, nothing, Dict(), Float64[])
+
+        # Test that plot_lorenz_3d can be created
+        try
+            fig = HeartRateLab.plot_lorenz_3d(result; title="Test Lorenz 3D")
+            @test fig !== nothing
+            @test isa(fig, Any)
+        catch e
+            @warn "plot_lorenz_3d test failed" exception=e
+            @test false
+        end
+    end
+
 catch err
     @info "Visualization tests skipped - GLMakie or DSP not available" exception=err
 end

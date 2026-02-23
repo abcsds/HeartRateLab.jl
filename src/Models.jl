@@ -1012,4 +1012,57 @@ function simulate(model::DMD, params::Union{NamedTuple,Nothing}, n_beats::Int)::
     return reconstructed
 end
 
+"""
+    simulate_lorenz_trajectory(params::NamedTuple; duration=100.0)
+
+Solve the full Lorenz ODE system and return the complete (x, y, z) trajectory.
+
+This is a helper function for 3D visualization of the Lorenz phase space.
+Unlike the regular simulate() function which extracts IBIs from z-coordinate threshold crossings,
+this returns the full continuous trajectory.
+
+# Arguments
+- `params::NamedTuple`: Should contain σ, ρ, β parameters
+- `duration::Float64`: Total simulation time (default 100.0)
+
+# Returns
+DifferentialEquations solution object with solution.u containing (x, y, z) vectors
+
+# Note
+Requires DifferentialEquations.jl to be loaded (checked automatically)
+"""
+function simulate_lorenz_trajectory(params::NamedTuple; duration=100.0)
+    if !hasDiffEq
+        error("Lorenz trajectory simulation requires DifferentialEquations.jl. Install with: Pkg.add(\"DifferentialEquations\")")
+    end
+
+    # Extract parameters
+    σ = get(params, :σ, 10.0)
+    ρ = get(params, :ρ, 28.0)
+    β = get(params, :β, 8/3)
+
+    # Lorenz ODE system: dx/dt = σ(y-x), dy/dt = x(ρ-z)-y, dz/dt = xy - βz
+    function lorenz!(du, u, p, t)
+        σ, ρ, β = p
+        du[1] = σ * (u[2] - u[1])
+        du[2] = u[1] * (ρ - u[3]) - u[2]
+        du[3] = u[1] * u[2] - β * u[3]
+    end
+
+    # Initial conditions
+    u0 = [1.0, 1.0, 1.0]
+
+    # Time span
+    tspan = (0.0, duration)
+
+    # Problem setup and solve
+    p = [σ, ρ, β]
+    prob = ODEProblem(lorenz!, u0, tspan, p)
+
+    # Solve with moderate resolution for smooth trajectory
+    sol = solve(prob, Tsit5(), saveat=0.1, dense=true)
+
+    return sol
+end
+
 end  # Models

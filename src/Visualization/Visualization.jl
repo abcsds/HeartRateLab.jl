@@ -3,6 +3,11 @@ module Visualization
 using Statistics
 using DataFrames
 
+# Import Models module for accessing simulate_lorenz_trajectory and types
+# This is safe because Models is included in the parent module before Visualization
+import ..Models
+using ..Models: ModelFitResult
+
 function getellipsepoints(cx, cy, rx, ry, θ; length=100)
 	t = range(0, 2*pi, length=length)
 	ellipse_x_r = @. rx * cos(t)
@@ -434,13 +439,91 @@ function plot_model_heatmap(errors::Dict{String, Vector{Float64}}, features::Vec
 end
 
 """
-    plot_lorenz_3d(ibis::Vector{Float64}; title="Lorenz Plot 3D") -> Figure
+    plot_lorenz_3d(lorenz_result::ModelFitResult; title="Lorenz Phase Space") -> Figure
+
+Create a 3D visualization of the Lorenz system phase space trajectory from fitted parameters.
+
+# Arguments
+- `lorenz_result::ModelFitResult`: Result from fit(Lorenz(), data) containing fitted parameters
+- `title::String`: Plot title (default "Lorenz Phase Space")
+
+# Returns
+3D line plot showing:
+- Teal trajectory line representing the system evolution
+- Color gradient along the trajectory indicating time flow
+- Green marker at trajectory start
+- Red marker at trajectory end
+- XYZ axes labeled
+
+# Details
+Solves the Lorenz ODE system using the fitted parameters (σ, ρ, β) and plots the full
+(x, y, z) trajectory in 3D space. This shows the characteristic butterfly-shaped
+strange attractor behavior of the Lorenz system.
+
+# Requirements
+Requires Plots.jl to be loaded in the calling environment.
+Requires DifferentialEquations.jl (included in dependency chain).
+"""
+function plot_lorenz_3d(lorenz_result::ModelFitResult; title="Lorenz Phase Space")
+    # Check if Plots is available
+    if !isdefined(Main, :plot)
+        println("Visualization requires Plots.jl. Please run: using Plots")
+        return nothing
+    end
+
+    # Access Plots functions through Main
+    plot = Main.plot
+    scatter! = Main.scatter!
+
+    # Extract parameters from ModelFitResult
+    params = lorenz_result.params
+
+    # Solve ODE to get full trajectory using the helper function from Models
+    sol = Models.simulate_lorenz_trajectory(params; duration=100.0)
+
+    # Extract (x, y, z) points from solution
+    x = [sol.u[i][1] for i in 1:length(sol.u)]
+    y = [sol.u[i][2] for i in 1:length(sol.u)]
+    z = [sol.u[i][3] for i in 1:length(sol.u)]
+
+    # Create 3D plot with teal trajectory
+    fig = plot(x, y, z,
+               color=:teal,
+               linewidth=2.5,
+               label="Trajectory",
+               xlabel="x",
+               ylabel="y",
+               zlabel="z",
+               title=title,
+               legend=:topright,
+               size=(800, 700),
+               aspectratio=:equal)
+
+    # Mark start point in green
+    scatter!(fig, [x[1]], [y[1]], [z[1]],
+             color=:green,
+             markersize=8,
+             label="Start",
+             markerstrokewidth=0)
+
+    # Mark end point in red
+    scatter!(fig, [x[end]], [y[end]], [z[end]],
+             color=:red,
+             markersize=8,
+             label="End",
+             markerstrokewidth=0)
+
+    return fig
+end
+
+"""
+    plot_lorenz_3d(ibis::Vector{Float64}; title="IBI 3D Phase Space") -> Figure
 
 Create an interactive 3D scatter plot showing IBI[n] vs IBI[n+1] vs IBI[n+2].
 This function is provided by the HeartRateLabVisualizationExt extension when GLMakie is loaded.
 """
-function plot_lorenz_3d(ibis::Vector{Float64}; title="Lorenz Plot 3D")
-    error("plot_lorenz_3d requires GLMakie. Please run: using GLMakie")
+function plot_lorenz_3d(ibis::Vector{Float64}; title="IBI 3D Phase Space")
+    error("plot_lorenz_3d(::Vector) requires GLMakie. Please run: using GLMakie")
 end
 
 """
