@@ -1,6 +1,7 @@
 module Visualization
 
 using Statistics
+using DataFrames
 
 function getellipsepoints(cx, cy, rx, ry, θ; length=100)
 	t = range(0, 2*pi, length=length)
@@ -342,6 +343,84 @@ This function is provided by the HeartRateLabVisualizationExt extension when GLM
 """
 function plot_comparison(real_ibis::Vector{Float64}, synthetic_ibis::Vector{Float64}; model_name="Model")
     error("plot_comparison requires GLMakie. Please run: using GLMakie")
+end
+
+"""
+    plot_model_heatmap(results::DataFrame; title="Model × Feature Reproduction") → Figure
+
+Create a matrix visualization showing which (model, feature) pairs reproduce well.
+
+# Arguments
+- `results::DataFrame` — evaluation results with columns:
+  - `:model` (String) — model name (e.g., "VanDerPol", "Lorenz", "DMD")
+  - `:feature` (String) — feature name (e.g., "SDNN", "RMSSD", "LF/HF")
+  - `:score` (Float64) — 0-1 reproduction quality (0=fail, 1=perfect)
+- `title::String` — plot title
+
+# Returns
+- Heatmap with:
+  - Rows = models
+  - Columns = features
+  - Color = score (white=0/fail, red=1/perfect)
+  - Values displayed in cells
+  - Row/column labels visible
+
+# Requirements
+Requires Plots.jl to be loaded in the calling environment.
+"""
+function plot_model_heatmap(results::DataFrame; title="Model × Feature Reproduction")
+    # Check if Plots is available
+    if !isdefined(Main, :plot)
+        println("Visualization requires Plots.jl. Please run: using Plots")
+        return nothing
+    end
+
+    # Try to access heatmap, handling ambiguity from multiple backends (GLMakie, etc.)
+    heatmap = try
+        Main.heatmap
+    catch err
+        if isdefined(Main, :Plots)
+            Main.Plots.heatmap
+        else
+            error("heatmap function not found. Please ensure Plots.jl is imported.")
+        end
+    end
+
+    # Extract unique models and features, preserving order
+    models = unique(results.model)
+    features = unique(results.feature)
+
+    # Create matrix where rows=models, cols=features, values=scores
+    Z = fill(NaN, length(models), length(features))
+
+    for (i, model) in enumerate(models)
+        for (j, feature) in enumerate(features)
+            # Find matching row in results
+            row_mask = (results.model .== model) .& (results.feature .== feature)
+            row_idx = findfirst(row_mask)
+
+            if row_idx !== nothing
+                Z[i, j] = results.score[row_idx]
+            end
+        end
+    end
+
+    # Create heatmap with Plots.jl
+    fig = heatmap(
+        features,  # x-axis (columns)
+        models,    # y-axis (rows)
+        Z,
+        color=:heat,
+        xlabel="Features",
+        ylabel="Models",
+        title=title,
+        clims=(0, 1),
+        size=(600, 400),
+        legend=:right,
+        aspect_ratio=:auto
+    )
+
+    return fig
 end
 
 """

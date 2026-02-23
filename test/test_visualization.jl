@@ -80,3 +80,15 @@ try
 catch err
     @info "Visualization tests skipped - GLMakie or DSP not available" exception=err
 end
+
+@testset "plot_model_heatmap" begin
+    using DataFrames
+    results = DataFrame(
+        model=["VdP", "VdP", "Lorenz", "Lorenz", "LIF", "LIF"],
+        feature=["SDNN", "RMSSD", "SDNN", "RMSSD", "SDNN", "RMSSD"],
+        score=[0.85, 0.92, 0.78, 0.88, 0.95, 0.91]
+    )
+    fig = HeartRateLab.plot_model_heatmap(results; title="Test Heatmap")
+    @test fig !== nothing
+    @test size(fig) != ()
+end
