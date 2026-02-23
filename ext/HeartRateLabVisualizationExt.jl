@@ -65,6 +65,7 @@ using GLMakie
 using DataFrames
 using Statistics
 using DSP
+using HeartRateLab.Frequency: lomb_scargle, welch, get_power, find_peak
 
 """
     plot_ibi_series(ibis::Vector{Float64}; title="IBI Time Series") -> Figure
@@ -173,58 +174,98 @@ function plot_poincare(ibis::Vector{Float64}; title="Poincaré Plot")
 end
 
 """
-    plot_spectrum(ibis::Vector{Float64}; fs=1.0, title="HRV Power Spectrum") -> Figure
+    plot_spectrum(ibis::Vector{Float64}; method=:lomb, title="HRV Power Spectrum") -> Figure
 
-Create a power spectrum plot of inter-beat-interval series using Welch method.
+Create a power spectrum plot of inter-beat-interval series with frequency bands.
 
 # Arguments
 - `ibis::Vector{Float64}`: Inter-beat-interval series in milliseconds
-- `fs::Float64`: Sampling frequency (beats per second, default 1.0)
+- `method::Symbol`: Spectrum method - :lomb (default), :welch, or :periodogram
 - `title::String`: Figure title
 
 # Returns
 - `Figure`: GLMakie figure object showing frequency spectrum
 
 # Features
-- Welch periodogram with 50% overlap
+- Multiple spectrum methods: Lomb-Scargle, Welch, or DSP Periodogram
 - Log scale on power axis
-- HRV standard frequency bands marked:
-  - VLF (0.0-0.04 Hz): very low frequency
+- HRV standard frequency bands marked with vertical lines and shaded regions:
+  - VLF (0.003-0.04 Hz): very low frequency
   - LF (0.04-0.15 Hz): low frequency
   - HF (0.15-0.4 Hz): high frequency
+- Peak frequency marked with coral cross
+- Band power values displayed in title
 """
-function plot_spectrum(ibis::Vector{Float64}; fs=1.0, title="HRV Power Spectrum")
-    # Normalize IBI series
-    ibis_norm = (ibis .- mean(ibis)) ./ std(ibis)
+function plot_spectrum(ibis::Vector{Float64}; method=:lomb, title="HRV Power Spectrum")
+    # Validate method
+    method in [:lomb, :welch, :periodogram] ||
+        throw(ArgumentError("method must be :lomb, :welch, or :periodogram"))
 
-    # Compute Welch periodogram
-    # Window length = ~64 samples, 50% overlap
-    nfft = min(256, nextpow(2, length(ibis_norm) ÷ 2))
-    freq, power = welch_pgram(ibis_norm; fs=fs, nfft=nfft)
+    # Get spectrum based on method
+    if method == :lomb
+        pgram = lomb_scargle(Float64.(ibis))
+    elseif method == :welch
+        pgram = welch(Float64.(ibis))
+    else  # :periodogram
+        # Use DSP.periodogram with normalization
+        ibis_norm = (Float64.(ibis) .- mean(ibis)) ./ std(ibis)
+        # nfft must be >= length of signal
+        nfft = nextpow(2, length(ibis_norm))
+        pgram = DSP.periodogram(ibis_norm; fs=1.0, nfft=nfft)
+    end
 
-    fig = Figure(size=(900, 500))
+    freq = pgram.freq
+    power = pgram.power
+
+    # Calculate band powers using get_power
+    vlf = get_power(pgram, 0.003, 0.04)
+    lf = get_power(pgram, 0.04, 0.15)
+    hf = get_power(pgram, 0.15, 0.4)
+    tp = vlf + lf + hf
+
+    # Find peak frequency
+    peak_freq = find_peak(pgram, 0.003, 0.4)
+    if isnan(peak_freq)
+        _, peak_idx = findmax(power)
+        peak_freq = freq[peak_idx]
+    end
+    peak_idx = argmin(abs.(freq .- peak_freq))
+    peak_power = power[peak_idx]
+
+    # Create figure with teal line and band markers
+    fig = Figure(size=(1000, 600))
     ax = Axis(fig[1, 1];
         xlabel="Frequency (Hz)",
-        ylabel="Power (dB)",
+        ylabel="Power (ms²/Hz)",
         title=title,
-        yscale=log10,
-        xscale=log10
+        yscale=log10
     )
 
-    # Plot power spectrum
-    lines!(ax, freq, power; label="Power spectrum", color=:blue, linewidth=2)
+    # Shaded regions for frequency bands (light background)
+    vspan!(ax, 0.003, 0.04; color=(:red, 0.1), label="VLF (0.003-0.04 Hz)")
+    vspan!(ax, 0.04, 0.15; color=(:green, 0.1), label="LF (0.04-0.15 Hz)")
+    vspan!(ax, 0.15, 0.4; color=(:blue, 0.1), label="HF (0.15-0.4 Hz)")
 
-    # Mark HRV frequency bands
-    # VLF: 0.0-0.04 Hz
-    vspan!(ax, 0.001, 0.04; color=(:red, 0.1), label="VLF")
-    # LF: 0.04-0.15 Hz
-    vspan!(ax, 0.04, 0.15; color=(:green, 0.1), label="LF")
-    # HF: 0.15-0.4 Hz
-    vspan!(ax, 0.15, 0.4; color=(:blue, 0.1), label="HF")
+    # Plot power spectrum line in teal
+    lines!(ax, freq, power; label="Power spectrum", color=:teal, linewidth=2.5)
 
-    xlims!(ax, 0.001, 0.5)
+    # Vertical band markers at boundaries
+    vlines!(ax, [0.003, 0.04, 0.15, 0.4];
+            color=:black, linestyle=:dash, linewidth=1.5, label="Band boundaries")
 
-    axislegend(ax)
+    # Peak marker with coral cross
+    scatter!(ax, [peak_freq], [peak_power];
+            marker=:xcross, markersize=15, color=:coral, label="Peak ($(round(peak_freq, digits=3)) Hz)")
+
+    # Set axis limits
+    xlims!(ax, 0.003, 0.4)
+    ylims!(ax, minimum(power[freq .>= 0.003]) / 10, maximum(power) * 2)
+
+    # Add legend with power values
+    Legend(fig[1, 2], ax,
+           title="Band Powers (ms²):\nVLF: $(round(vlf, digits=1))\nLF: $(round(lf, digits=1))\nHF: $(round(hf, digits=1))\nTP: $(round(tp, digits=1))",
+           labelsize=11, titlesize=12)
+
     return fig
 end
 

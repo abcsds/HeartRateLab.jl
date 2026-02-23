@@ -215,4 +215,82 @@ function plot_poincare(data::Vector; title="Poincaré Plot")
     return fig
 end
 
+# Placeholder stubs for extension-provided functions
+# These will be overridden when GLMakie is loaded
+
+"""
+    plot_spectrum(ibis::Vector{Float64}; method=:lomb, title="HRV Power Spectrum") -> Figure
+
+Create a power spectrum plot of inter-beat-interval series with frequency bands.
+This function is provided by the HeartRateLabVisualizationExt extension when GLMakie is loaded.
+"""
+function plot_spectrum(ibis::Vector{Float64}; method=:lomb, title="HRV Power Spectrum")
+    # Try to delegate to the extension if it's loaded
+    ext = Base.get_extension(parentmodule(parentmodule(@__MODULE__)), :HeartRateLabVisualizationExt)
+    if ext !== nothing
+        return ext.plot_spectrum(ibis; method=method, title=title)
+    end
+    error("plot_spectrum requires GLMakie. Please run: using GLMakie")
+end
+
+"""
+    plot_comparison(real_ibis::Vector{Float64}, synthetic_ibis::Vector{Float64}; model_name="Model") -> Figure
+
+Create side-by-side comparison plots of real vs synthetic IBI data.
+This function is provided by the HeartRateLabVisualizationExt extension when GLMakie is loaded.
+"""
+function plot_comparison(real_ibis::Vector{Float64}, synthetic_ibis::Vector{Float64}; model_name="Model")
+    error("plot_comparison requires GLMakie. Please run: using GLMakie")
+end
+
+"""
+    plot_model_heatmap(errors::Dict{String, Vector{Float64}}, features::Vector{String}) -> Figure
+
+Create a heatmap showing model reproduction quality across features.
+This function is provided by the HeartRateLabVisualizationExt extension when GLMakie is loaded.
+"""
+function plot_model_heatmap(errors::Dict{String, Vector{Float64}}, features::Vector{String})
+    error("plot_model_heatmap requires GLMakie. Please run: using GLMakie")
+end
+
+"""
+    plot_lorenz_3d(ibis::Vector{Float64}; title="Lorenz Plot 3D") -> Figure
+
+Create an interactive 3D scatter plot showing IBI[n] vs IBI[n+1] vs IBI[n+2].
+This function is provided by the HeartRateLabVisualizationExt extension when GLMakie is loaded.
+"""
+function plot_lorenz_3d(ibis::Vector{Float64}; title="Lorenz Plot 3D")
+    error("plot_lorenz_3d requires GLMakie. Please run: using GLMakie")
+end
+
+"""
+    plot_radar(data::Dict{String, Vector{Float64}}; names::Vector{String}) -> Figure
+
+Create a radar/spider chart comparing multiple datasets across dimensions.
+This function is provided by the HeartRateLabVisualizationExt extension when GLMakie is loaded.
+"""
+function plot_radar(data::Dict{String, Vector{Float64}}; names::Vector{String})
+    error("plot_radar requires GLMakie. Please run: using GLMakie")
+end
+
+"""
+    plot_correlations(features_df::DataFrame; title="Feature Correlations") -> Figure
+
+Create a correlation heatmap showing relationships between features.
+This function is provided by the HeartRateLabVisualizationExt extension when GLMakie is loaded.
+"""
+function plot_correlations(features_df)
+    error("plot_correlations requires GLMakie. Please run: using GLMakie")
+end
+
+"""
+    plot_feature_violins(real::DataFrame, ensembles::Dict{String, DataFrame}; features=nothing) -> Figure
+
+Create violin plots comparing real vs synthetic feature distributions.
+This function is provided by the HeartRateLabVisualizationExt extension when GLMakie is loaded.
+"""
+function plot_feature_violins(real, ensembles; features=nothing)
+    error("plot_feature_violins requires GLMakie. Please run: using GLMakie")
+end
+
 end

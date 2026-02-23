@@ -1,4 +1,4 @@
-using HeartRateLab: HeartRateLab
+using HeartRateLab
 using Test
 
 # Set working directory to test directory for relative paths
@@ -15,10 +15,10 @@ try
         t = range(0, 100, length=128)
         ibis = 800 .+ 100 .* sin.(2π .* t / 50) .+ randn(128) .* 20
 
-        # Get the visualization extension functions
-        plot_ibi_series = HeartRateLabVisualizationExt.plot_ibi_series
-        plot_poincare = HeartRateLabVisualizationExt.plot_poincare
-        plot_spectrum = HeartRateLabVisualizationExt.plot_spectrum
+        # Get the visualization functions (they are re-exported from the extension)
+        plot_ibi_series = HeartRateLab.plot_ibi_series
+        plot_poincare = HeartRateLab.plot_poincare
+        plot_spectrum = HeartRateLab.plot_spectrum
 
         # Test 1: plot_ibi_series can be created
         try
