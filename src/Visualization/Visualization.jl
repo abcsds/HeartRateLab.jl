@@ -234,6 +234,107 @@ function plot_spectrum(ibis::Vector{Float64}; method=:lomb, title="HRV Power Spe
 end
 
 """
+    plot_comparison(real::Vector{Float64}, models::Dict{String, Vector{Float64}}; title="Time Series Comparison") → Figure
+
+Overlay multiple model-generated IBI series against real data for visual inspection and comparison.
+
+# Arguments
+- `real::Vector{Float64}` — real IBI data (milliseconds)
+- `models::Dict{String, Vector{Float64}}` — Dict mapping model names → synthetic IBI series
+- `title::String` — overall plot title
+
+# Returns
+- Multi-panel figure with one panel per model, plus real data reference
+- Each panel shows time series overlay:
+  - Real data in blue
+  - Model in red/orange/green (cycle through colors)
+- Legend showing real vs model names
+- X-axis: beat index, Y-axis: IBI (ms)
+- Physiological bounds marked (300-2000 ms)
+
+# Requirements
+Requires Plots.jl to be loaded in the calling environment.
+"""
+function plot_comparison(real::Vector{Float64}, models::Dict{String, Vector{Float64}}; title="Time Series Comparison")
+    # Check if Plots is available
+    if !isdefined(Main, :plot)
+        println("Visualization requires Plots.jl. Please run: using Plots")
+        return nothing
+    end
+
+    # Access Plots functions through Main
+    plot = Main.plot
+    plot! = Main.plot!
+    hline! = Main.hline!
+
+    # Handle empty models dict
+    if isempty(models)
+        # Return plot with real data only
+        fig = plot(real,
+                   label="Real Data",
+                   xlabel="Beat Index",
+                   ylabel="IBI (ms)",
+                   title=title,
+                   legend=:topright,
+                   size=(900, 500))
+        hline!(fig, [300, 2000], label="", line=:dash, color=:gray, alpha=0.5)
+        return fig
+    end
+
+    # Prepare data
+    n_models = length(models)
+    model_names = collect(keys(models))
+    colors = [:red, :orange, :green, :purple, :cyan]  # Cycle through colors
+
+    # Create subplot layout
+    # Total panels = n_models + 1 (for real data as reference in each panel)
+    fig = plot(layout=(n_models + 1, 1), size=(900, 150 * (n_models + 1)), plot_title=title)
+
+    # Panel 0: Real data only
+    plot!(fig[1], real,
+          label="Real Data",
+          xlabel="Beat Index",
+          ylabel="IBI (ms)",
+          title="Real Data",
+          legend=:topright,
+          color=:blue,
+          linewidth=2)
+    hline!(fig[1], [300, 2000], label="", line=:dash, color=:gray, alpha=0.5)
+
+    # For each model
+    for (i, (name, synthetic)) in enumerate(models)
+        # Ensure same length
+        min_len = min(length(synthetic), length(real))
+        synthetic_truncated = synthetic[1:min_len]
+        real_truncated = real[1:min_len]
+
+        # Create subplot
+        beat_idx = 1:min_len
+        color_idx = (i - 1) % length(colors) + 1
+        model_color = colors[color_idx]
+
+        plot!(fig[i + 1], beat_idx, real_truncated,
+              label="Real",
+              xlabel="Beat Index",
+              ylabel="IBI (ms)",
+              title=name,
+              legend=:topright,
+              color=:blue,
+              linewidth=2)
+
+        plot!(fig[i + 1], beat_idx, synthetic_truncated,
+              label=name,
+              color=model_color,
+              linewidth=2)
+
+        # Add physiological bounds
+        hline!(fig[i + 1], [300, 2000], label="", line=:dash, color=:gray, alpha=0.5)
+    end
+
+    return fig
+end
+
+"""
     plot_comparison(real_ibis::Vector{Float64}, synthetic_ibis::Vector{Float64}; model_name="Model") -> Figure
 
 Create side-by-side comparison plots of real vs synthetic IBI data.

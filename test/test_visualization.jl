@@ -1,8 +1,20 @@
 using HeartRateLab
 using Test
+using Plots
 
 # Set working directory to test directory for relative paths
 cd(@__DIR__)
+
+@testset "plot_comparison" begin
+    real_data = Float64[600, 620, 590, 610, 580, 630, 600, 610, 620, 600]
+    models = Dict(
+        "Model1" => Float64[605, 615, 595, 615, 585, 625, 605, 605, 620, 600],
+        "Model2" => Float64[600, 625, 585, 610, 575, 635, 600, 615, 625, 595]
+    )
+    fig = HeartRateLab.plot_comparison(real_data, models; title="Test Comparison")
+    @test fig isa Any
+    @test size(fig) != ()
+end
 
 # Gate visualization tests on GLMakie availability
 try
