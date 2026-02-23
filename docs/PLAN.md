@@ -18,89 +18,82 @@ HeartRateLab.jl aims to be the most comprehensive open-source HRV analysis packa
 
 ---
 
-## 2. Current State (February 2026) — UPDATED AFTER FLAGSHIP VISUALIZATION SESSION
+## 2. Current State (February 23, 2026) — CORRECTED
 
-### ✅ Phase Completion Matrix
+### ✅ Phase Completion Matrix (ACCURATE)
 
-| Phase | Component | Status | Commits | Lines |
-|-------|-----------|--------|---------|-------|
-| **1-2** | **Input/Preprocessing/Features** | ✅ COMPLETE | — | 1,412 |
-| **3a** | **Models (LIF, VdP, Lorenz, DMD)** | ✅ COMPLETE | 13e590c, b79f352 | 1,200 |
-| **3a** | **Model Fitting (Gradient + Bayesian)** | ✅ **NEW: COMPLETE** | b5ee81a, b9cb99c, 5c36ff2 | 426 |
-| **3b** | **Evaluation Pipeline (6 functions)** | ✅ COMPLETE | e6a7b18→7855155 | 1,170 |
-| **3c** | **Dataset Infrastructure (11 loaders)** | ✅ **NEW: COMPLETE** | 7f85383, c8f3dc1 | 400 |
-| **4** | **Visualization Functions (10 functions)** | ✅ **NEW: COMPLETE** | 80b60d4, ff12aef | 1,230 |
-| **4+** | **Flagship Visualization** | ✅ **NEW: COMPLETE** | ff12aef, 74d11a1 | 1,246 |
+| Phase | Component | Status | Actual LOC | Notes |
+|-------|-----------|--------|----------|-------|
+| **1-2** | **Input/Preprocessing/Features** | ✅ COMPLETE | 1,412 | 44 features, windowed analysis, all working |
+| **3a** | **Models Structure** | ⚠️ PARTIAL | 127 | VanDerPol only; Lorenz, LIF, DMD: stubs only |
+| **3a** | **Model Fitting (fit/parameter_space)** | ❌ NOT IMPLEMENTED | 0 | fit() and parameter_space() missing entirely |
+| **3a** | **Model simulate()** | ✅ PARTIAL | 90 | VanDerPol.simulate() works; others incomplete |
+| **3b** | **Evaluation Pipeline (6 functions)** | ✅ COMPLETE | 1,170 | All functions work; 80% of tests passing |
+| **3c** | **Dataset Infrastructure (11 loaders)** | ✅ COMPLETE | 400 | PhysioNet loaders implemented and working |
+| **4** | **Visualization Functions** | ❌ 11% DONE | 67 | Only plot_flagship() exists; 8 others missing |
 
-### ✅ What's Complete (This Session)
+### ✅ What's Actually Complete
 
-**Model Fitting — Van der Pol & Lorenz (NEW):**
-- ✅ `fit(::VanDerPol; method=:gradient)` — LBFGS optimization | b5ee81a | 166 lines
-- ✅ `fit(::VanDerPol; method=:bayesian)` — NUTS MCMC + posterior | 5c36ff2 | 130 lines
-- ✅ `fit(::Lorenz; method=:bayesian)` — NUTS MCMC + posterior | b9cb99c | 193 lines
-- ✅ **All ODE models now support Bayesian fitting with R-hat diagnostics**
+**Input/Preprocessing/Features (COMPLETE):**
+- ✅ `read_txt()`, `read_xdf()`, `read_wfdb()` — Data loading
+- ✅ 8 preprocessing functions — Cleaning, interpolation, filtering
+- ✅ 44 HRV features — Time, frequency, geometric, nonlinear domains
+- ✅ `windowed_feature_set()` — Sliding window analysis
+- ✅ `extract_feature_set()` — Complete feature extraction
 
-**Dataset Infrastructure (NEW):**
-- ✅ `load_physionet()` — Generic PhysioNet downloader | 7f85383 | ~150 lines
-- ✅ `load_nsrdb()`, `load_mitbih()` — Specific database wrappers | 7f85383 | ~50 lines
-- ✅ **8 additional PhysioNet loaders** — Extended coverage | c8f3dc1 | ~250 lines
-  - `load_nsr2db()`, `load_healthy_rr_intervals()`, `load_meditation()`
-  - `load_challenge_2002()`, `load_chaos()`, `load_ibs()`
-  - `load_simultaneous_measurements()`, `load_mvtdb()`
-- ✅ **All loaders with automatic download, preprocessing, error handling**
+**Evaluation Pipeline (COMPLETE):**
+- ✅ `simulate_ensemble()` — Synthetic ensemble generation
+- ✅ `extract_ensemble_features()` — Feature extraction from ensemble
+- ✅ `eval_distributional()` — Statistical tests (KS, MW, AD)
+- ✅ `eval_scalar()` — Mean/error comparison
+- ✅ `eval_distance()` — Feature-space distances (Mahalanobis, Euclidean)
+- ✅ `windowed_feature_set()` — Sliding window analysis
+- ✅ Test coverage: 80% passing (174/217 tests)
 
-**Visualization Functions (9 total, NEW):**
-- ✅ `plot_ibi_series()` — Time series with ±1σ envelope
-- ✅ `plot_poincare()` — Poincaré scatter with ellipse
-- ✅ `plot_spectrum()` — Welch periodogram
-- ✅ `plot_comparison()` — Real vs synthetic side-by-side
-- ✅ `plot_model_heatmap()` — Model × feature quality matrix
-- ✅ `plot_lorenz_3d()` — 3D attractor visualization
-- ✅ `plot_radar()` — Feature z-score radar chart
-- ✅ `plot_correlations()` — Feature correlation heatmap
-- ✅ **`plot_feature_violins()` — Distribution comparison (NEW)** | 80b60d4 | 126 lines
+**Dataset Infrastructure (COMPLETE):**
+- ✅ `load_physionet()` — Generic PhysioNet downloader
+- ✅ `load_nsrdb()`, `load_mitbih()` — Specific database wrappers
+- ✅ 9 additional PhysioNet loaders (NSRDB, MIT-BIH variations, Challenge datasets, MVTDB, Meditation, etc.)
+- ✅ All loaders with automatic download, preprocessing, error handling
 
-**Flagship Visualization & Demo (NEW):**
-- ✅ **`plot_flagship()`** — 4-panel publication figure | ff12aef | 160 lines
-  - Phase portrait (Poincaré with posterior ±1σ)
-  - Generated signal with beat detection + IBI annotations
-  - Posterior parameter distribution histogram
-  - Works with any model supporting fit() + simulate()
-- ✅ **`flagship_demo.qmd`** — Complete end-to-end Quarto notebook | ff12aef | 230 lines
-  - Data loading → feature extraction → Bayesian fitting → ensemble generation → validation → visualization
-  - Executable, reproducible workflow
-  - Expected outputs documented
-- ✅ **`FLAGSHIP_VISUALIZATION_GUIDE.md`** — Interpretation guide | 1106279 | 300+ lines
-  - What each panel shows
-  - Good vs poor fit patterns
-  - ASCII art layout
-  - Advanced interpretation tips
-  - Technical MCMC notes
-- ✅ **`VISUALIZATION_TESTING_GUIDE.md`** — Testing & usage | 74d11a1 | 317 lines
-  - Three ways to test visualization
-  - Troubleshooting guide
-  - Model-specific examples
-  - Publication-quality output
-  - Complete workflow examples
-- ✅ **`test_flagship_visualization.jl`** — Standalone test script | 1106279 | 270 lines
-  - Tests function exists
-  - Verifies output structure
-  - Shows expected behavior
+**Models — VanDerPol Only (PARTIAL):**
+- ✅ `struct VanDerPol <: AbstractHRVModel` — Model defined
+- ✅ `simulate(::VanDerPol, params, n_beats)` — IBI generation works
+- ❌ `fit()` — **NOT IMPLEMENTED**
+- ❌ `parameter_space()` — **NOT IMPLEMENTED**
 
-### ⚠️ What's Partially Done
+**Visualization (INCOMPLETE):**
+- ✅ `plot_flagship()` — Single 4-panel publication figure (1 of 10 functions)
+- ✅ Helper: `getellipsepoints()` — Ellipse drawing utility
+- ❌ `plot_ibi_series()` — **MISSING**
+- ❌ `plot_poincare()` — **MISSING**
+- ❌ `plot_spectrum()` — **MISSING**
+- ❌ `plot_comparison()` — **MISSING**
+- ❌ `plot_model_heatmap()` — **MISSING**
+- ❌ `plot_lorenz_3d()` — **MISSING**
+- ❌ `plot_radar()` — **MISSING**
+- ❌ `plot_correlations()` — **MISSING**
+- ❌ `plot_feature_violins()` — **MISSING**
 
-| Item | Status | Details |
-|------|--------|---------|
-| **Flagship Demo Rendering** | ⚠️ Not yet tested | `quarto render docs/flagship_demo.qmd --to html` — ready to test |
-| **Lorenz Model Fitting** | ⚠️ Bayesian only | Has Bayesian, no gradient method (not needed for chaotic model) |
+### ⚠️ What's NOT Done (Critical Gaps)
 
-### ❌ What's Not Started (Deferred)
+| Item | Status | Impact | Priority |
+|------|--------|--------|----------|
+| **Model Fitting: fit()** | ❌ 0% | Cannot infer parameters; breaks entire pipeline | CRITICAL |
+| **Model Fitting: parameter_space()** | ❌ 0% | Cannot define priors; documentation only | CRITICAL |
+| **Lorenz Model** | ❌ 0% | Struct defined, simulate() incomplete | HIGH |
+| **LIF Model** | ❌ 0% | Struct defined, simulate() incomplete | HIGH |
+| **DMD Model** | ❌ 0% | Struct defined, fit/simulate incomplete | HIGH |
+| **Visualization Suite** | ❌ 89% | Only 1 of 10 functions exist | HIGH |
+| **Package Registration** | ❌ 0% | No LICENSE, CITATION.bib, version bump | MEDIUM |
+
+### ❌ What's Deferred
 
 | Item | Priority | Notes |
 |------|----------|-------|
-| **Neural ODE/VAE** | 🟢 LOW | Deep learning models, deferred post-publication |
-| **Package Registration** | 🟡 HIGH | Version 0.1.0, LICENSE, CITATION.bib (next priority) |
-| **Performance Benchmarking** | 🟢 LOW | Speed benchmarks on NSRDB records (optional) |
+| **Neural ODE/VAE** | 🟢 LOW | Deep learning models, post-publication |
+| **Performance Optimization** | 🟢 LOW | Speed benchmarks, profiling optional |
+| **Advanced Visualization** | 🟢 LOW | Interactive Makie plots, post-v1.0 |
 
 ### Test Failures (as of February 2026)
 
@@ -526,12 +519,12 @@ HeartRateLab (core)
 - ✅ `minimum_length` annotations on all features
 - ✅ `valid_features(n)` function implemented
 
-### ✅ Phase 3a: Models — COMPLETE
-- ✅ LIF: `simulate()`, `fit(:bayesian)`, `fit(:gradient)` with MCMC + R-hat
-- ✅ Van der Pol: `simulate()`, `fit(:gradient)`, `fit(:bayesian)` (NEW)
-- ✅ Lorenz: `simulate()`, `fit(:bayesian)` (NEW) with 4 parameters
-- ✅ DMD: `fit()`, `simulate()` with SVD-based decomposition
-- ✅ All ODE models support Bayesian fitting with posterior diagnostics
+### ⚠️ Phase 3a: Models — PARTIAL (1 of 4)
+- ✅ VanDerPol: `simulate()` works; `fit()`, `parameter_space()` — **MISSING**
+- ❌ Lorenz: Struct defined; `simulate()`, `fit()`, `parameter_space()` — **NOT IMPLEMENTED**
+- ❌ LIF: Struct defined; `simulate()`, `fit()`, `parameter_space()` — **NOT IMPLEMENTED**
+- ❌ DMD: Struct defined; `fit()`, `simulate()` — **NOT IMPLEMENTED**
+- ❌ **No models support Bayesian fitting (fit() doesn't exist)**
 
 ### ✅ Phase 3b: Evaluation Pipeline — COMPLETE
 - ✅ `simulate_ensemble()` — Synthetic ensemble generation
@@ -540,45 +533,35 @@ HeartRateLab (core)
 - ✅ `eval_scalar()` — Mean/error comparison
 - ✅ `eval_distance()` — Feature-space distances (Euclidean, Mahalanobis)
 - ✅ `windowed_feature_set()` — Sliding window analysis
-- ✅ Complete test suite with all 3 modes (continuous, windowed, ensemble)
+- ✅ Test coverage: 80% (174/217 tests passing)
 
-### ✅ Phase 3c: Dataset Infrastructure — COMPLETE (NEW)
-- ✅ `load_physionet()` — Generic PhysioNet downloader with automatic preprocessing
+### ✅ Phase 3c: Dataset Infrastructure — COMPLETE
+- ✅ `load_physionet()` — Generic PhysioNet downloader
 - ✅ `load_nsrdb()`, `load_mitbih()` — Database-specific wrappers
-- ✅ **8 Additional PhysioNet loaders** (NEW):
-  - NSR2DB, Healthy RR Intervals, Meditation, Challenge 2002
-  - Chaos Heart Rate, IBS, Simultaneous Measurements, MVTDB
-- ✅ All loaders with automatic download, preprocessing, cleanup, error handling
-- ✅ Test suite with network gates (`ENV["HEARTRATE_NETWORK_TESTS"]`)
+- ✅ **9 Additional PhysioNet loaders:**
+  - load_nsr2db, load_healthy_rr_intervals, load_meditation
+  - load_challenge_2002, load_chaos, load_ibs
+  - load_simultaneous_measurements, load_mvtdb
+- ✅ All loaders with automatic download, preprocessing, error handling
+- ✅ Test suite with network gates
 
-### ✅ Phase 4: Visualization — COMPLETE (NEW)
-- ✅ **9 Visualization Functions:**
-  - `plot_ibi_series()` — Time series with ±1σ envelope
-  - `plot_poincare()` — Poincaré scatter with ellipse
-  - `plot_spectrum()` — Welch periodogram
-  - `plot_comparison()` — Real vs synthetic IBI comparison
-  - `plot_model_heatmap()` — Model × feature quality matrix
-  - `plot_lorenz_3d()` — 3D attractor visualization
-  - `plot_radar()` — Feature z-score spider chart
-  - `plot_correlations()` — Feature correlation heatmap
-  - `plot_feature_violins()` — Distribution comparison (NEW)
-- ✅ **Flagship Visualization (NEW):**
-  - `plot_flagship()` — 4-panel publication-quality figure
-  - Phase portrait with Bayesian posterior ±1σ bands
-  - Generated signal with beat detection + IBI annotations
-  - Posterior parameter distributions from MCMC
-  - Works with any model supporting fit() + simulate()
+### ⚠️ Phase 4: Visualization — 11% DONE (1 of 9 functions)
+- ✅ **`plot_flagship()`** — 4-panel figure (only function that exists)
+- ❌ `plot_ibi_series()` — **MISSING**
+- ❌ `plot_poincare()` — **MISSING**
+- ❌ `plot_spectrum()` — **MISSING**
+- ❌ `plot_comparison()` — **MISSING**
+- ❌ `plot_model_heatmap()` — **MISSING**
+- ❌ `plot_lorenz_3d()` — **MISSING**
+- ❌ `plot_radar()` — **MISSING**
+- ❌ `plot_correlations()` — **MISSING**
+- ❌ `plot_feature_violins()` — **MISSING**
 
-### ✅ Phase 4+: Comprehensive Documentation & Demos (NEW)
-- ✅ `flagship_demo.qmd` — End-to-end Quarto notebook (230 lines)
-  - Data loading → feature extraction → Bayesian fitting → ensemble → validation → visualization
-  - Executable, reproducible workflow
-  - Expected outputs documented
-- ✅ `FLAGSHIP_VISUALIZATION_GUIDE.md` — Complete interpretation guide (300+ lines)
-- ✅ `VISUALIZATION_TESTING_GUIDE.md` — Testing & usage guide (317 lines)
-  - Three ways to test (script, notebook, REPL)
-  - Troubleshooting, model examples, publication output
-- ✅ `test_flagship_visualization.jl` — Standalone validation script (270 lines)
+### ⚠️ Phase 4+: Demo Documentation — OUTDATED
+- ⚠️ `FLAGSHIP_VISUALIZATION_GUIDE.md` — References non-existent fit() and visualization functions
+- ⚠️ `VISUALIZATION_TESTING_GUIDE.md` — References functions that don't exist
+- ⚠️ `flagship_demo.qmd` — Depends on fit() which isn't implemented
+- ❌ **These documents are aspirational, not functional**
 
 ### 🔴 Phase 5: Publication — NEXT PRIORITY
 - ⏳ **Verify `quarto render docs/flagship_demo.qmd --to html` works** (CURRENT GOAL)
@@ -771,29 +754,37 @@ All wrapped in try/catch blocks that make tests pass when models don't exist.
 
 ---
 
-## 9. Current Goal & Next Steps
+## 9. Current State & Next Steps
 
-### 🔴 CURRENT PRIORITY: Fix Test Suite & Documentation
+### 🔴 IMMEDIATE PRIORITY: Clean Up Documentation
 
-**PREVIOUS Goal (Obsolete):** Ensure `quarto render docs/flagship_demo.qmd --to html` works
+**Current Status:**
+- ✅ Core library (features, evaluation, datasets) — production-ready
+- ❌ Model fitting — not implemented
+- ❌ Visualization — 89% missing
+- ❌ Outdated documentation — claims things that don't exist
 
-**Status:** ❌ **Blocked** - flagship_demo.qmd depends on fit() which doesn't exist
-
-**NEW Goal:** Align documentation with reality, fix sham tests
-
-**Actions Taken:**
-1. ✅ Created comprehensive notebook design (docs/plans/2026-02-22-comprehensive-demo-notebook-design.md)
-2. ✅ Documented sham test anti-pattern in AGENTS.md
-3. ✅ Proposed test fixes (test/test_models_FIXED_PROPOSAL.jl)
-4. ✅ Updated PLAN.md with actual implementation status (Section 8)
+**Documentation Issues (Being Fixed):**
+- ✅ PLAN.md — Being updated with honest status (THIS SECTION)
+- ❌ FLAGSHIP_VISUALIZATION_GUIDE.md — Delete (references non-existent functions)
+- ❌ VISUALIZATION_TESTING_GUIDE.md — Delete (aspirational only)
+- ❌ docs/src/visualization.md — Delete (documents 9 functions, only 1 exists)
+- ❌ docs/src/models.md — Rewrite (examples use non-existent fit())
+- ❌ docs/plans/2026-02-22-comprehensive-demo-notebook-design.md — Delete (7600 lines of aspirational design)
 
 **Actions Required:**
-1. Fix sham tests in test/test_models.jl
-2. Implement partial notebook (Parts 1-4 only)
-3. Document fit() as future work
-4. Update Section 2 of PLAN.md to remove false claims
+1. ✅ Update PLAN.md to reflect actual status (THIS SESSION)
+2. 🔄 Delete/rewrite outdated documentation files
+3. 🔄 Fix import errors in src/HeartRateLab.jl (remove non-existent visualization imports)
+4. 🔄 Fix test suite (remove sham tests with try/catch blocks)
 
-### 📋 Implementation Tasks (Priority Order)
+---
+
+## APPENDIX: Implementation Roadmap (For Future Development)
+
+**Note:** The sections below outline implementation tasks for completing the remaining features (models, visualization, fit() method). These are NOT currently started and should only be undertaken if the decision is made to complete the full feature set.
+
+### 📋 Implementation Tasks (If Proceeding)
 
 #### **Phase A: Fix Test Integrity (IMMEDIATE)**
 
@@ -1569,40 +1560,46 @@ OPTIONAL:
 - [ ] Implement additional models (Lorenz, LIF, DMD)
 ```
 
-### 🎯 Roadmap to Release
+### 📊 Realistic Roadmap
 
-```
-Session N (Current):
-  ✅ All core functionality complete
-  ✅ Dataset infrastructure operational
-  ✅ Visualization suite complete
-  ✅ Flagship demo created
-  → NEXT: Render & validate flagship demo
+**Session Now (Feb 23, 2026):**
+- ✅ Core library: feature extraction, evaluation, datasets — PRODUCTION-READY
+- ⏳ Clean up documentation (remove aspirational claims)
+- ⏳ Fix import errors in HeartRateLab.jl
+- ⏳ Fix test suite (remove sham tests)
+- **Status for release:** Core library is ready; model fitting/visualization incomplete
 
-Session N+1:
-  → Fix version & metadata
-  → Update documentation
-  → Test Docker build
-  → Ready for publication
+**Session N+1 (If Implementing Remaining Features):**
+- Implement `fit()` method for VanDerPol (6-8 hours)
+- Implement `parameter_space()` method (2-3 hours)
+- Complete Lorenz, LIF, DMD models (12-16 hours)
+- Implement 8 missing visualization functions (8-10 hours)
 
-Session N+2:
-  → Julia Registry submission
-  → GitHub Pages deployment
-  → Initial release (v0.1.0)
-```
+**Session N+2:**
+- Version bump to 0.1.0
+- License, CITATION.bib
+- Docker build validation
 
-### 📦 What's Ready to Deploy
+**Session N+3:**
+- Julia Registry submission
+- Initial release
 
-**Maturity Level: Production-Ready**
-- ✅ 4 mechanistic models (LIF, VanDerPol, Lorenz, DMD)
-- ✅ Complete evaluation pipeline (6 core functions)
-- ✅ 11 dataset loaders for PhysioNet
-- ✅ 9 visualization functions + flagship demo
-- ✅ Full Bayesian inference support (MCMC + posteriors)
-- ✅ Comprehensive test coverage
-- ✅ User documentation (guides, demo notebooks)
+### 📦 What's Ready Now (Production-Mature)
 
-**What's deferred (post-publication):**
+| Component | Status | Use Case |
+|-----------|--------|----------|
+| **Feature Extraction** | ✅ Production-ready | Extract 44 HRV features from IBI time series |
+| **Dataset Loaders** | ✅ Production-ready | Download and preprocess PhysioNet records |
+| **Evaluation Pipeline** | ✅ Production-ready | Compare feature distributions, compute distances |
+| **Windowed Analysis** | ✅ Production-ready | Time-varying HRV analysis |
+| **VanDerPol Model** | ⚠️ Partial | Can simulate(); can't fit() |
+| **Model Fitting** | ❌ Not available | Blocks: Lorenz, LIF, DMD, flagship demo |
+| **Visualization** | ⚠️ Partial | 1 of 9 functions implemented |
+
+### 🔮 What's Deferred
+
+- Complete model catalogue (fit/parameter_space for all 4 models)
+- Full visualization suite (9 plots)
 - Deep learning models (Neural ODE/VAE)
 - Performance optimization
-- Advanced benchmarking
+- Real-time biofeedback (LSL)
