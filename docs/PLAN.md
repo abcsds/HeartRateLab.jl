@@ -398,37 +398,199 @@ docker run --rm -v .:/workdir julia:1.11-bookworm ...
 
 ### 3.7 Visualization Suite
 
-All visualization functions are offline-capable (no LSL required). LSL-based real-time functions remain separate. All require GLMakie, which will be made optional via package extensions.
+All visualization functions are offline-capable (no LSL required). Currently: **1 of 9 implemented** (plot_flagship only).
 
-**Five core comparison plots:**
+#### 3.7.1 Existing Implementation
 
+✅ **plot_flagship(data::Vector{Float64}; title="Flagship HRV Demo")** — Line 36-67 of src/Visualization/Visualization.jl
+- 4-panel publication figure: IBI series, histogram, Poincaré plot, cumulative time
+- Uses dynamic Plots.jl access (Main.plot, Main.histogram!, etc.)
+- Returns complete Figure
+
+#### 3.7.2 Visualization Functions to Implement (8 functions)
+
+All functions should:
+- Work with Plots.jl (use `Main.plot`, `Main.scatter!`, etc. for dynamic dispatch)
+- Return a Figure or Vector{Figure}
+- Handle edge cases (empty data, single point, NaN values)
+- Support optional title/labels
+- Use consistent color schemes (real=blue, models=red/green/orange)
+
+---
+
+**1. plot_ibi_series(data::Vector{Float64}; title="IBI Time Series", show_grid=true)**
+
+Purpose: Simple line plot of IBI values over beat index.
+
+Input:
+- `data::Vector{Float64}` — IBI series in milliseconds
+- `title::String` — plot title
+- `show_grid::Bool` — whether to show grid lines
+
+Output:
+- Figure with X-axis=beat index, Y-axis=IBI (ms)
+- Physiological bounds marked as horizontal lines (300-2000 ms typical range)
+
+Dependencies: Plots.jl
+Example usage:
 ```julia
-# 1. Radar / spider chart — feature z-scores, one polygon per model or dataset
-plot_radar(datasets::Dict{String, Vector{Float64}}; features=nothing, normalize=true)
-# Each entry in datasets becomes one polygon. features defaults to valid_features(minimum length).
-
-# 2. Feature distribution violins — real windowed dist vs synthetic ensemble per feature
-plot_feature_violins(real::DataFrame, ensembles::Dict{String, DataFrame}; features=nothing)
-# One panel per feature. Real data as reference violin, each model as colored violin.
-
-# 3. Time series + Poincaré side-by-side overlay
-plot_comparison(real::Vector{Float64}, synthetics::Dict{String, Vector{Float64}})
-# Top row: IBI time series (real + each model). Bottom row: Poincaré plots with ellipse.
-
-# 4. Model × dataset reproduction heatmap
-plot_model_heatmap(results::DataFrame)
-# DataFrame must have columns: model, feature, score (e.g. 1 - normalized KS statistic)
-# Rows=models, columns=features, color=reproduction quality (0=fails, 1=perfect)
-
-# 5. Correlation / pairplot across models and features
-plot_correlations(feature_sets::Dict{String, DataFrame}; features=nothing)
-# Pairwise scatter matrix of features, colored by model/dataset origin.
-# Reveals which features co-vary and where models diverge.
+data = read_txt("subject.txt")
+plot_ibi_series(data; title="Patient HRV Recording")
 ```
 
-**Existing visualization scripts** (`default.jl`, `geometric.jl`, etc.) will be refactored into:
-- `Visualization.online` — LSL-dependent real-time functions (preserved, cleaned up)
-- `Visualization.offline` — data-based functions (new API above + existing Poincaré, spectrum)
+---
+
+**2. plot_poincare(data::Vector{Float64}; title="Poincaré Plot")**
+
+Purpose: Scatter plot of (RR_n, RR_{n+1}) with SD1/SD2 ellipse overlay.
+
+Input:
+- `data::Vector{Float64}` — IBI series
+
+Output:
+- Scatter plot with ellipse showing SD1 (perpendicular) and SD2 (diagonal)
+- Center at (mean_RR, mean_RR)
+- Ellipse axes labeled with SD1, SD2 values
+
+Dependencies: Plots.jl (reuse getellipsepoints from existing code)
+Note: getellipsepoints() already exists in Visualization.jl, use it
+
+---
+
+**3. plot_spectrum(data::Vector{Float64}; method=:welch, title="Power Spectrum")**
+
+Purpose: Frequency-domain representation of HRV.
+
+Input:
+- `data::Vector{Float64}` — IBI series
+- `method::Symbol` — `:welch` (default) or `:periodogram` or `:lomb`
+- `title::String` — plot title
+
+Output:
+- Line plot: X-axis=frequency (Hz), Y-axis=power (log scale)
+- Marked frequency bands: VLF, LF, HF, with shaded regions
+- Band power values displayed as text annotations
+
+Dependencies: Frequency.jl module (Welch/Periodogram) + Plots.jl
+
+---
+
+**4. plot_comparison(real::Vector{Float64}, models::Dict{String, Vector{Float64}}; title="Time Series Comparison")**
+
+Purpose: Overlay multiple model-generated series against real data for visual inspection.
+
+Input:
+- `real::Vector{Float64}` — real IBI data
+- `models::Dict{String, Vector{Float64}}` — Dict of model names → synthetic IBI series
+  - All series should be similar length (pad/truncate if needed)
+- `title::String` — overall plot title
+
+Output:
+- Multi-panel figure (one row per model + real)
+- Each panel shows time series overlay
+- Real data in blue, model in red/orange/green (cycle through colors)
+- Legend shows real vs model names
+
+Dependencies: Plots.jl
+
+Example:
+```julia
+data = read_txt("subject.txt")
+vdp = VanDerPol()
+result = fit(vdp, data; method=:bayesian)
+synthetic = simulate(vdp, result.params, length(data))
+plot_comparison(data, Dict("VdP"=>synthetic))
+```
+
+---
+
+**5. plot_model_heatmap(results::DataFrame; title="Model × Feature Reproduction")**
+
+Purpose: Matrix visualization showing which (model, feature) pairs reproduce well.
+
+Input:
+- `results::DataFrame` — columns must include:
+  - `:model` (String) — model name
+  - `:feature` (String) — feature name
+  - `:score` (Float64) — 0-1 reproduction quality (e.g., 1 - normalized KS stat)
+- `title::String` — plot title
+
+Output:
+- Heatmap: rows=models, columns=features, color=score (white=0/fail, red=1/perfect)
+- Values displayed in cells
+- Dendrogram clustering optional (hierarchical order by reproduction strength)
+
+Dependencies: Plots.jl (heatmap), optional: Clustering.jl (dendrogram)
+
+---
+
+**6. plot_lorenz_3d(lorenz_result; title="Lorenz Phase Space")**
+
+Purpose: 3D visualization of Lorenz system trajectory.
+
+Input:
+- `lorenz_result::ModelFitResult` — from fit(Lorenz(), data)
+- `title::String` — plot title
+
+Output:
+- 3D line plot showing Lorenz (x, y, z) trajectory
+- Color gradient along trajectory showing time flow
+- Sphere at IBI extraction threshold plane
+
+Dependencies: Plots.jl (3D support with camera control)
+
+Note: Lorenz.simulate() returns threshold-crossing IBIs, not full ODE trajectory.
+May need helper function `simulate_lorenz_trajectory()` to get full (x,y,z) for plotting.
+
+---
+
+**7. plot_radar(datasets::Dict{String, Vector{Float64}}; features=nothing, title="Feature Comparison")**
+
+Purpose: Spider/radar chart of normalized feature values for multi-dataset comparison.
+
+Input:
+- `datasets::Dict{String, Vector{Float64}}` — Dict of dataset names → IBI series
+- `features::Union{Nothing, Vector{String}}` — which features to include (default: valid_features)
+- `title::String` — plot title
+
+Output:
+- Radar/spider chart with one polygon per dataset
+- Each axis = one feature (z-scored across datasets)
+- Color-coded polygons with legend
+
+Dependencies: Plots.jl + Features.jl (extract_feature_set, valid_features)
+
+---
+
+**8. plot_correlations(feature_sets::Dict{String, DataFrame}; features=nothing, title="Feature Correlations")**
+
+Purpose: Pairwise scatter matrix revealing covariance structure across models/datasets.
+
+Input:
+- `feature_sets::Dict{String, DataFrame}` — Dict of dataset names → DataFrame(rows=samples, cols=features)
+- `features::Union{Nothing, Vector{String}}` — which features to plot (default: valid_features)
+- `title::String` — plot title
+
+Output:
+- Grid of scatter plots: lower triangle=scatter, diagonal=histogram, upper=correlation coefficient
+- Points colored by dataset origin (one color per dataset)
+
+Dependencies: Plots.jl
+
+Example:
+```julia
+real_features = windowed_feature_set(data; window_size=300)
+model_features = extract_ensemble_features(ensemble)
+plot_correlations(Dict("Real"=>real_features, "Model"=>model_features))
+```
+
+---
+
+**9. plot_flagship(data::Vector{Float64}; title="Flagship HRV Demo")** ✅ COMPLETE
+
+Already implemented at src/Visualization/Visualization.jl:36-67
+- 4-panel publication figure: IBI series, histogram, Poincaré, cumulative
+- Ready to use
 
 ### 3.8 Package Extension Strategy
 
