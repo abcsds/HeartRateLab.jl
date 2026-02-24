@@ -2,6 +2,7 @@ module Visualization
 
 using Statistics
 using DataFrames
+using DataFrames: DataFrame
 
 # Import Models module for accessing simulate_lorenz_trajectory and types
 # This is safe because Models is included in the parent module before Visualization
