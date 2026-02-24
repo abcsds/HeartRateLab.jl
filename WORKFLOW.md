@@ -297,9 +297,8 @@ docker run --rm -v .:/workdir hrlab:render \
 | File | Purpose | Edit when... |
 |------|---------|--------------|
 | `src/Models.jl` | Model implementations | Implementing Phase B-F |
-| `test/test_models.jl` | Model tests | Tests need updates (already fixed in Phase A) |
+| `test/runtests.jl` | Tests | These define the goals of a TDD |
 | `docs/flagship_demo.qmd` | Flagship demo notebook | Creating/updating demos |
-| `docs/comprehensive_demo.qmd` | Comprehensive demo | Phase G (creating new) |
 | `Project.toml` | Dependencies | Adding new packages needed by models |
 | `flake.nix` | Nix configuration | Rarely (unless changing Julia version) |
 | `Dockerfile` | Container definition | Rarely (unless adding new system tools) |

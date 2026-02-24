@@ -78,7 +78,7 @@
             #!${pkgs.runtimeShell}
             set -e
 
-            NOTEBOOK=''${1:-comprehensive_demo}
+            NOTEBOOK=''${1:-flagship_demo}
             NOTEBOOK_FILE="docs/$NOTEBOOK.qmd"
             OUTPUT_FILE="docs/$NOTEBOOK.html"
 
