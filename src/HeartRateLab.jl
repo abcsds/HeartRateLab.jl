@@ -52,7 +52,7 @@ export windowed
 # Re-export functions from submodules
 import .Features: extract_feature_set, windowed_feature_set, valid_features
 import .Evaluation: simulate_ensemble, extract_ensemble_features, eval_distributional, eval_scalar, eval_distance
-import .Visualization: plot_ibi_series, plot_poincare, plot_spectrum, plot_comparison, plot_model_heatmap, plot_lorenz_3d, plot_radar, plot_correlations, plot_feature_violins, plot_flagship
+import .Visualization: plot_ibi_series, plot_poincare, plot_spectrum, plot_comparison, plot_model_heatmap, plot_lorenz_3d, plot_radar, plot_correlations, plot_flagship
 import .Models: VanDerPol, Lorenz, LIF, DMD, AbstractHRVModel, ModelFitResult, simulate, parameter_space
 
 # export Features
@@ -62,6 +62,6 @@ import .Models: VanDerPol, Lorenz, LIF, DMD, AbstractHRVModel, ModelFitResult, s
 # export get_peaks
 export extract_feature_set, windowed_feature_set, valid_features, simulate_ensemble, extract_ensemble_features, eval_distributional, eval_scalar, eval_distance
 export load_physionet, load_nsrdb, load_mitbih, load_nsr2db, load_healthy_rr_intervals, load_meditation, load_challenge_2002, load_chaos, load_ibs, load_simultaneous_measurements, load_mvtdb
-export plot_ibi_series, plot_poincare, plot_spectrum, plot_comparison, plot_model_heatmap, plot_lorenz_3d, plot_radar, plot_correlations, plot_feature_violins, plot_flagship, fit
+export plot_ibi_series, plot_poincare, plot_spectrum, plot_comparison, plot_model_heatmap, plot_lorenz_3d, plot_radar, plot_correlations, plot_flagship, fit
 export VanDerPol, Lorenz, LIF, DMD, AbstractHRVModel, ModelFitResult, simulate, parameter_space
 end
