@@ -121,3 +121,39 @@ end
     @test fig isa Any
     @test size(fig) != ()
 end
+
+@testset "plot_correlations" begin
+    using DataFrames
+
+    data1 = DataFrame(
+        SDNN=[60, 65, 58, 62, 59],
+        RMSSD=[30, 32, 28, 31, 29],
+        LF=[500, 520, 480, 510, 490],
+        HF=[300, 310, 290, 305, 295]
+    )
+
+    data2 = DataFrame(
+        SDNN=[55, 60, 58, 62, 56],
+        RMSSD=[28, 30, 29, 31, 27],
+        LF=[450, 480, 460, 510, 440],
+        HF=[280, 300, 290, 305, 270]
+    )
+
+    feature_sets = Dict("Model1" => data1, "Model2" => data2)
+
+    # Test with default features (all available)
+    fig = HeartRateLab.plot_correlations(feature_sets; title="Test Correlations")
+    @test fig isa Any
+    @test size(fig) != ()
+
+    # Test with specific features
+    fig2 = HeartRateLab.plot_correlations(feature_sets; features=["SDNN", "RMSSD"], title="Test Correlations - Subset")
+    @test fig2 isa Any
+    @test size(fig2) != ()
+
+    # Test with single dataset
+    single_set = Dict("Dataset" => data1)
+    fig3 = HeartRateLab.plot_correlations(single_set; title="Single Dataset Correlations")
+    @test fig3 isa Any
+    @test size(fig3) != ()
+end

@@ -646,13 +646,131 @@ function plot_radar(datasets::Dict{String, Vector{Float64}}; features=nothing, t
 end
 
 """
-    plot_correlations(features_df::DataFrame; title="Feature Correlations") -> Figure
+    plot_correlations(feature_sets::Dict{String, DataFrame}; features=nothing, title="Feature Correlations") → Figure
 
-Create a correlation heatmap showing relationships between features.
-This function is provided by the HeartRateLabVisualizationExt extension when GLMakie is loaded.
+Create a pairwise scatter matrix showing feature correlations across datasets.
+
+# Arguments
+- `feature_sets::Dict{String, DataFrame}` — Dict mapping dataset names → DataFrame(rows=samples, cols=features)
+- `features::Union{Nothing, Vector{String}}` — which features to plot (default: all available)
+- `title::String` — plot title
+
+# Returns
+- N×N grid of subplots where N = number of features:
+  - Diagonal cells: histograms of feature distributions
+  - Lower triangle: scatter plots of feature pairs (one color per dataset)
+  - Upper triangle: correlation coefficients (optional, can be empty)
+  - Points colored by dataset origin
+
+# Details
+The correlation matrix visualization reveals feature covariance structure and dependencies
+across multiple models or datasets. Points are colored differently for each dataset origin
+to show how feature relationships vary across data sources.
+
+# Requirements
+Requires Plots.jl to be loaded in the calling environment.
 """
-function plot_correlations(features_df)
-    error("plot_correlations requires GLMakie. Please run: using GLMakie")
+function plot_correlations(feature_sets::Dict{String, DataFrame}; features=nothing, title="Feature Correlations")
+    # Check if Plots is available
+    if !isdefined(Main, :plot)
+        println("Visualization requires Plots.jl. Please run: using Plots")
+        return nothing
+    end
+
+    # Handle empty feature_sets
+    if isempty(feature_sets)
+        println("No feature sets provided for correlation plot")
+        return nothing
+    end
+
+    # Determine features to plot
+    if features === nothing
+        features = names(first(values(feature_sets)))
+    end
+
+    # Handle empty features
+    if isempty(features)
+        println("No features available for correlation plot")
+        return nothing
+    end
+
+    # Access Plots functions through Main
+    plot = Main.plot
+    scatter! = Main.scatter!
+    histogram! = Main.histogram!
+    plot! = Main.plot!
+
+    n_features = length(features)
+    colors = [:blue, :red, :green, :purple, :orange, :brown, :pink, :cyan]
+
+    # Create grid layout with dynamic size
+    subplot_size = 100 * n_features
+    fig = plot(layout=Main.grid(n_features, n_features),
+               size=(subplot_size, subplot_size),
+               plot_title=title)
+
+    # For each cell in the grid
+    for i in 1:n_features
+        for j in 1:n_features
+            cell_idx = (i - 1) * n_features + j
+
+            if i == j
+                # Diagonal: histogram of feature i
+                all_vals = Float64[]
+                for (name, df) in feature_sets
+                    col_data = df[!, Symbol(features[i])]
+                    append!(all_vals, col_data)
+                end
+
+                histogram!(fig[cell_idx], all_vals,
+                          label="",
+                          title=features[i],
+                          titlefontsize=10,
+                          xlabel="",
+                          ylabel="",
+                          xtickfontsize=7,
+                          ytickfontsize=7,
+                          legend=false)
+
+            elseif i > j
+                # Lower triangle: scatter plot of feature j vs i
+                for (idx, (name, df)) in enumerate(feature_sets)
+                    x_data = df[!, Symbol(features[j])]
+                    y_data = df[!, Symbol(features[i])]
+
+                    color_idx = ((idx - 1) % length(colors)) + 1
+                    color = colors[color_idx]
+
+                    scatter!(fig[cell_idx], x_data, y_data,
+                            label=name,
+                            color=color,
+                            markersize=4,
+                            alpha=0.6,
+                            markerstrokewidth=0,
+                            xtickfontsize=7,
+                            ytickfontsize=7,
+                            titlefontsize=10,
+                            legend=(j == 1 && i == 2))  # Only legend on one cell
+                end
+
+                # Add axis labels
+                plot!(fig[cell_idx],
+                     xlabel=j == 1 ? features[j] : "",
+                     ylabel=j == n_features - 1 ? features[i] : "",
+                     xlabelfontsize=8,
+                     ylabelfontsize=8)
+
+            else
+                # Upper triangle: empty or correlation text
+                plot!(fig[cell_idx], [], [],
+                     label="",
+                     axis=false,
+                     legend=false)
+            end
+        end
+    end
+
+    return fig
 end
 
 """
