@@ -1,23 +1,35 @@
 """
     LIF <: AbstractHRVModel
 
-Leaky Integrate-and-Fire stochastic neural model for HRV simulation.
-Generates spike-based cardiac dynamics through threshold crossings.
+Leaky Integrate-and-Fire cardiac pacemaker model for HRV simulation.
+Models the heart's sinoatrial node as a large-τ pacemaker neuron.
 
-# Parameters
-- `τ`: Membrane time constant (typically ~50 ms)
-- `I_base`: Base input current (typically ~0.8)
-- `threshold`: Spike threshold (typically ~1.0)
-- `noise_amp`: Noise amplitude (typically ~0.15)
+# Physiological Parameters (Fixed)
+- `τ`: Membrane time constant = 200 ms (cardiac pacemaker)
+- `V_rest`: Resting potential = -65 mV
+- `V_reset`: Reset potential = -65 mV (equals resting)
+- `V_threshold`: Spike threshold = -60 mV
+- `R`: Membrane resistance = 10 MΩ
+
+# Fitted Parameter
+- `I`: Input current (dimensionless, typical 1.51-1.53 for 800-1000ms IBIs)
+
+# Model Equation
+τ dV/dt = -(V - V_rest) + R*I
+
+When V crosses V_threshold, a spike occurs and V resets to V_reset.
+IBI = time between spikes × 10 (converts 80-100ms model time to 800-1000ms physiological time)
 """
 struct LIF <: AbstractHRVModel
-    τ::Float64
-    I_base::Float64
-    threshold::Float64
-    noise_amp::Float64
+    τ::Float64          # Membrane time constant (ms) = 200 (fixed)
+    V_rest::Float64     # Resting potential (mV) = -65 (fixed)
+    V_reset::Float64    # Reset potential (mV) = -65 (fixed)
+    V_threshold::Float64  # Spike threshold (mV) = -60 (fixed)
+    R::Float64          # Membrane resistance (MΩ) = 10 (fixed)
+    I::Float64          # Input current (fitted parameter, typically 1.51-1.53)
 end
 
-LIF(; τ=50.0, I_base=0.8, threshold=1.0, noise_amp=0.15) = LIF(τ, I_base, threshold, noise_amp)
+LIF(; I=1.52) = LIF(200.0, -65.0, -65.0, -60.0, 10.0, I)
 
 """
     parameter_space(model::LIF) -> NamedTuple

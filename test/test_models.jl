@@ -330,3 +330,20 @@ end
     @test length(result_bayes.posterior["threshold"]) == expected_samples
     @test length(result_bayes.posterior["noise_amp"]) == expected_samples
 end
+
+# ============================================================================
+# LIF Cardiac Pacemaker Model - New Structure
+# ============================================================================
+@testset "LIF Cardiac Pacemaker Model - New Structure" begin
+    # Test 1: Create LIF with physiological defaults
+    lif = HeartRateLab.Models.LIF()
+    @test lif.τ ≈ 200.0  # Cardiac pacemaker time constant
+    @test lif.V_rest ≈ -65.0  # Resting potential in mV
+    @test lif.V_threshold ≈ -60.0  # Spike threshold in mV
+    @test lif.R ≈ 10.0  # Membrane resistance in MΩ
+    @test lif.V_reset ≈ -65.0  # Reset voltage equals resting
+
+    # Test 2: Create LIF with custom I value
+    lif_custom = HeartRateLab.Models.LIF(I=1.52)
+    @test lif_custom.I ≈ 1.52
+end
