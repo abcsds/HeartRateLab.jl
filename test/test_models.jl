@@ -31,8 +31,9 @@ cd(@__DIR__)
     # Test 3: simulate() produces valid IBIs
     reconstructed = HeartRateLab.Models.simulate(fitted_dmd.model, nothing, length(ibis))
 
-    plot(ibis, label="Original", legend=:topleft)
-    plot!(reconstructed, label="Reconstructed")
+    # NOTE: plot() calls removed to avoid GLMakie display errors in CI/Docker
+    # plot(ibis, label="Original", legend=:topleft)
+    # plot!(reconstructed, label="Reconstructed")
 
     @test length(reconstructed) ≈ length(ibis)
     @test all(reconstructed .> 0)
@@ -250,86 +251,12 @@ end
 end
 
 # ============================================================================
-# LIF Model - IMPLEMENTED (requires DifferentialEquations)
+# LIF Model - LEGACY TESTS (OLD IMPLEMENTATION - DEPRECATED)
+# These tests reference an old model structure and are no longer applicable
+# See "LIF Cardiac Pacemaker Model - New Structure" testset instead
 # ============================================================================
-@testset "LIF Model (requires DifferentialEquations)" begin
-    lif = HeartRateLab.Models.LIF(τ=50.0, I_base=0.8, threshold=1.0, noise_amp=0.15)
-
-    # Test 1: Model can be created
-    @test lif.τ ≈ 50.0
-    @test lif.I_base ≈ 0.8
-    @test lif.threshold ≈ 1.0
-    @test lif.noise_amp ≈ 0.15
-
-    # Test 2: parameter_space() returns expected parameters
-    ps = HeartRateLab.Models.parameter_space(lif)
-    @test haskey(ps, :τ)
-    @test haskey(ps, :I_base)
-    @test haskey(ps, :threshold)
-    @test haskey(ps, :noise_amp)
-    @test haskey(ps, :σ_noise)
-
-    # Test 3: simulate() produces valid IBIs
-    params = (τ=50.0, I_base=0.8, threshold=1.0, noise_amp=0.15)
-    ibis = HeartRateLab.Models.simulate(lif, params, 50)
-
-    @test length(ibis) == 50
-    @test all(ibis .> 0)
-    @test all(300 .< ibis .< 2000)
-
-    # Test 4: Different parameters produce different dynamics
-    params_slow_tau = (τ=80.0, I_base=0.8, threshold=1.0, noise_amp=0.15)
-    ibis_slow = HeartRateLab.Models.simulate(lif, params_slow_tau, 50)
-
-    # Slower time constant should affect variability
-    @test std(ibis_slow) != std(ibis)
-
-    # Test 5: fit(:gradient) produces valid result
-    result = HeartRateLab.Models.fit(lif, ibis; method=:gradient)
-
-    @test result.model isa HeartRateLab.Models.LIF
-    @test result.method == :gradient
-    @test haskey(result.diagnostics, "converged")
-    @test haskey(result.diagnostics, "loss_final")
-    @test result.posterior === nothing  # No posterior for gradient
-
-    # Test 6: Gradient fit produces valid parameters
-    @test 10.0 <= result.params.τ <= 100.0
-    @test 0.5 <= result.params.I_base <= 1.5
-    @test 0.5 <= result.params.threshold <= 1.5
-    @test 0.05 <= result.params.noise_amp <= 0.5
-
-    # Test 7: fit(:bayesian) produces valid result
-    result_bayes = HeartRateLab.Models.fit(lif, ibis; method=:bayesian, chains=2, samples=100)
-
-    @test result_bayes.model isa HeartRateLab.Models.LIF
-    @test result_bayes.method == :bayesian
-    @test result_bayes.posterior !== nothing
-    @test haskey(result_bayes.posterior, "τ")
-    @test haskey(result_bayes.posterior, "I_base")
-    @test haskey(result_bayes.posterior, "threshold")
-    @test haskey(result_bayes.posterior, "noise_amp")
-
-    # Test 8: Bayesian fit produces valid parameters
-    @test result_bayes.params.τ > 0
-    @test result_bayes.params.I_base > 0
-    @test result_bayes.params.threshold > 0
-    @test result_bayes.params.noise_amp > 0
-
-    # Test 9: Diagnostics include R-hat values
-    @test haskey(result_bayes.diagnostics, "rhat_tau")
-    @test haskey(result_bayes.diagnostics, "rhat_I_base")
-    @test haskey(result_bayes.diagnostics, "rhat_threshold")
-    @test haskey(result_bayes.diagnostics, "rhat_noise_amp")
-    @test haskey(result_bayes.diagnostics, "rhat_sigma_noise")
-
-    # Test 10: Posterior samples have expected length
-    expected_samples = 100 * 2  # samples * chains
-    @test length(result_bayes.posterior["τ"]) == expected_samples
-    @test length(result_bayes.posterior["I_base"]) == expected_samples
-    @test length(result_bayes.posterior["threshold"]) == expected_samples
-    @test length(result_bayes.posterior["noise_amp"]) == expected_samples
-end
+# DEPRECATED: Old test structure removed - LIF now has only I as fitted parameter
+# The old parameters (τ, I_base, threshold, noise_amp) are now physiologically fixed
 
 # ============================================================================
 # LIF Cardiac Pacemaker Model - New Structure
@@ -346,4 +273,53 @@ end
     # Test 2: Create LIF with custom I value
     lif_custom = HeartRateLab.Models.LIF(I=1.52)
     @test lif_custom.I ≈ 1.52
+end
+
+# ============================================================================
+# LIF Parameter Space - I Only (New Implementation)
+# ============================================================================
+@testset "LIF Parameter Space - I Only" begin
+    lif = HeartRateLab.Models.LIF()
+    ps = HeartRateLab.Models.parameter_space(lif)
+
+    # Only I parameter should be in parameter space
+    @test haskey(ps, :I)
+    @test !haskey(ps, :τ)  # Fixed, not fitted
+    @test !haskey(ps, :I_base)  # Old parameter, no longer used
+    @test !haskey(ps, :threshold)  # Fixed, not fitted
+    @test !haskey(ps, :noise_amp)  # Old parameter, no longer used
+    @test !haskey(ps, :σ_noise)  # Old parameter, no longer used
+
+    # I should have reasonable bounds for cardiac pacemaker
+    @test ps.I.lower ≈ 1.48
+    @test ps.I.upper ≈ 1.56
+    @test ps.I.prior !== nothing
+end
+
+# ============================================================================
+# LIF Simulation - DiffEq with Callbacks
+# ============================================================================
+@testset "LIF Simulation - DiffEq with Callbacks" begin
+    lif = HeartRateLab.Models.LIF(I=1.52)
+
+    # Test 1: Simulate produces correct number of IBIs
+    ibis = HeartRateLab.Models.simulate(lif, (I=1.52,), 50)
+    @test length(ibis) == 50
+
+    # Test 2: IBIs are in physiological range (750-1050 ms for I=1.52)
+    @test all(ibis .> 0)
+    @test all(700 .< ibis .< 1100)  # Allow ~15% tolerance on both sides
+    @test 750 < mean(ibis) < 1050  # More realistic tolerance for I=1.52
+
+    # Test 3: Lower I produces longer IBIs (slower heart rate)
+    ibis_low = HeartRateLab.Models.simulate(lif, (I=1.50,), 50)
+    @test mean(ibis_low) > mean(ibis)
+
+    # Test 4: Higher I produces shorter IBIs (faster heart rate)
+    ibis_high = HeartRateLab.Models.simulate(lif, (I=1.54,), 50)
+    @test mean(ibis_high) < mean(ibis)
+
+    # Test 5: No randomness - deterministic for same params
+    ibis_repeat = HeartRateLab.Models.simulate(lif, (I=1.52,), 50)
+    @test ibis ≈ ibis_repeat
 end

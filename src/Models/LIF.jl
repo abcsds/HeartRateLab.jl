@@ -34,116 +34,131 @@ LIF(; I=1.52) = LIF(200.0, -65.0, -65.0, -60.0, 10.0, I)
 """
     parameter_space(model::LIF) -> NamedTuple
 
-Return the parameter space for LIF model with priors for Bayesian fitting.
+Return the parameter space for LIF model (only I is fitted).
+
+# Returns
+NamedTuple with single key `I` (input current)
+- lower = 1.48: Below this, heart rate too slow
+- upper = 1.56: Above this, heart rate too fast
+- prior: TruncatedNormal centered at 1.52 (normal resting heart rate)
 """
 function parameter_space(model::LIF)
     return (
-        τ = (
-            lower = 10.0,
-            upper = 100.0,
-            prior = Distributions.truncated(Distributions.Normal(50.0, 15.0), 10.0, 100.0)
+        I = (
+            lower = 1.48,
+            upper = 1.56,
+            prior = Distributions.truncated(Distributions.Normal(1.52, 0.02), 1.48, 1.56)
         ),
-        I_base = (
-            lower = 0.5,
-            upper = 1.5,
-            prior = Distributions.truncated(Distributions.Normal(0.8, 0.2), 0.5, 1.5)
-        ),
-        threshold = (
-            lower = 0.5,
-            upper = 1.5,
-            prior = Distributions.truncated(Distributions.Normal(1.0, 0.2), 0.5, 1.5)
-        ),
-        noise_amp = (
-            lower = 0.05,
-            upper = 0.5,
-            prior = Distributions.truncated(Distributions.Normal(0.15, 0.1), 0.05, 0.5)
-        ),
-        σ_noise = (
-            lower = 1.0,
-            upper = 50.0,
-            prior = Distributions.Exponential(10.0)
-        )
     )
 end
 
 """
     simulate(model::LIF, params::NamedTuple, n_beats::Int) -> Vector{Float64}
 
-Simulate IBI time series using LIF stochastic neural model with threshold crossings.
+Simulate IBI time series using LIF cardiac pacemaker with DifferentialEquations.jl.
+
+Uses callback-based spike detection for accurate IBI measurement.
 
 # Parameters
-- `τ`: Membrane time constant (ms) - controls membrane integration speed
-- `I_base`: Base input current (dimensionless, typical ~0.8)
-- `threshold`: Spike threshold voltage (dimensionless, typical ~1.0)
-- `noise_amp`: Noise amplitude in dynamics (dimensionless, typical ~0.15)
+- `I`: Input current (from params or model default)
 
 # Model
-The Leaky Integrate-and-Fire neuron model:
-  τ dV/dt = -V + I_base + noise_amp * ξ(t)
+Leaky Integrate-and-Fire ODE:
+  τ dV/dt = -(V - V_rest) + R*I
 
-When V crosses threshold, a spike occurs and V resets to 0.
+When V crosses V_threshold (upward), spike occurs and V resets to V_reset.
 
 # Returns
-Vector of inter-beat intervals in milliseconds (time between spike events)
+Vector of inter-beat intervals in milliseconds (physiological time)
+Model time multiplied by 10 to convert 80-100ms → 800-1000ms
 """
-function simulate(model::LIF, params::NamedTuple, n_beats::Int, dt::Float64=0.1, T_max::Float64=nothing)::Vector{Float64}
-    # Extract parameters
-    τ = get(params, :τ, model.τ)              # time constant in ms
-    I_base = get(params, :I_base, model.I_base)  # base input current
-    threshold = get(params, :threshold, model.threshold)  # spike threshold
-    noise_amp = get(params, :noise_amp, model.noise_amp)  # noise amplitude
+function simulate(model::LIF, params::NamedTuple, n_beats::Int)::Vector{Float64}
+    # Check DifferentialEquations availability
+    if !hasDiffEq
+        error("LIF model requires DifferentialEquations.jl. Install with: Pkg.add(\"DifferentialEquations\")")
+    end
 
-    # State variables
-    V = 0.0  # Membrane voltage (start below threshold)
-    t = 0.0  # Current time in ms
-    last_spike_time = -Inf  # Time of last spike
-    ibis = Float64[]  # Inter-beat intervals
+    # Extract parameter (only I is variable)
+    I = get(params, :I, model.I)
 
-    # Simulate until we have enough IBIs
-    while length(ibis) < n_beats && (T_max === nothing || t < T_max)
-        # Stochastic Euler step for LIF ODE
-        # dV = (-V + I_base) * dt/τ + noise_amp * sqrt(dt) * randn()
-        dV = (-V + I_base) / τ * dt + noise_amp * sqrt(dt) * randn()
-        V_new = V + dV
+    # LIF ODE: τ dV/dt = -(V - V_rest) + R*I
+    function lif_dynamics!(du, u, p, t)
+        V = u[1]
+        τ, V_rest, R, I_curr = p
+        du[1] = (-(V - V_rest) + R * I_curr) / τ
+    end
 
-        # Check for threshold crossing
-        if V < threshold && V_new >= threshold
-            # Spike occurred
-            spike_time = t + dt * (threshold - V) / (V_new - V)  # Interpolate exact crossing time
+    # Initial condition: start at resting potential
+    u0 = [model.V_rest]
 
-            if last_spike_time > -Inf
-                ibi = spike_time - last_spike_time  # Time between spikes in ms
-                # Only include physiologically valid IBIs
-                if 300.0 < ibi < 2000.0
-                    push!(ibis, ibi)
-                end
-            end
+    # Parameters tuple for ODE
+    p = [model.τ, model.V_rest, model.R, I]
 
-            last_spike_time = spike_time
-            V_new = 0.0  # Reset voltage after spike
+    # Storage for spike times
+    spike_times = Float64[]
+
+    # Callback: detect threshold crossing (spike)
+    function spike_condition(u, t, integrator)
+        return u[1] - model.V_threshold  # Zero when V crosses threshold
+    end
+
+    function spike_affect!(integrator)
+        # Record spike time
+        push!(spike_times, integrator.t)
+
+        # Reset voltage to V_reset
+        integrator.u[1] = model.V_reset
+
+        # Stop if we have enough spikes
+        if length(spike_times) >= n_beats + 1  # +1 because first IBI needs 2 spikes
+            terminate!(integrator)
         end
-
-        V = V_new
-        t += dt
     end
 
-    # Check if we got enough IBIs
-    if length(ibis) < n_beats
-        error("LIF simulation failed: only generated $(length(ibis))/$n_beats IBIs. " *
-              "Try increasing τ or I_base, or reducing noise_amp.")
+    # Create callback for upward threshold crossings
+    cb = ContinuousCallback(spike_condition, spike_affect!,
+                           nothing,  # No negative crossing action
+                           rootfind=SciMLBase.RightRootFind)  # Only upward crossings
+
+    # Time span: simulate long enough to get n_beats IBIs
+    # Estimate: at I=1.52, IBI ≈ 90ms model time, so need ~90*n_beats*1.5 for safety
+    tspan = (0.0, 150.0 * n_beats)
+
+    # Define and solve ODE problem
+    prob = ODEProblem(lif_dynamics!, u0, tspan, p)
+    sol = solve(prob, Tsit5(), callback=cb, dtmax=0.1)
+
+    # Compute IBIs from spike times
+    if length(spike_times) < 2
+        error("LIF simulation: insufficient spikes ($(length(spike_times))). " *
+              "I=$I may be too low to trigger spikes.")
     end
 
-    return ibis[1:n_beats]
+    # Calculate inter-beat intervals
+    ibis_model_time = diff(spike_times)
+
+    # Convert from model time to physiological time (×10)
+    # Model: 80-100ms → Physiological: 800-1000ms
+    ibis_physiological = ibis_model_time .* 10.0
+
+    # Return exactly n_beats IBIs
+    if length(ibis_physiological) >= n_beats
+        return ibis_physiological[1:n_beats]
+    else
+        error("LIF simulation: only generated $(length(ibis_physiological))/$n_beats IBIs")
+    end
 end
 
 """
     fit(model::LIF, data::Vector{Float64}; method=:bayesian, kwargs...) -> ModelFitResult
 
 Fit LIF model to IBI data using Bayesian inference or gradient-based optimization.
+
+Only the I parameter is fitted; physiological parameters (τ, V_rest, R, V_threshold) are fixed.
 """
 function fit(model::LIF, data::Vector{Float64};
              method::Symbol=:bayesian,
-             chains::Int=4, # TODO: nprocs()
+             chains::Int=4,
              samples::Int=1000,
              kwargs...)
 
@@ -152,14 +167,13 @@ function fit(model::LIF, data::Vector{Float64};
         @model function lif_model(ibi_data)
             n_beats = length(ibi_data)
 
-            # Priors # TODO: take from parameter_space() function
-            τ ~ Distributions.truncated(Distributions.Normal(50.0, 15.0), 10.0, 100.0)
-            I_base ~ Distributions.truncated(Distributions.Normal(0.8, 0.2), 0.5, 1.5)
-            threshold ~ Distributions.truncated(Distributions.Normal(1.0, 0.2), 0.5, 1.5)
-            noise_amp ~ Distributions.truncated(Distributions.Normal(0.15, 0.1), 0.05, 0.5)
+            # Prior from parameter_space
+            ps = parameter_space(model)
+            I ~ ps.I.prior
             σ_noise ~ Distributions.Exponential(10.0)
-            # Simulate model with these parameters
-            params = (τ=τ, I_base=I_base, threshold=threshold, noise_amp=noise_amp)
+
+            # Simulate model with fitted I parameter
+            params = (I=I,)
             try
                 predicted_ibi = simulate(model, params, n_beats)
                 # Likelihood: observed IBIs ~ predicted IBIs with Gaussian noise
@@ -177,10 +191,7 @@ function fit(model::LIF, data::Vector{Float64};
 
         # Extract MAP estimates
         params_map = (
-            τ = mean(chain[:τ]),
-            I_base = mean(chain[:I_base]),
-            threshold = mean(chain[:threshold]),
-            noise_amp = mean(chain[:noise_amp])
+            I = mean(chain[:I]),
         )
 
         # Extract diagnostics
@@ -189,19 +200,13 @@ function fit(model::LIF, data::Vector{Float64};
             "chains" => chains,
             "samples_per_chain" => samples,
             "total_samples" => samples * chains,
-            "rhat_tau" => rhat(chain[:τ])[1],
-            "rhat_I_base" => rhat(chain[:I_base])[1],
-            "rhat_threshold" => rhat(chain[:threshold])[1],
-            "rhat_noise_amp" => rhat(chain[:noise_amp])[1],
+            "rhat_I" => rhat(chain[:I])[1],
             "rhat_sigma_noise" => rhat(chain[:σ_noise])[1]
         )
 
         # Extract posterior samples
         posterior = Dict(
-            "τ" => vec(chain[:τ]),
-            "I_base" => vec(chain[:I_base]),
-            "threshold" => vec(chain[:threshold]),
-            "noise_amp" => vec(chain[:noise_amp]),
+            "I" => vec(chain[:I]),
             "σ_noise" => vec(chain[:σ_noise])
         )
 
@@ -220,7 +225,7 @@ function fit(model::LIF, data::Vector{Float64};
         feature_names = ["mean", "sdnn", "rmssd"]
 
         # Validate that initial parameters can simulate
-        initial_params = (τ=50.0, I_base=0.8, threshold=1.0, noise_amp=0.15)
+        initial_params = (I=model.I,)
         try
             test_sim = simulate(model, initial_params, min(100, length(data)))
             @info "LIF gradient fit: Initial simulation successful ($(length(test_sim)) IBIs)"
@@ -232,10 +237,10 @@ function fit(model::LIF, data::Vector{Float64};
         # Define loss function: MSE of key HRV features
         sim_failures = Ref(0)  # Track simulation failures
         function loss(params_vec)
-            τ, I_base, threshold, noise_amp = params_vec
+            I_val = params_vec[1]
 
-            # Simulate with current parameters
-            params = (τ=τ, I_base=I_base, threshold=threshold, noise_amp=noise_amp)
+            # Simulate with current I parameter
+            params = (I=I_val,)
             try
                 synthetic = simulate(model, params, length(data))
                 synth_features = extract_feature_set(synthetic)
@@ -258,10 +263,11 @@ function fit(model::LIF, data::Vector{Float64};
             end
         end
 
-        # Optimize using Fminbox(LBFGS()) with relaxed convergence
-        lower = [10.0, 0.5, 0.5, 0.05]
-        upper = [100.0, 1.5, 1.5, 0.5]
-        initial_x = [50.0, 0.8, 1.0, 0.15]
+        # Get bounds from parameter space
+        ps = parameter_space(model)
+        lower = [ps.I.lower]
+        upper = [ps.I.upper]
+        initial_x = [model.I]
 
         result = optimize(loss, lower, upper, initial_x, Fminbox(LBFGS()),
                          Optim.Options(iterations=500, g_tol=1e-6, f_tol=1e-8))
@@ -273,12 +279,8 @@ function fit(model::LIF, data::Vector{Float64};
         end
 
         # Extract optimized parameters
-        params_opt = result.minimizer
         params_map = (
-            τ = params_opt[1],
-            I_base = params_opt[2],
-            threshold = params_opt[3],
-            noise_amp = params_opt[4]
+            I = result.minimizer[1],
         )
 
         # Extract diagnostics
