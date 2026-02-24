@@ -111,3 +111,13 @@ end
     @test fig !== nothing
     @test size(fig) != ()
 end
+
+@testset "plot_radar" begin
+    dataset1 = [600, 620, 590, 610, 580, 630, 600, 610, 620, 600]
+    dataset2 = [610, 625, 595, 615, 585, 635, 605, 615, 625, 605]
+    datasets = Dict("Dataset1" => dataset1, "Dataset2" => dataset2)
+
+    fig = HeartRateLab.plot_radar(datasets; title="Test Radar")
+    @test fig isa Any
+    @test size(fig) != ()
+end

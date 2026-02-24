@@ -8,6 +8,10 @@ using DataFrames
 import ..Models
 using ..Models: ModelFitResult
 
+# Import Features module for extract_feature_set and valid_features
+import ..Features
+using ..Features: extract_feature_set, valid_features
+
 function getellipsepoints(cx, cy, rx, ry, θ; length=100)
 	t = range(0, 2*pi, length=length)
 	ellipse_x_r = @. rx * cos(t)
@@ -527,13 +531,118 @@ function plot_lorenz_3d(ibis::Vector{Float64}; title="IBI 3D Phase Space")
 end
 
 """
-    plot_radar(data::Dict{String, Vector{Float64}}; names::Vector{String}) -> Figure
+    plot_radar(datasets::Dict{String, Vector{Float64}}; features=nothing, title="Feature Comparison") → Figure
 
-Create a radar/spider chart comparing multiple datasets across dimensions.
-This function is provided by the HeartRateLabVisualizationExt extension when GLMakie is loaded.
+Create a spider/radar chart of normalized feature values for multi-dataset comparison.
+
+# Arguments
+- `datasets::Dict{String, Vector{Float64}}` — Dict mapping dataset names → IBI series
+- `features::Union{Nothing, Vector{String}}` — which features to include
+  - `nothing` (default): use valid_features() for all available features
+- `title::String` — plot title
+
+# Returns
+- Radar/spider chart with:
+  - One polygon per dataset (color-coded)
+  - Each axis = one feature (z-scored across datasets)
+  - Axes labeled with feature names
+  - Values normalized (z-scored) across datasets
+  - Legend showing dataset names
+
+# Requirements
+Requires Plots.jl to be loaded in the calling environment.
 """
-function plot_radar(data::Dict{String, Vector{Float64}}; names::Vector{String})
-    error("plot_radar requires GLMakie. Please run: using GLMakie")
+function plot_radar(datasets::Dict{String, Vector{Float64}}; features=nothing, title="Feature Comparison")
+    # Check if Plots is available
+    if !isdefined(Main, :plot)
+        println("Visualization requires Plots.jl. Please run: using Plots")
+        return nothing
+    end
+
+    # Access Plots functions through Main
+    plot = Main.plot
+    plot! = Main.plot!
+
+    # Handle empty datasets
+    if isempty(datasets)
+        println("No datasets provided for radar plot")
+        return nothing
+    end
+
+    # Determine features to plot
+    if features === nothing
+        # Use first dataset to determine available features
+        first_data = first(values(datasets))
+        valid_len = length(first_data)
+        features = valid_features(valid_len)
+
+        # Handle case where no features are valid for this length
+        if isempty(features)
+            println("No valid features available for dataset length $(valid_len)")
+            return nothing
+        end
+    end
+
+    # Extract feature values for each dataset
+    feature_matrix = Dict()
+    for (name, data) in datasets
+        feature_row = extract_feature_set(data)
+        # Convert DataFrame row to vector of values for requested features
+        feature_vec = Float64[]
+        for f in features
+            if hasproperty(feature_row, Symbol(f))
+                val = getproperty(feature_row, Symbol(f))[1]
+                push!(feature_vec, val)
+            else
+                push!(feature_vec, 0.0)  # Default to 0 if feature not found
+            end
+        end
+        feature_matrix[name] = feature_vec
+    end
+
+    # Normalize features (z-score across all datasets and features)
+    all_values = vcat([feature_matrix[k] for k in keys(datasets)]...)
+    μ = mean(all_values)
+    σ = std(all_values)
+
+    # Avoid division by zero
+    σ = σ > 1e-10 ? σ : 1e-10
+
+    # Normalize each dataset
+    normalized = Dict()
+    for (name, values) in feature_matrix
+        normalized[name] = (values .- μ) ./ σ
+    end
+
+    # Create angles for each feature axis
+    n_features = length(features)
+    angles = range(0, 2π, length=n_features+1)[1:end-1]
+
+    # Create radar plot with polar projection
+    p = plot([], [], projection=:polar, title=title, legend=true, size=(800, 800))
+
+    # Plot each dataset
+    colors = [:blue, :red, :green, :purple, :orange, :brown, :pink, :gray]
+    for (idx, (name, values)) in enumerate(normalized)
+        # Close the polygon by repeating first point
+        plot_angles = vcat(angles, angles[1])
+        plot_values = vcat(values, values[1])
+
+        # Cycle through colors
+        color_idx = ((idx - 1) % length(colors)) + 1
+        color = colors[color_idx]
+
+        plot!(p, plot_angles, plot_values,
+            label=name,
+            color=color,
+            linewidth=2,
+            fillalpha=0.15)
+    end
+
+    # Set radial axis limits (based on z-scores, typically -3 to +3)
+    plot!(p, ylims=(-3, 3))
+
+    return p
 end
 
 """
