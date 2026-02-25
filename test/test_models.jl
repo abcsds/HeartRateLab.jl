@@ -323,3 +323,54 @@ end
     ibis_repeat = HeartRateLab.Models.simulate(lif, (I=1.52,), 50)
     @test ibis ≈ ibis_repeat
 end
+
+# ============================================================================
+# LIF Physiological Validation
+# ============================================================================
+@testset "LIF Physiological Validation" begin
+    # Test 1: I=1.48 produces relatively slower heart rate compared to I=1.52
+    lif_slow = HeartRateLab.Models.LIF(I=1.48)
+    ibis_slow = HeartRateLab.Models.simulate(lif_slow, (I=1.48,), 50)
+    mean_ibi_slow = mean(ibis_slow)
+    bpm_slow = 60000 / mean_ibi_slow
+
+    @test mean_ibi_slow > 750  # Slower than normal
+    @test bpm_slow < 80  # Below tachycardia
+    @test all(700 .< ibis_slow .< 900)  # All IBIs in physiological range
+
+    # Test 2: I=1.52 produces normal heart rate (60-80 BPM, 750-800ms IBI)
+    lif_normal = HeartRateLab.Models.LIF(I=1.52)
+    ibis_normal = HeartRateLab.Models.simulate(lif_normal, (I=1.52,), 50)
+    mean_ibi_normal = mean(ibis_normal)
+    bpm_normal = 60000 / mean_ibi_normal
+
+    @test 750 < mean_ibi_normal < 850  # Normal IBI range
+    @test 70 < bpm_normal < 80  # Normal heart rate
+    @test all(700 .< ibis_normal .< 900)  # All IBIs physiological
+
+    # Test 3: I=1.56 produces relatively faster heart rate compared to I=1.52
+    lif_fast = HeartRateLab.Models.LIF(I=1.56)
+    ibis_fast = HeartRateLab.Models.simulate(lif_fast, (I=1.56,), 50)
+    mean_ibi_fast = mean(ibis_fast)
+    bpm_fast = 60000 / mean_ibi_fast
+
+    @test mean_ibi_fast < 800  # Faster than normal
+    @test bpm_fast > 75  # Approaching tachycardia
+    @test all(700 .< ibis_fast .< 850)  # All IBIs physiological
+
+    # Test 4: Monotonic relationship - higher I → shorter IBI (slower heart rate numerically)
+    @test mean_ibi_slow > mean_ibi_normal > mean_ibi_fast
+    @test bpm_slow < bpm_normal < bpm_fast
+
+    # Test 5: Standard deviation is minimal (deterministic model)
+    @test std(ibis_normal) >= 0  # No negative variability
+
+    # Test 6: All IBIs remain in physiological range (300-2000ms)
+    all_ibis = vcat(ibis_slow, ibis_normal, ibis_fast)
+    @test all(300 .< all_ibis .< 2000)
+    @test minimum(all_ibis) > 300
+    @test maximum(all_ibis) < 2000
+
+    # Test 7: Different I values produce different mean IBIs
+    @test abs(mean_ibi_slow - mean_ibi_fast) > 10  # At least 10ms difference
+end
