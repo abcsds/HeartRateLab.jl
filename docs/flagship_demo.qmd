@@ -145,28 +145,116 @@ plot(a, b, c, layout=(3, 1), size=(800, 900))
 
 ### The Leaky Integrate-and-Fire (LIF) Model
 
-The LIF model is a simple mechanistic model that captures key features of cardiac dynamics. It consists of a membrane voltage variable that integrates input current and generates spikes when a threshold is reached. The model parameters include the time constant (τ), base input current (I_base), spike threshold, and noise amplitude.
+The LIF model represents the heart's sinoatrial node as a large-τ pacemaker neuron.
+Unlike typical neurons (τ~10-20ms), cardiac pacemaker cells have τ=200ms, creating
+slower, more stable oscillations suitable for heart rhythm generation.
+
+#### Model Equation
+
+The membrane potential V evolves according to:
+
+$$\tau \frac{dV}{dt} = -(V - V_{rest}) + R \cdot I$$
+
+When V crosses the threshold V_threshold = -60mV, a spike occurs and V resets to
+V_reset = -65mV. The time between spikes (multiplied by 10) gives the inter-beat
+interval (IBI) in milliseconds.
+
+#### Fixed Physiological Parameters
+- τ = 200 ms (membrane time constant)
+- V_rest = -65 mV (resting potential)
+- V_reset = -65 mV (reset potential)
+- V_threshold = -60 mV (spike threshold)
+- R = 10 MΩ (membrane resistance)
+
+#### Fitted Parameter
+- I = input current (typically 1.51-1.53 for normal heart rate)
 
 ```{julia}
-# Define a range of parameters to visualize the phase portrait
-τ_values = [20.0, 50.0, 100.0]
-I_base_values = [0.5, 0.8, 1.0]
-threshold_values = [0.8, 1.0, 1.2]
-noise_amp_values = [0.05, 0.15, 0.3]
+# Create LIF model with normal heart rate parameters
+lif = HeartRateLab.Models.LIF(I=1.52)
 
-# Create a grid of subplots for different parameter combinations
-p = plot(layout=(length(τ_values), length(I_base_values)), size=(900, 900))
-for (i, τ) in enumerate(τ_values)
-    for (j, I_base) in enumerate(I_base_values)
-        model = HeartRateLab.Models.LIF(τ=τ, I_base=I_base, threshold=1.0, noise_amp=0.15)
-        V_range = -0.5:0.01:1.5
-        dVdt = (-V_range .+ I_base) ./ τ
-        subplot_idx = (i - 1) * length(I_base_values) + j
-        plot!(V_range, dVdt, title="τ=$(τ), I_base=$(I_base)", xlabel="Voltage (V)", ylabel="dV/dt", subplot=subplot_idx, legend=false)
-        hline!([0], linestyle=:dash, color=:red, subplot=subplot_idx)
-    end
+println("LIF Cardiac Pacemaker Model:")
+println("  τ = $(lif.τ) ms")
+println("  V_rest = $(lif.V_rest) mV")
+println("  V_threshold = $(lif.V_threshold) mV")
+println("  R = $(lif.R) MΩ")
+println("  I = $(lif.I) (input current)")
+```
+
+#### Slope Field Visualization
+
+The slope field shows how the membrane potential changes over time for different
+voltages. The red dashed line indicates V_threshold where spikes occur.
+
+```{julia}
+# Create voltage range around physiological values
+V_range = collect(range(-70, -55, length=15))
+
+# Compute slope field: dV/dt = (-(V - V_rest) + R*I) / τ
+function dVdt(V, I_val)
+    return (-(V - lif.V_rest) + lif.R * I_val) / lif.τ
 end
-display(p)
+
+# Plot slope field for three different I values
+I_values = [1.48, 1.52, 1.56]  # Slow, normal, fast
+colors = [:blue, :green, :red]
+labels = ["I=1.48 (slow)", "I=1.52 (normal)", "I=1.56 (fast)"]
+
+p = plot(title="LIF Cardiac Pacemaker Slope Field",
+         xlabel="Input Current",
+         ylabel="Membrane Potential (mV)",
+         size=(900, 600),
+         legend=:right)
+
+# For each I value, plot the dV/dt function
+I_plot_values = [1.48, 1.50, 1.52, 1.54, 1.56]
+for (idx, I_val) in enumerate(I_plot_values)
+    dvdt_values = [dVdt(V, I_val) for V in V_range]
+    plot!(p, dvdt_values, V_range, label="I=$I_val", linewidth=2, alpha=0.7)
+end
+
+# Add threshold and rest potential markers
+hline!(p, [lif.V_threshold], linestyle=:dash, linewidth=2, color=:red, alpha=0.8, label="Threshold (-60mV)")
+hline!(p, [lif.V_rest], linestyle=:dot, linewidth=2, color=:black, alpha=0.8, label="Rest (-65mV)")
+
+p
+```
+
+#### Simulate Different Heart Rates
+
+```{julia}
+# Simulate IBIs for slow, normal, and fast heart rates
+ibis_slow = HeartRateLab.Models.simulate(lif, (I=1.48,), 30)
+ibis_normal = HeartRateLab.Models.simulate(lif, (I=1.52,), 30)
+ibis_fast = HeartRateLab.Models.simulate(lif, (I=1.56,), 30)
+
+# Calculate heart rates in BPM
+bpm_slow = 60000 / mean(ibis_slow)
+bpm_normal = 60000 / mean(ibis_normal)
+bpm_fast = 60000 / mean(ibis_fast)
+
+println("\nHeart Rate Analysis:")
+println("  Slow   (I=1.48): $(round(mean(ibis_slow); digits=1)) ms IBI = $(round(bpm_slow; digits=1)) BPM")
+println("  Normal (I=1.52): $(round(mean(ibis_normal); digits=1)) ms IBI = $(round(bpm_normal; digits=1)) BPM")
+println("  Fast   (I=1.56): $(round(mean(ibis_fast); digits=1)) ms IBI = $(round(bpm_fast; digits=1)) BPM")
+```
+
+```{julia}
+# Plot IBI time series comparison
+p_ibi = plot(title="LIF Model: IBI Time Series for Different Input Currents",
+             xlabel="Beat Number",
+             ylabel="IBI (ms)",
+             size=(900, 600),
+             legend=:topright)
+
+plot!(p_ibi, 1:30, ibis_slow, label="I=1.48 (slow)", color=:blue, linewidth=2, marker=:circle, markersize=3)
+plot!(p_ibi, 1:30, ibis_normal, label="I=1.52 (normal)", color=:green, linewidth=2, marker=:circle, markersize=3)
+plot!(p_ibi, 1:30, ibis_fast, label="I=1.56 (fast)", color=:red, linewidth=2, marker=:circle, markersize=3)
+
+# Add reference lines for normal physiological range
+hline!(p_ibi, [800, 1000], label="Normal range", color=:gray, linestyle=:dash, linewidth=2, alpha=0.5)
+
+p_ibi
 ```
 
 ## Part 4: Visualization Suite
