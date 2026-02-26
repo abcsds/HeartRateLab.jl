@@ -121,8 +121,8 @@ function simulate(model::LIF, params::NamedTuple, n_beats::Int)::Vector{Float64}
                            rootfind=SciMLBase.RightRootFind)  # Only upward crossings
 
     # Time span: simulate long enough to get n_beats IBIs
-    # Estimate: at I=1.52, IBI ≈ 90ms model time, so need ~90*n_beats*1.5 for safety
-    tspan = (0.0, 150.0 * n_beats)
+    # Maximum IBI ~3000ms -> 300ms in model time.
+    tspan = (0.0, 300.0 * n_beats)
 
     # Define and solve ODE problem
     prob = ODEProblem(lif_dynamics!, u0, tspan, p)

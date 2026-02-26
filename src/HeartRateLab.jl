@@ -52,7 +52,7 @@ export windowed
 import .Features: extract_feature_set, windowed_feature_set, valid_features
 import .Evaluation: simulate_ensemble, extract_ensemble_features, eval_distributional, eval_scalar, eval_distance
 import .Visualization: plot_ibi_series, plot_poincare, plot_spectrum, plot_comparison, plot_model_heatmap, plot_lorenz_3d, plot_radar, plot_correlations, plot_flagship
-import .Models: VanDerPol, Lorenz, LIF, DMD, AbstractHRVModel, ModelFitResult, simulate, parameter_space
+import .Models: VanDerPol, Lorenz, LIF, DMD, AbstractHRVModel, ModelFitResult, simulate, parameter_space, fit
 
 # export Features
 # export lomb_scargle

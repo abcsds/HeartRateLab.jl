@@ -82,6 +82,12 @@ show(windowed_features; allcols=true)
 ```
 
 ```{julia}
+# Plot sd1 and sd2 over time
+plot(windowed_features.sd1, label="SD1", xlabel="Window", ylabel="ms", title="Windowed SD1 and SD2")
+plot!(windowed_features.sd2, label="SD2")
+```
+
+```{julia}
 # Compare the distribution of the feature (as a kde plot) to the single statistic from the real data (as a vertical line)
 p1 = @df windowed_features density(:rmssd, title="RMSSD Distribution", xlabel="RMSSD (ms)", ylabel="Density", legend=false)
 vline!([real_features.rmssd], label="Real Data RMSSD", linestyle=:dash, color=:red)
@@ -143,121 +149,227 @@ plot(a, b, c, layout=(3, 1), size=(800, 900))
 
 ## Part 4: Model Fitting and Synthetic Generation
 
-### The Leaky Integrate-and-Fire (LIF) Model
+### 4.1 The Leaky Integrate-and-Fire (LIF) Cardiac Pacemaker
 
-The LIF model represents the heart's sinoatrial node as a large-τ pacemaker neuron.
-Unlike typical neurons (τ~10-20ms), cardiac pacemaker cells have τ=200ms, creating
-slower, more stable oscillations suitable for heart rhythm generation.
+The **Leaky Integrate-and-Fire (LIF)** model represents the sinoatrial node as a single-compartment
+membrane whose voltage $V$ is governed by:
 
-#### Model Equation
+$$\tau \frac{dV}{dt} = -(V - V_\text{rest}) + R \cdot I$$
 
-The membrane potential V evolves according to:
+When $V$ crosses the firing threshold $V_\text{threshold}$, a **spike** (heartbeat) is emitted and
+$V$ resets to $V_\text{reset}$. The inter-beat interval (IBI) is the time between consecutive
+spikes. DifferentialEquations.jl is used to integrate this ODE with `Tsit5()` and a
+`ContinuousCallback` for precise spike detection.
 
-$$\tau \frac{dV}{dt} = -(V - V_{rest}) + R \cdot I$$
+| Parameter | Symbol | Value | Physiological meaning |
+|-----------|--------|-------|-----------------------|
+| Time constant | $\tau$ | 200 ms | Membrane integration timescale |
+| Resting potential | $V_\text{rest}$ | −65 mV | Baseline membrane voltage |
+| Reset potential | $V_\text{reset}$ | −65 mV | Voltage after spike |
+| Spike threshold | $V_\text{thr}$ | −60 mV | Threshold that triggers a beat |
+| Membrane resistance | $R$ | 10 MΩ | Input-current scaling |
+| **Input current** | **$I$** | **≈ 1.52, fitted** | **Sole free parameter — encodes heart rate** |
 
-When V crosses the threshold V_threshold = -60mV, a spike occurs and V resets to
-V_reset = -65mV. The time between spikes (multiplied by 10) gives the inter-beat
-interval (IBI) in milliseconds.
-
-#### Fixed Physiological Parameters
-- τ = 200 ms (membrane time constant)
-- V_rest = -65 mV (resting potential)
-- V_reset = -65 mV (reset potential)
-- V_threshold = -60 mV (spike threshold)
-- R = 10 MΩ (membrane resistance)
-
-#### Fitted Parameter
-- I = input current (typically 1.51-1.53 for normal heart rate)
+The **nullcline** (steady-state without spikes) satisfies $V^* = V_\text{rest} + R \cdot I$.
+For $I = 1.52$ we get $V^* \approx -49.8\,\text{mV}$, which lies **above** $V_\text{threshold}$,
+guaranteeing periodic spiking — the necessary condition for a functional pacemaker.
 
 ```{julia}
-# Create LIF model with normal heart rate parameters
-lif = HeartRateLab.Models.LIF(I=1.52)
+# ── Fixed LIF physiological parameters ──────────────────────────────────────
+τ_lif       = 200.0   # ms
+V_rest_lif  = -65.0   # mV
+V_thr_lif   = -60.0   # mV
+V_reset_lif = -65.0   # mV
+R_lif       = 10.0    # MΩ
+I_normal    = 1.52    # dimensionless; typical resting drive
 
-println("LIF Cardiac Pacemaker Model:")
-println("  τ = $(lif.τ) ms")
-println("  V_rest = $(lif.V_rest) mV")
-println("  V_threshold = $(lif.V_threshold) mV")
-println("  R = $(lif.R) MΩ")
-println("  I = $(lif.I) (input current)")
+# ── Slope-field grid in (t, V) space ────────────────────────────────────────
+V_grid_vals = range(-67.5, -49.5, length = 12)
+t_grid_vals = range(0.0, 110.0,  length = 12)
+
+T_flat    = vec([t for t in t_grid_vals, v in V_grid_vals])
+V_flat    = vec([v for t in t_grid_vals, v in V_grid_vals])
+dVdt_flat = vec([(-(v - V_rest_lif) + R_lif * I_normal) / τ_lif
+                  for t in t_grid_vals, v in V_grid_vals])
+
+# Normalise arrows so all have the same visual length
+arrow_scale = 5.0
+norms       = sqrt.(1.0 .+ dVdt_flat .^ 2)
+dT_arrows   =  arrow_scale ./ norms
+dV_arrows   = (dVdt_flat .* arrow_scale) ./ norms
+
+p_field = quiver(T_flat, V_flat,
+    quiver  = (dT_arrows, dV_arrows),
+    xlabel  = "Time (ms, model units)",
+    ylabel  = "Membrane Voltage V (mV)",
+    title   = "LIF Slope Field  (I = $(I_normal))",
+    color   = :steelblue, alpha = 0.7, linewidth = 1.5,
+    xlims   = (0, 120), ylims = (-69, -48),
+    legend  = :bottomright, label = "")
+
+hline!([V_rest_lif]; linestyle = :dash, color = :gray,   lw = 2,
+       label = "V_rest = $(V_rest_lif) mV")
+hline!([V_thr_lif];  linestyle = :dash, color = :crimson, lw = 2,
+       label = "V_threshold = $(V_thr_lif) mV")
+display(p_field)
 ```
 
-#### Slope Field Visualization
+### 4.2 Simulated Voltage Trace
 
-The slope field shows how the membrane potential changes over time for different
-voltages. The red dashed line indicates V_threshold where spikes occur.
+A direct DifferentialEquations.jl simulation reveals the sub-threshold charging and resets.
+With `I = 1.52` the model period is ≈ 80 ms (model time), which maps to ≈ 800 ms
+(physiological time) after the ×10 scaling applied in `simulate()`.
 
 ```{julia}
-# Create voltage range around physiological values
-V_range = collect(range(-70, -55, length=15))
+using DifferentialEquations
 
-# Compute slope field: dV/dt = (-(V - V_rest) + R*I) / τ
-function dVdt(V, I_val)
-    return (-(V - lif.V_rest) + lif.R * I_val) / lif.τ
+# ODE right-hand side
+function lif_ode!(du, u, p, t)
+    V = u[1]
+    τ_p, V_rest_p, R_p, I_p = p
+    du[1] = (-(V - V_rest_p) + R_p * I_p) / τ_p
 end
 
-# Plot slope field for three different I values
-I_values = [1.48, 1.52, 1.56]  # Slow, normal, fast
-colors = [:blue, :green, :red]
-labels = ["I=1.48 (slow)", "I=1.52 (normal)", "I=1.56 (fast)"]
+# Spike-detection callback (upward threshold crossing)
+spike_times_trace = Float64[]
+spike_cond(u, t, integrator)  = u[1] - V_thr_lif
+function spike_affect!(integrator)
+    push!(spike_times_trace, integrator.t)
+    integrator.u[1] = V_reset_lif
+    length(spike_times_trace) >= 10 && terminate!(integrator)
+end
+cb = ContinuousCallback(spike_cond, spike_affect!, nothing,
+                        rootfind = SciMLBase.RightRootFind)
 
-p = plot(title="LIF Cardiac Pacemaker Slope Field",
-         xlabel="Input Current",
-         ylabel="Membrane Potential (mV)",
-         size=(900, 600),
-         legend=:right)
+prob = ODEProblem(lif_ode!, [V_rest_lif],
+                 (0.0, 1200.0),
+                 [τ_lif, V_rest_lif, R_lif, I_normal])
+sol  = solve(prob, Tsit5(); callback = cb, dtmax = 0.1, saveat = 0.2)
 
-# For each I value, plot the dV/dt function
-I_plot_values = [1.48, 1.50, 1.52, 1.54, 1.56]
-for (idx, I_val) in enumerate(I_plot_values)
-    dvdt_values = [dVdt(V, I_val) for V in V_range]
-    plot!(p, dvdt_values, V_range, label="I=$I_val", linewidth=2, alpha=0.7)
+p_trace = plot(sol.t, sol[1, :];
+    xlabel = "Time (ms, model units)",
+    ylabel = "Membrane Voltage (mV)",
+    title  = "LIF Voltage Trace — I = $(I_normal)",
+    color  = :steelblue, lw = 2, label = "V(t)")
+hline!([V_thr_lif];  linestyle = :dash, color = :crimson, lw = 1.5,
+       label = "V_threshold = $(V_thr_lif) mV")
+hline!([V_rest_lif]; linestyle = :dash, color = :gray,   lw = 1.5,
+       label = "V_rest = $(V_rest_lif) mV")
+
+if length(spike_times_trace) >= 2
+    ibis_model = diff(spike_times_trace)
+    mean_T_model = round(mean(ibis_model); digits = 1)
+    println("Spikes detected : $(length(spike_times_trace))")
+    println("Mean model IBI  : $(mean_T_model) ms  →  physiological IBI ≈ $(round(mean_T_model * 10; digits=1)) ms")
+    for st in spike_times_trace
+        vline!([st]; linestyle = :dot, color = :orange, alpha = 0.8, label = "")
+    end
 end
 
-# Add threshold and rest potential markers
-hline!(p, [lif.V_threshold], linestyle=:dash, linewidth=2, color=:red, alpha=0.8, label="Threshold (-60mV)")
-hline!(p, [lif.V_rest], linestyle=:dot, linewidth=2, color=:black, alpha=0.8, label="Rest (-65mV)")
+# ── Bottom panel: IBIs on the ×10 physiological timeline ────────────────────
+# Each IBI is plotted at the midpoint between its two bounding spikes,
+# rescaled to physiological time (model time × 10).
+p_ibi = plot(; xlabel = "Time (ms, physiological)",
+               ylabel = "IBI (ms)",
+               title  = "Model IBIs — physiological timeline (×10 rescaling)",
+               ylims  = (0, nothing), legend = :topright)
 
-p
+if length(spike_times_trace) >= 2
+    ibis_model   = diff(spike_times_trace)
+    # Midpoint of each inter-spike interval, scaled to physiological time
+    t_ibi_phys   = (spike_times_trace[1:end-1] .+ spike_times_trace[2:end]) ./ 2 .* 10
+    ibis_phys    = ibis_model .* 10
+
+    # Stem-style: vertical lines from zero up to each IBI value
+    for (t_i, ibi_i) in zip(t_ibi_phys, ibis_phys)
+        plot!(p_ibi, [t_i, t_i], [0.0, ibi_i];
+              color = :teal, lw = 2, label = "")
+    end
+    scatter!(p_ibi, t_ibi_phys, ibis_phys;
+             color = :teal, markersize = 6, label = "IBI (model × 10)")
+
+    mean_ibi_phys = round(mean(ibis_phys); digits = 1)
+    hline!(p_ibi, [mean_ibi_phys];
+           linestyle = :dash, color = :orange, lw = 1.5,
+           label = "Mean IBI = $(mean_ibi_phys) ms")
+    xlims!(p_ibi, (0, t_ibi_phys[end] + 100))
+end
+
+plot(p_trace, p_ibi; layout = (2, 1), size = (800, 600))
 ```
 
-#### Simulate Different Heart Rates
+### 4.3 Rolling-Window Estimation of Input Current I(t)
+
+We treat $I$ as **slowly varying** over the recording and estimate it on short, overlapping
+windows of heartbeats. This converts the scalar fit into a time series $\hat{I}(t)$, making
+visible how the autonomic drive to the heart changes over time.
+
+**Window parameters**: 10-beat window · 2-beat stride.
+
+#### Method speed comparison (single window)
 
 ```{julia}
-# Simulate IBIs for slow, normal, and fast heart rates
-ibis_slow = HeartRateLab.Models.simulate(lif, (I=1.48,), 30)
-ibis_normal = HeartRateLab.Models.simulate(lif, (I=1.52,), 30)
-ibis_fast = HeartRateLab.Models.simulate(lif, (I=1.56,), 30)
+window_size = 10
+stride      = 2
+window1     = real_data[1:window_size]
+lif_base    = LIF()
 
-# Calculate heart rates in BPM
-bpm_slow = 60000 / mean(ibis_slow)
-bpm_normal = 60000 / mean(ibis_normal)
-bpm_fast = 60000 / mean(ibis_fast)
+println("Fitting single window of $(window_size) beats with both methods…\n")
 
-println("\nHeart Rate Analysis:")
-println("  Slow   (I=1.48): $(round(mean(ibis_slow); digits=1)) ms IBI = $(round(bpm_slow; digits=1)) BPM")
-println("  Normal (I=1.52): $(round(mean(ibis_normal); digits=1)) ms IBI = $(round(bpm_normal; digits=1)) BPM")
-println("  Fast   (I=1.56): $(round(mean(ibis_fast); digits=1)) ms IBI = $(round(bpm_fast; digits=1)) BPM")
+t_grad  = @elapsed result_grad  = fit(lif_base, window1; method = :gradient)
+println("  :gradient  →  $(round(t_grad; digits = 3)) s   I = $(round(result_grad.params.I; digits = 6))")
+println("  Converged : $(result_grad.diagnostics["converged"])  |  Iterations: $(result_grad.diagnostics["iterations"])")
+println()
+
+t_bayes = @elapsed result_bayes = fit(lif_base, window1;
+    method = :bayesian, chains = 1, samples = 200)
+println("  :bayesian  →  $(round(t_bayes; digits = 2)) s   I ≈ $(round(result_bayes.params.I; digits = 6))")
+println()
+
+faster = t_grad < t_bayes ? ":gradient" : ":bayesian"
+println("▶ Faster method: $(faster) — will be used for the rolling fit")
 ```
+
+#### Rolling fit over full recording
 
 ```{julia}
-# Plot IBI time series comparison
-p_ibi = plot(title="LIF Model: IBI Time Series for Different Input Currents",
-             xlabel="Beat Number",
-             ylabel="IBI (ms)",
-             size=(900, 600),
-             legend=:topright)
+n_beats       = length(real_data)
+window_starts = collect(1:stride:(n_beats - window_size + 1))
+t_cumsum_ms   = cumsum(real_data)          # absolute beat timestamps in ms
 
-plot!(p_ibi, 1:30, ibis_slow, label="I=1.48 (slow)", color=:blue, linewidth=2, marker=:circle, markersize=3)
-plot!(p_ibi, 1:30, ibis_normal, label="I=1.52 (normal)", color=:green, linewidth=2, marker=:circle, markersize=3)
-plot!(p_ibi, 1:30, ibis_fast, label="I=1.56 (fast)", color=:red, linewidth=2, marker=:circle, markersize=3)
+I_series = Vector{Float64}(undef, length(window_starts))
+t_series  = Vector{Float64}(undef, length(window_starts))
 
-# Add reference lines for normal physiological range
-hline!(p_ibi, [800, 1000], label="Normal range", color=:gray, linestyle=:dash, linewidth=2, alpha=0.5)
+println("Fitting $(length(window_starts)) windows (size=$(window_size), stride=$(stride))…")
+for (k, s) in enumerate(window_starts)
+    w         = real_data[s : s + window_size - 1]
+    res       = fit(LIF(), w; method = :gradient)
+    I_series[k] = res.params.I
+    # Window centre time: midpoint beat timestamp
+    center_idx  = s + window_size ÷ 2 - 1
+    t_series[k] = t_cumsum_ms[center_idx]
+end
+println("Done — $(length(I_series)) I estimates computed.")
 
-p_ibi
+t_sec = t_series ./ 1000.0          # convert ms → s for the x-axis
+
+p_I = plot(t_sec, I_series;
+    xlabel = "Time (s)",
+    ylabel = "Estimated Input Current I",
+    title  = "Continuous LIF Drive  I(t)  (window=$(window_size) beats · stride=$(stride))",
+    lw = 1.5, color = :teal, label = "Î(t)")
+hline!([1.52]; linestyle = :dash, color = :gray, lw = 1.5,
+       label = "Default I = 1.52")
+display(p_I)
+
+println("\nI(t) summary:")
+println("  Mean  : $(round(mean(I_series);    digits = 6))")
+println("  Std   : $(round(std(I_series);     digits = 6))")
+println("  Min   : $(round(minimum(I_series); digits = 6))")
+println("  Max   : $(round(maximum(I_series); digits = 6))")
 ```
 
-## Part 4: Visualization Suite
+## Part 5: Visualization Suite
 
 ```{julia}
 println("\n" * "="^70)
