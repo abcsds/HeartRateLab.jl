@@ -1069,20 +1069,87 @@ end
     return function_registry["dfa"](n)[2]
 end
 
+# ─── Feature Sets ──────────────────────────────────────────────────────────────
+#
+# Features are grouped by computational cost so callers can choose the right
+# trade-off between richness and wall-clock time.
+#
+#   NONLINEAR_FEATURES  — O(n²) or worse: entropy, DFA, Hurst, Rényi.
+#                         These dominate runtime on long recordings (>5 000 beats)
+#                         and can cause OOM on very long ones (>50 000 beats).
+#
+#   FAST_FEATURES       — All features *except* the nonlinear set.
+#                         Safe to run on any recording length; O(n) or O(n log n).
+#                         This is the **default** for `extract_feature_set`.
+#
+#   ALL_FEATURES        — The complete set: FAST_FEATURES ∪ NONLINEAR_FEATURES.
+#
+# Use `features=ALL_FEATURES` (or `features=:all`) for the full 44-feature
+# extraction when the recording is short enough, or when you have time.
+
+"""Features with O(n²) or higher complexity (entropy, DFA, Hurst, Rényi).  Expensive on long recordings."""
+const NONLINEAR_FEATURES = [
+    "apen", "sampen",          # Approximate & sample entropy (EntropyHub, O(n²))
+    "hurst",                   # Hurst exponent (R/S analysis)
+    "dfa1", "dfa2",            # Detrended Fluctuation Analysis exponents
+    "renyi0", "renyi1", "renyi2",  # Rényi entropies of order 0, 1, 2
+]
+
+"""
+    FAST_FEATURES
+
+All registered features **except** the computationally expensive nonlinear ones
+(`apen`, `sampen`, `hurst`, `dfa1`, `dfa2`, `renyi0`, `renyi1`, `renyi2`).
+Runs in O(n) or O(n log n) and is safe for arbitrarily long recordings.
+"""
+const FAST_FEATURES  = sort(setdiff(String.(keys(feature_registry)), NONLINEAR_FEATURES))
+
+"""
+    DEFAULT_FEATURES
+
+The recommended default feature set.  Same as `FAST_FEATURES` but also excludes
+`ulf` (ultra-low frequency power), which requires ≥ 24-hour recordings to be
+meaningful.
+
+This is the **default** for `extract_feature_set` and `windowed_feature_set`.
+"""
+const DEFAULT_FEATURES = sort(setdiff(FAST_FEATURES, ["ulf"]))
+
+"""
+    ALL_FEATURES
+
+The complete feature set (44 features).  Includes the nonlinear features that
+are O(n²) or worse.  Use only on recordings shorter than ~5 000 beats, or when
+you can afford the compute.
+"""
+const ALL_FEATURES   = sort(String.(keys(feature_registry)))
+
+""" Resolve a feature-set selector to a concrete `Vector{String}`. """
+function _resolve_features(features)::Vector{String}
+    if features isa Symbol
+        features === :default && return DEFAULT_FEATURES
+        features === :fast && return FAST_FEATURES
+        features === :all  && return ALL_FEATURES
+        features === :nonlinear && return NONLINEAR_FEATURES
+        throw(ArgumentError("Unknown feature set symbol :$features.  Use :default, :fast, :all, or :nonlinear."))
+    end
+    return collect(String, features)
+end
+
 function extract_feature_set(
     n::AbstractArray{Float64,1};
-    features::AbstractArray{String}=String.(keys(feature_registry)),
+    features::Union{Symbol, AbstractArray{String}}=:default,
     config::Dict{String,Any}=config,
 )
+    feat_names = _resolve_features(features)
     n = HRMeasurement(n)
     # Extract the features
     result = Dict{String,Any}()
-    for f in features # TODO: parallel processing
+    for f in feat_names # TODO: parallel processing
         f ∈ keys(feature_registry) || throw(ArgumentError("Invalid feature: $f"))
         feature = function_registry[f](n)
         result[f] = feature
     end
-    # cols = Symbol.(keys(result))
     return DataFrame(result) # Convert the result to a DataFrame
 end
 
@@ -1091,14 +1158,15 @@ function windowed_feature_set(
     window_size::Int=60, # Heart beats
     stride::Int=1,
     time::Symbol=:beats,
-    features::AbstractArray{String}=String.(keys(feature_registry)),
+    features::Union{Symbol, AbstractArray{String}}=:default,
     config::Dict{String,Any}=config,
 )
+    feat_names = _resolve_features(features)
     res = windowed(
         n; window_size=window_size, stride=stride, time=time,
-        f=(x -> extract_feature_set(Array(x); features=features, config=config)),
+        f=(x -> extract_feature_set(Array(x); features=feat_names, config=config)),
     )
-    println("Extracted $(length(res)) windows with $(length(features)) features each.")
+    println("Extracted $(length(res)) windows with $(length(feat_names)) features each.")
     return vcat(res...) # Concatenate the windows into a single DataFrame
 end
 

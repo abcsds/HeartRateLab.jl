@@ -1,0 +1,31 @@
+[normative]
+sigma_threshold = 4
+reference = "Evaluate new values: flag if |x - μ| > 4σ for any feature."
+description = "Use participant_features.csv for recording-level normative ranges."
+
+[files]
+windowed_features = "windowed_w60_s30_features.csv"
+participant_features = "participant_features.csv"
+
+[dataset]
+name = "mitbih"
+physionet_url = "https://physionet.org/content/mitdb/"
+format = "wfdb"
+population = "mixed"
+files_url = "https://physionet.org/files/mitdb/1.0.0"
+all_records = ["100", "101", "102", "103", "104", "105", "106", "107", "108", "109", "111", "112", "113", "114", "115", "116", "117", "118", "119", "121", "122", "123", "124", "200", "201", "202", "203", "205", "207", "208", "209", "210", "212", "213", "214", "215", "217", "219", "220", "221", "222", "223", "228", "230", "231", "232", "233", "234"]
+license = "Open Data Commons Attribution License v1.0"
+description = "MIT-BIH Arrhythmia Database — 48 half-hour ECGs with annotated arrhythmias"
+version = "1.0.0"
+annotator = "atr"
+
+[collection]
+n_records_attempted = 48
+heartrateLab_version = "1.0.0"
+window_size = 60
+stride = 30
+date = "2026-02-27T14:13:39.639"
+n_records_collected = 48
+overlap = 30
+n_records_failed = 0
+elapsed_seconds = 761.3

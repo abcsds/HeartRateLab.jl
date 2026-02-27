@@ -15,8 +15,9 @@ Extract 44 HRV features from inter-beat-interval (IBI) time series in 3 lines:
 ```julia
 using HeartRateLab
 
-ibis = read_txt("your_data.txt")  # Load IBI data
-features = extract_feature_set(ibis)  # Compute all 44 HRV features
+ibis = read_txt("your_data.txt")           # Load IBI data (milliseconds)
+features = extract_feature_set(ibis)       # Fast features (time, frequency, geometric)
+features_all = extract_feature_set(ibis; features=:all)  # All 44 features (adds nonlinear)
 ```
 
 Fit a mechanistic model and generate synthetic HRV data:
@@ -73,14 +74,87 @@ julia> Pkg.add("Turing")  # For Bayesian inference
 Extract comprehensive HRV metrics across multiple domains:
 
 ```julia
-# Extract all 44 features
-features = extract_feature_set(ibis)
+# Default: extract the default feature set (time, frequency, geometric — excludes nonlinear + ulf)
+features = extract_feature_set(ibis)               # ← DEFAULT_FEATURES
 
-# Extract features by domain
-time_features = extract_feature_set(ibis; domains=[:time])
-freq_features = extract_feature_set(ibis; domains=[:frequency])
-nonlinear_features = extract_feature_set(ibis; domains=[:nonlinear])
+# Fast set: same but includes ulf (needs ≥24h recording for meaningful ulf)
+features_fast = extract_feature_set(ibis; features=:fast)
+
+# Full 44-feature extraction (adds nonlinear: apen, sampen, hurst, dfa, rényi)
+features_all = extract_feature_set(ibis; features=:all)
+
+# Only the expensive nonlinear features
+features_nl = extract_feature_set(ibis; features=:nonlinear)
+
+# Custom subset
+features_custom = extract_feature_set(ibis; features=["mean", "sdnn", "rmssd", "lf", "hf"])
 ```
+
+#### Feature Sets and Computational Cost
+
+Features are organized into two tiers based on computational complexity:
+
+| Set | Count | Complexity | Domains | Safe length |
+|-----|-------|------------|---------|-------------|
+| **`DEFAULT_FEATURES`** (default) | ~35 | O(n) – O(n log n) | time, frequency, geometric | Any |
+| **`FAST_FEATURES`** | ~36 | O(n) – O(n log n) | time, frequency, geometric | Any |
+| **`NONLINEAR_FEATURES`** | 8 | O(n²) or worse | nonlinear, entropy | < 5 000 beats |
+| **`ALL_FEATURES`** | 44 | O(n²) | all | < 5 000 beats |
+
+`DEFAULT_FEATURES` = `FAST_FEATURES` minus `ulf` (ultra-low frequency power requires ≥ 24-hour recordings to be physiologically meaningful).
+
+The **nonlinear features** (`apen`, `sampen`, `hurst`, `dfa1`, `dfa2`, `renyi0`, `renyi1`, `renyi2`) use algorithms whose time and memory consumption grow quadratically (or worse) with signal length. On recordings longer than ~5 000 beats they become slow; above ~50 000 beats they can exhaust available RAM.
+
+The default `features=:default` setting is safe for any recording length and covers the most commonly reported HRV metrics in the literature (RMSSD, SDNN, pNN50, LF/HF ratio, Poincaré SD1/SD2, etc.).
+
+#### Windowed Analysis and Bootstrapping
+
+For long recordings, **windowed analysis** avoids the nonlinear scaling problem entirely — each window is short enough for even `ALL_FEATURES`:
+
+```julia
+# Windowed extraction (60-beat windows, stride 30) — default uses FAST_FEATURES
+df = windowed_feature_set(ibis; window_size=60, stride=30, time=:beats)
+
+# Windowed with ALL features (safe: each window is only 60 beats)
+df_all = windowed_feature_set(ibis; window_size=60, stride=30, features=:all)
+```
+
+**Bootstrapping normative ranges from windowed features:**
+
+A practical workflow for building normative reference statistics from long or many recordings:
+
+```julia
+using Statistics, DataFrames
+
+# 1. Extract windowed features across a cohort
+ibis = read_txt("long_recording.txt")
+ibis = replace_zeros(ibis) |> replace_bio_outliers |> interpolate_nans
+
+df = windowed_feature_set(ibis; window_size=60, stride=30, features=:all)
+
+# 2. Compute per-feature normative statistics (μ ± σ)
+stats = describe(df, :mean, :std, :min, :max, :median)
+
+# 3. Flag outlier windows: |x − μ| > 4σ
+μ = describe(df, :mean).mean
+σ = describe(df, :std).std
+for col in names(df)
+    outliers = abs.(df[!, col] .- μ[col]) .> 4 * σ[col]
+    println("$col: $(sum(outliers)) outlier windows out of $(nrow(df))")
+end
+
+# 4. Aggregate to participant level (robust to recording length)
+participant_features = combine(
+    df,
+    names(df) .=> mean .=> names(df),       # mean across windows
+)
+```
+
+This approach gives you:
+- **Length-invariant features**: A 5-minute and a 24-hour recording both produce comparable per-window statistics.
+- **Distributional information**: You get the spread of each feature across time, not just a point estimate.
+- **Robust normative ranges**: Aggregate across participants for population-level μ and σ.
+- **Efficient computation**: Each 60-beat window runs in O(1) even with `ALL_FEATURES`.
 
 ### Mechanistic Models
 

@@ -87,6 +87,20 @@ plot(windowed_features.sd1, label="SD1", xlabel="Window", ylabel="ms", title="Wi
 plot!(windowed_features.sd2, label="SD2")
 ```
 
+
+```{julia}
+# Plot windowed features over time
+a = @df windowed_features histogram([:rmssd], title="RMSSD", ylabel="Value", legend=:topright, normalize=:pdf, alpha=0.5)
+
+b = @df windowed_features histogram([:pnn50], title="pNN50", ylabel="Value", legend=:topright, normalize=:pdf, alpha=0.5)
+
+c = @df windowed_features histogram([:sd1], title="SD1", ylabel="Value", legend=:topright, normalize=:pdf, alpha=0.5)
+
+d = @df windowed_features histogram([:sd2], title="SD2", ylabel="Value", legend=:topright, normalize=:pdf, alpha=0.5)
+
+plot(a, b, c, d, layout=(2, 2), size=(800, 600))
+```
+
 ```{julia}
 # Compare the distribution of the feature (as a kde plot) to the single statistic from the real data (as a vertical line)
 p1 = @df windowed_features density(:rmssd, title="RMSSD Distribution", xlabel="RMSSD (ms)", ylabel="Density", legend=false)
@@ -105,18 +119,6 @@ plot(p1, p2, p3, p4, layout=(2, 2), size=(800, 600))
 
 ```
 
-```{julia}
-# Plot windowed features over time
-a = @df windowed_features histogram([:rmssd], title="RMSSD", ylabel="Value", legend=:topright, normalize=:pdf, alpha=0.5)
-
-b = @df windowed_features histogram([:pnn50], title="pNN50", ylabel="Value", legend=:topright, normalize=:pdf, alpha=0.5)
-
-c = @df windowed_features histogram([:sd1], title="SD1", ylabel="Value", legend=:topright, normalize=:pdf, alpha=0.5)
-
-d = @df windowed_features histogram([:sd2], title="SD2", ylabel="Value", legend=:topright, normalize=:pdf, alpha=0.5)
-
-plot(a, b, c, d, layout=(2, 2), size=(800, 600))
-```
 
 
 ```{julia}
@@ -566,7 +568,421 @@ hline!([mean(real_data[1:n_compare])];
 plot(p_vtrace, p_sim, p_real_cmp; layout = (3, 1), size = (1200, 900), link = :x)
 ```
 
-## Part 5: Visualization Suite
+## Part 5: Comparing against open datasets
+
+This section evaluates our example recording against the **Normal Sinus Rhythm Database (NSRDB)**,
+a curated collection of long-term ECG recordings from healthy subjects. We compare participant-level
+HRV features via histograms, windowed distributions via KDE plots, and finally quantify the
+individual's position within the normative distribution using Z-scores.
+
+### 5.1 Participant-Level Feature Histograms
+
+```{julia}
+using CSV
+
+# ── Normalisation window parameters (must match the stored CSV filenames) ─────
+norm_window_size = 60   # beats per window
+norm_stride      = 30   # beat stride between windows
+
+# ── Paths ────────────────────────────────────────────────────────────────────
+nsrdb_pf_path = if isfile("test/testdata/nsrdb/participant_features.csv")
+    "test/testdata/nsrdb/participant_features.csv"
+elseif isfile("../test/testdata/nsrdb/participant_features.csv")
+    "../test/testdata/nsrdb/participant_features.csv"
+else
+    error("Cannot find test/testdata/nsrdb/participant_features.csv")
+end
+
+nsrdb_pf = CSV.read(nsrdb_pf_path, DataFrame)
+println("Loaded $(nrow(nsrdb_pf)) NSRDB participants")
+println("Columns: ", join(names(nsrdb_pf)[1:10], ", "), " …")
+```
+
+```{julia}
+# ── Features of interest ─────────────────────────────────────────────────────
+norm_features = ["rmssd", "mean", "sdnn", "lf", "hf", "sd1", "sd2"]
+
+# Extract all 7 features for the individual recording
+indiv_pf = extract_feature_set(real_data; features=norm_features)
+
+println("Individual participant features:")
+show(indiv_pf; allcols=true)
+```
+
+```{julia}
+# ── Histograms with individual vertical line ──────────────────────────────────
+feat_labels = Dict(
+    "rmssd" => "RMSSD (ms)",
+    "mean"  => "Mean IBI (ms)",
+    "sdnn"  => "SDNN (ms)",
+    "lf"    => "LF Power (ms²)",
+    "hf"    => "HF Power (ms²)",
+    "sd1"   => "SD1 (ms)",
+    "sd2"   => "SD2 (ms)",
+)
+
+hist_plots = map(norm_features) do feat
+    vals = filter(!isnan, nsrdb_pf[!, feat])
+    indiv_val = indiv_pf[!, feat][1]
+    h = histogram(vals;
+        title    = feat_labels[feat],
+        xlabel   = feat_labels[feat],
+        ylabel   = "Density",
+        normalize = :pdf,
+        alpha    = 0.65,
+        color    = :steelblue,
+        label    = "NSRDB (n=$(length(vals)))",
+        legend   = :topright,
+    )
+    vline!([indiv_val];
+        color     = :crimson,
+        lw        = 2.5,
+        linestyle = :dash,
+        label     = "Individual",
+    )
+    h
+end
+
+plot(hist_plots...; layout=(4, 2), size=(1100, 900),
+     plot_title="NSRDB Participant-Level HRV Feature Distributions")
+```
+
+### 5.2 Windowed KDE Comparison
+
+We window the individual's IBIs with the **same settings** used when building the NSRDB dataset
+(window = 60 beats, stride = 30 beats) and overlay KDE plots of both distributions.
+
+```{julia}
+# ── Load NSRDB windowed features ──────────────────────────────────────────────
+wf_csv = "windowed_w$(norm_window_size)_s$(norm_stride)_features.csv"
+nsrdb_wf_path = if isfile("test/testdata/nsrdb/$wf_csv")
+    "test/testdata/nsrdb/$wf_csv"
+elseif isfile("../test/testdata/nsrdb/$wf_csv")
+    "../test/testdata/nsrdb/$wf_csv"
+else
+    error("Cannot find test/testdata/nsrdb/$wf_csv")
+end
+
+nsrdb_wf = CSV.read(nsrdb_wf_path, DataFrame)
+println("NSRDB windowed: $(nrow(nsrdb_wf)) windows from $(length(unique(nsrdb_wf.participant_id))) participants")
+
+# ── Window the individual IBI with matching parameters ────────────────────────
+indiv_wf = windowed_feature_set(real_data; window_size=norm_window_size, stride=norm_stride,
+                                 features=norm_features)
+println("Individual windowed: $(nrow(indiv_wf)) windows")
+```
+
+```{julia}
+# ── Side-by-side KDE plots ────────────────────────────────────────────────────
+kde_plots = map(norm_features) do feat
+    nsrdb_vals  = filter(!isnan, nsrdb_wf[!, feat])
+    indiv_vals  = filter(!isnan, indiv_wf[!, feat])
+
+    p = density(nsrdb_vals;
+        title   = feat_labels[feat],
+        xlabel  = feat_labels[feat],
+        ylabel  = "Density",
+        color   = :steelblue,
+        fill    = (0, 0.25, :steelblue),
+        lw      = 2,
+        label   = "NSRDB windows",
+        legend  = :topright,
+    )
+    isempty(indiv_vals) || density!(indiv_vals;
+        color  = :crimson,
+        fill   = (0, 0.25, :crimson),
+        lw     = 2,
+        label  = "Individual windows",
+    )
+    p
+end
+
+plot(kde_plots...; layout=(4, 2), size=(1100, 900),
+     plot_title="NSRDB vs Individual: Windowed Feature KDE Distributions  (w=$(norm_window_size), s=$(norm_stride))")
+```
+
+### 5.3 Normative Z-Score Analysis
+
+Participant-level feature values depend on session length $N$: a 10-minute recording and a
+24-hour recording produce very different RMSSD estimates simply because the window covers
+different amounts of time.  To make comparisons **session-length-agnostic** we work
+entirely with the **windowed distributions** — every window is exactly 60 beats, so feature
+values are directly comparable regardless of how long the session lasted.
+
+The normative reference $(\mu, \sigma)$ is derived from all 60-beat windows across the NSRDB
+(`nsrdb_wf`). The individual's representative value is the **median** of their own 60-beat
+windows (`indiv_wf`), which summarises their distribution without depending on how many
+windows their session produces.
+
+$$z = \frac{\operatorname{median}(x_\text{individual windows}) - \mu_\text{NSRDB windows}}{\sigma_\text{NSRDB windows}}$$
+
+```{julia}
+using Printf
+
+# ── Compute Z-scores from windowed distributions ──────────────────────────────
+# Both sides use 60-beat windows → features are N-independent and comparable.
+zscore_rows = map(norm_features) do feat
+    nsrdb_vals = filter(!isnan, nsrdb_wf[!, feat])
+    indiv_vals = filter(!isnan, indiv_wf[!, feat])
+
+    μ         = mean(nsrdb_vals)
+    σ         = std(nsrdb_vals)
+    # Median of individual's windowed distribution as the point estimate
+    indiv_med = median(indiv_vals)
+    z         = (indiv_med - μ) / σ
+
+    (feature      = feat,
+     μ_nsrdb      = round(μ;         digits=2),
+     σ_nsrdb      = round(σ;         digits=2),
+     indiv_median = round(indiv_med; digits=2),
+     z_score      = round(z;         digits=3),
+     n_indiv_wins = length(indiv_vals),
+     n_nsrdb_wins = length(nsrdb_vals))
+end
+
+zscore_df = DataFrame(zscore_rows)
+println("─"^80)
+println("  Feature │  μ NSRDB wins │  σ NSRDB wins │ Indiv median │  Z-score │ wins")
+println("─"^80)
+for r in eachrow(zscore_df)
+    @printf("  %-7s │  %12.2f │  %12.2f │ %12.2f │  %+.3f  │ %d\n",
+            r.feature, r.μ_nsrdb, r.σ_nsrdb, r.indiv_median, r.z_score, r.n_indiv_wins)
+end
+println("─"^80)
+println("  Reference: $(zscore_df.n_nsrdb_wins[1]) NSRDB $(norm_window_size)-beat windows  |  Individual: $(zscore_df.n_indiv_wins[1]) windows")
+```
+
+```{julia}
+# ── σ-coloured KDE plots with individual overlay ──────────────────────────────
+# The NSRDB windowed KDE is coloured by σ bands.
+# The individual's windowed KDE is overlaid in crimson.
+# A vertical dashed line marks the individual's median with their Z-score.
+zscore_plots = map(norm_features) do feat
+    nsrdb_vals = filter(!isnan, nsrdb_wf[!, feat])
+    indiv_vals = filter(!isnan, indiv_wf[!, feat])
+
+    r = only(filter(row -> row.feature == feat, eachrow(zscore_df)))
+    μ = r.μ_nsrdb
+    σ = r.σ_nsrdb
+    indiv_med = r.indiv_median
+    z = r.z_score
+
+    p = plot(; title=feat_labels[feat], xlabel=feat_labels[feat],
+               ylabel="Density", legend=:outertopright)
+
+    # σ bands (plotted first so KDEs sit on top)
+    vspan!([μ - 3σ, μ - 2σ]; alpha=0.13, color=:coral,     label=">2σ")
+    vspan!([μ + 2σ, μ + 3σ]; alpha=0.13, color=:coral,     label="")
+    vspan!([μ - 2σ, μ - σ];  alpha=0.18, color=:gold,      label="1–2σ")
+    vspan!([μ + σ,  μ + 2σ]; alpha=0.18, color=:gold,      label="")
+    vspan!([μ - σ,  μ + σ];  alpha=0.20, color=:steelblue, label="±1σ")
+
+    # NSRDB windowed KDE
+    density!(nsrdb_vals;
+        color = :navy, lw = 2.5,
+        label = "NSRDB windows (n=$(length(nsrdb_vals)))",
+        fill  = false)
+
+    # Individual windowed KDE
+    isempty(indiv_vals) || density!(indiv_vals;
+        color = :crimson, lw = 2.0, linestyle = :dot,
+        label = "Individual windows (n=$(length(indiv_vals)))",
+        fill  = false)
+
+    # Median of individual's windows, annotated with Z-score
+    vline!([indiv_med];
+        color = :crimson, lw = 2.5, linestyle = :dash,
+        label = "Indiv. median  z=$(round(z; digits=2))")
+    p
+end
+
+plot(zscore_plots...; layout=(4, 2), size=(1200, 1000),
+     plot_title="Normative Analysis: NSRDB vs Individual ($(norm_window_size)-beat windows, N-independent)")
+```
+
+```{julia}
+# ── Summary table ─────────────────────────────────────────────────────────────
+println("\nZ-Score Summary  —  Individual median window vs NSRDB windowed normative")
+println("  (All comparisons use $(norm_window_size)-beat windows, stride=$(norm_stride) — session-length independent)")
+println("="^72)
+println("  Feature │  Z-score │  Interpretation")
+println("─"^72)
+for r in eachrow(zscore_df)
+    interp = if abs(r.z_score) <= 1.0
+        "Within ±1σ  — typical"
+    elseif abs(r.z_score) <= 2.0
+        "Within ±2σ  — slightly atypical"
+    elseif abs(r.z_score) <= 3.0
+        "Within ±3σ  — notably atypical"
+    else
+        "Beyond  ±3σ — rare (<0.3% of population)"
+    end
+    @printf("  %-7s │  %+.3f   │  %s\n", r.feature, r.z_score, interp)
+end
+println("="^72)
+```
+
+### 5.4 Long-Window (360-beat) Windowed KDE Comparison
+
+We repeat the same comparison using a **360-beat window / 120-beat stride** — a longer window
+that captures lower-frequency dynamics (VLF / ULF band) and reduces window-to-window variance.
+
+```{julia}
+# ── Parameters for the long-window comparison ─────────────────────────────────
+lw_window_size = 360
+lw_stride      = 120
+
+# ── Load NSRDB long-window windowed features ──────────────────────────────────
+lw_csv = "windowed_w$(lw_window_size)_s$(lw_stride)_features.csv"
+nsrdb_lw_path = if isfile("test/testdata/nsrdb/$lw_csv")
+    "test/testdata/nsrdb/$lw_csv"
+elseif isfile("../test/testdata/nsrdb/$lw_csv")
+    "../test/testdata/nsrdb/$lw_csv"
+else
+    error("Cannot find test/testdata/nsrdb/$lw_csv")
+end
+
+nsrdb_lw = CSV.read(nsrdb_lw_path, DataFrame)
+println("NSRDB long-window: $(nrow(nsrdb_lw)) windows from $(length(unique(nsrdb_lw.participant_id))) participants")
+
+# ── Window the individual IBI with matching parameters ────────────────────────
+indiv_lw = windowed_feature_set(real_data; window_size=lw_window_size, stride=lw_stride,
+                                 features=norm_features)
+println("Individual long-window: $(nrow(indiv_lw)) windows")
+```
+
+```{julia}
+# ── Side-by-side KDE plots (360-beat windows) ─────────────────────────────────
+kde_lw_plots = map(norm_features) do feat
+    nsrdb_vals = filter(!isnan, nsrdb_lw[!, feat])
+    indiv_vals = filter(!isnan, indiv_lw[!, feat])
+
+    p = density(nsrdb_vals;
+        title   = feat_labels[feat],
+        xlabel  = feat_labels[feat],
+        ylabel  = "Density",
+        color   = :steelblue,
+        fill    = (0, 0.25, :steelblue),
+        lw      = 2,
+        label   = "NSRDB windows",
+        legend  = :topright,
+    )
+    isempty(indiv_vals) || density!(indiv_vals;
+        color  = :crimson,
+        fill   = (0, 0.25, :crimson),
+        lw     = 2,
+        label  = "Individual windows",
+    )
+    p
+end
+
+plot(kde_lw_plots...; layout=(4, 2), size=(1100, 900),
+     plot_title="NSRDB vs Individual: Windowed Feature KDE Distributions  (w=$(lw_window_size), s=$(lw_stride))")
+```
+
+### 5.5 Long-Window (360-beat) Normative Z-Score Analysis
+
+Using the same methodology as §5.3, but now with 360-beat windows as the normative reference.
+Longer windows reduce high-frequency noise and emphasise slow oscillations.
+
+$$z = \frac{\operatorname{median}(x_\text{individual windows}) - \mu_\text{NSRDB windows}}{\sigma_\text{NSRDB windows}}$$
+
+```{julia}
+# ── Compute Z-scores from 360-beat windowed distributions ────────────────────
+zscore_lw_rows = map(norm_features) do feat
+    nsrdb_vals = filter(!isnan, nsrdb_lw[!, feat])
+    indiv_vals = filter(!isnan, indiv_lw[!, feat])
+
+    μ         = mean(nsrdb_vals)
+    σ         = std(nsrdb_vals)
+    indiv_med = median(indiv_vals)
+    z         = (indiv_med - μ) / σ
+
+    (feature      = feat,
+     μ_nsrdb      = round(μ;         digits=2),
+     σ_nsrdb      = round(σ;         digits=2),
+     indiv_median = round(indiv_med; digits=2),
+     z_score      = round(z;         digits=3),
+     n_indiv_wins = length(indiv_vals),
+     n_nsrdb_wins = length(nsrdb_vals))
+end
+
+zscore_lw_df = DataFrame(zscore_lw_rows)
+println("─"^80)
+println("  Feature │  μ NSRDB wins │  σ NSRDB wins │ Indiv median │  Z-score │ wins")
+println("─"^80)
+for r in eachrow(zscore_lw_df)
+    @printf("  %-7s │  %12.2f │  %12.2f │ %12.2f │  %+.3f  │ %d\n",
+            r.feature, r.μ_nsrdb, r.σ_nsrdb, r.indiv_median, r.z_score, r.n_indiv_wins)
+end
+println("─"^80)
+println("  Reference: $(zscore_lw_df.n_nsrdb_wins[1]) NSRDB $(lw_window_size)-beat windows  |  Individual: $(zscore_lw_df.n_indiv_wins[1]) windows")
+```
+
+```{julia}
+# ── σ-coloured KDE plots with individual overlay (360-beat windows) ───────────
+zscore_lw_plots = map(norm_features) do feat
+    nsrdb_vals = filter(!isnan, nsrdb_lw[!, feat])
+    indiv_vals = filter(!isnan, indiv_lw[!, feat])
+
+    r = only(filter(row -> row.feature == feat, eachrow(zscore_lw_df)))
+    μ = r.μ_nsrdb
+    σ = r.σ_nsrdb
+    indiv_med = r.indiv_median
+    z = r.z_score
+
+    p = plot(; title=feat_labels[feat], xlabel=feat_labels[feat],
+               ylabel="Density", legend=:outertopright)
+
+    vspan!([μ - 3σ, μ - 2σ]; alpha=0.13, color=:coral,     label=">2σ")
+    vspan!([μ + 2σ, μ + 3σ]; alpha=0.13, color=:coral,     label="")
+    vspan!([μ - 2σ, μ - σ];  alpha=0.18, color=:gold,      label="1–2σ")
+    vspan!([μ + σ,  μ + 2σ]; alpha=0.18, color=:gold,      label="")
+    vspan!([μ - σ,  μ + σ];  alpha=0.20, color=:steelblue, label="±1σ")
+
+    density!(nsrdb_vals;
+        color = :navy, lw = 2.5,
+        label = "NSRDB windows (n=$(length(nsrdb_vals)))",
+        fill  = false)
+
+    isempty(indiv_vals) || density!(indiv_vals;
+        color = :crimson, lw = 2.0, linestyle = :dot,
+        label = "Individual windows (n=$(length(indiv_vals)))",
+        fill  = false)
+
+    vline!([indiv_med];
+        color = :crimson, lw = 2.5, linestyle = :dash,
+        label = "Indiv. median  z=$(round(z; digits=2))")
+    p
+end
+
+plot(zscore_lw_plots...; layout=(4, 2), size=(1200, 1000),
+     plot_title="Normative Analysis: NSRDB vs Individual ($(lw_window_size)-beat windows, N-independent)")
+```
+
+```{julia}
+# ── Summary table (360-beat windows) ──────────────────────────────────────────
+println("\nZ-Score Summary  —  Individual median window vs NSRDB windowed normative")
+println("  (All comparisons use $(lw_window_size)-beat windows, stride=$(lw_stride) — session-length independent)")
+println("="^72)
+println("  Feature │  Z-score │  Interpretation")
+println("─"^72)
+for r in eachrow(zscore_lw_df)
+    interp = if abs(r.z_score) <= 1.0
+        "Within ±1σ  — typical"
+    elseif abs(r.z_score) <= 2.0
+        "Within ±2σ  — slightly atypical"
+    elseif abs(r.z_score) <= 3.0
+        "Within ±3σ  — notably atypical"
+    else
+        "Beyond  ±3σ — rare (<0.3% of population)"
+    end
+    @printf("  %-7s │  %+.3f   │  %s\n", r.feature, r.z_score, interp)
+end
+println("="^72)
+```
+
+## Part 6: Visualization Suite
 
 ```{julia}
 println("\n" * "="^70)
