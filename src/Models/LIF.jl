@@ -2,45 +2,53 @@
     LIF <: AbstractHRVModel
 
 Leaky Integrate-and-Fire cardiac pacemaker model for HRV simulation.
-Models the heart's sinoatrial node as a large-τ pacemaker neuron.
+Models the heart's sinoatrial node as a pacemaker neuron.
 
-# Physiological Parameters (Fixed)
-- `τ`: Membrane time constant = 200 ms (cardiac pacemaker)
-- `V_rest`: Resting potential = -65 mV
-- `V_reset`: Reset potential = -65 mV (equals resting)
-- `V_threshold`: Spike threshold = -60 mV
-- `R`: Membrane resistance = 10 MΩ
+# Parameters
+- `τ`: Membrane time constant (ms) — sets the intrinsic inter-beat timescale
+- `V_rest`: Resting potential (mV)
+- `V_reset`: Reset potential (mV) after each spike (typically equals V_rest)
+- `V_threshold`: Spike threshold (mV)
+- `R`: Membrane resistance — scales input current to voltage units
 
 # Fitted Parameter
-- `I`: Input current (dimensionless, typical 1.51-1.53 for 800-1000ms IBIs)
+- `I`: Input current — sole free parameter; encodes autonomic drive and heart rate
 
 # Model Equation
 τ dV/dt = -(V - V_rest) + R*I
 
-When V crosses V_threshold, a spike occurs and V resets to V_reset.
-IBI = time between spikes × 10 (converts 80-100ms model time to 800-1000ms physiological time)
+When V crosses V_threshold (upward), a spike occurs and V resets to V_reset.
+The inter-beat interval (IBI) is the time between consecutive spikes, directly
+in milliseconds — no post-hoc scaling is applied.
+
+# Period Formula (analytical)
+With ΔV = V_threshold - V_rest and nullcline V* = V_rest + R·I (requires V* > V_threshold):
+  T = τ · ln(R·I / (R·I - ΔV))
+Inverse (desired period → required I):
+  I = ΔV / (R · (1 - exp(-T/τ)))
 """
 struct LIF <: AbstractHRVModel
-    τ::Float64          # Membrane time constant (ms) = 200 (fixed)
-    V_rest::Float64     # Resting potential (mV) = -65 (fixed)
-    V_reset::Float64    # Reset potential (mV) = -65 (fixed)
-    V_threshold::Float64  # Spike threshold (mV) = -60 (fixed)
-    R::Float64          # Membrane resistance (MΩ) = 10 (fixed)
-    I::Float64          # Input current (fitted parameter, typically 1.51-1.53)
+    τ::Float64            # Membrane time constant (ms)
+    V_rest::Float64       # Resting potential (mV)
+    V_reset::Float64      # Reset potential (mV)
+    V_threshold::Float64  # Spike threshold (mV)
+    R::Float64            # Membrane resistance
+    I::Float64            # Input current (fitted parameter)
 end
-
-LIF(; I=1.52) = LIF(200.0, -65.0, -65.0, -60.0, 10.0, I)
 
 """
     parameter_space(model::LIF) -> NamedTuple
 
 Return the parameter space for LIF model (only I is fitted).
 
-# Returns
-NamedTuple with single key `I` (input current)
-- lower = 1.48: Below this, heart rate too slow
-- upper = 1.56: Above this, heart rate too fast
-- prior: TruncatedNormal centered at 1.52 (normal resting heart rate)
+Bounds are derived analytically from the model's own parameters using
+  I(T) = ΔV / (R · (1 - exp(-T/τ)))
+so they automatically adapt when τ, R, or the voltage parameters change.
+
+# Derived bounds
+- lower ↔ T_max = 3000 ms (very slow heart rate, ~20 bpm)
+- upper ↔ T_min =  300 ms (very fast heart rate, ~200 bpm)
+- center ↔ T_center = 800 ms (~75 bpm, normal resting)
 """
 function parameter_space(model::LIF)
     return (
@@ -64,13 +72,13 @@ Uses callback-based spike detection for accurate IBI measurement.
 
 # Model
 Leaky Integrate-and-Fire ODE:
-  τ dV/dt = -(V - V_rest) + R*I
+  τ dV/dt = -(V - V_rest) + R·I
 
-When V crosses V_threshold (upward), spike occurs and V resets to V_reset.
+When V crosses V_threshold (upward), a spike occurs and V resets to V_reset.
 
 # Returns
-Vector of inter-beat intervals in milliseconds (physiological time)
-Model time multiplied by 10 to convert 80-100ms → 800-1000ms
+Vector of n_beats inter-beat intervals in milliseconds (spike-time differences,
+no rescaling applied — model time IS physiological time).
 """
 function simulate(model::LIF, params::NamedTuple, n_beats::Int)::Vector{Float64}
     # Check DifferentialEquations availability
@@ -120,9 +128,9 @@ function simulate(model::LIF, params::NamedTuple, n_beats::Int)::Vector{Float64}
                            nothing,  # No negative crossing action
                            rootfind=SciMLBase.RightRootFind)  # Only upward crossings
 
-    # Time span: simulate long enough to get n_beats IBIs
-    # Maximum IBI ~3000ms -> 300ms in model time.
-    tspan = (0.0, 300.0 * n_beats)
+    # Time span: generous upper bound — at least n_beats × max expected IBI.
+    # Maximum physiological IBI ~3000 ms, so 3000 × n_beats is a safe ceiling.
+    tspan = (0.0, 3000.0 * n_beats)
 
     # Define and solve ODE problem
     prob = ODEProblem(lif_dynamics!, u0, tspan, p)
@@ -134,27 +142,31 @@ function simulate(model::LIF, params::NamedTuple, n_beats::Int)::Vector{Float64}
               "I=$I may be too low to trigger spikes.")
     end
 
-    # Calculate inter-beat intervals
-    ibis_model_time = diff(spike_times)
+    # Inter-beat intervals are spike-time differences
+    ibis = diff(spike_times)
 
-    # Convert from model time to physiological time (×10)
-    # Model: 80-100ms → Physiological: 800-1000ms
-    ibis_physiological = ibis_model_time .* 10.0
-
-    # Return exactly n_beats IBIs
-    if length(ibis_physiological) >= n_beats
-        return ibis_physiological[1:n_beats]
+    if length(ibis) >= n_beats
+        return ibis[1:n_beats]
     else
-        error("LIF simulation: only generated $(length(ibis_physiological))/$n_beats IBIs")
+        error("LIF simulation: only generated $(length(ibis))/$n_beats IBIs")
     end
 end
 
 """
     fit(model::LIF, data::Vector{Float64}; method=:bayesian, kwargs...) -> ModelFitResult
 
-Fit LIF model to IBI data using Bayesian inference or gradient-based optimization.
+Fit LIF model to IBI data using Bayesian inference, gradient-based optimization,
+or the closed-form analytical solution.
 
 Only the I parameter is fitted; physiological parameters (τ, V_rest, R, V_threshold) are fixed.
+
+# Methods
+- `:analytical` — Inverts the period formula `T = τ·ln(R·I / (R·I - ΔV))` for
+  every IBI individually, yielding a per-beat `I` series.  `params.I` is the
+  mean; the full series is stored in `result.posterior["I"]`.  Instantaneous,
+  no simulation required.
+- `:gradient`   — Brent univariate optimisation minimising RMSE of simulated IBIs.
+- `:bayesian`   — NUTS sampler via Turing.jl.
 """
 function fit(model::LIF, data::Vector{Float64};
              method::Symbol=:bayesian,
@@ -162,7 +174,39 @@ function fit(model::LIF, data::Vector{Float64};
              samples::Int=1000,
              kwargs...)
 
-    if method == :bayesian
+    if method == :analytical
+        # Invert the period formula pointwise for every IBI.
+        # Period formula:  T = τ · ln(R·I / (R·I - ΔV))
+        # Inverse:         I = ΔV / (R · (1 - exp(-T/τ)))
+        ΔV = model.V_threshold - model.V_rest
+        I_series = ΔV ./ (model.R .* (1.0 .- exp.(-data ./ model.τ)))
+
+        # Representative scalar: mean over all beats
+        I_mean = mean(I_series)
+
+        params_map = (I = I_mean,)
+
+        diagnostics = Dict(
+            "method"    => "analytical (per-beat period inversion)",
+            "I_std"     => std(I_series),
+            "I_min"     => minimum(I_series),
+            "I_max"     => maximum(I_series),
+            "n_beats"   => length(data),
+        )
+
+        # Full per-beat I values stored as posterior for downstream use
+        posterior = Dict("I" => I_series)
+
+        return ModelFitResult(
+            model,
+            :analytical,
+            params_map,
+            posterior,
+            diagnostics,
+            data
+        )
+
+    elseif method == :bayesian
         # Define Turing model for Bayesian inference
         @model function lif_model(ibi_data)
             n_beats = length(ibi_data)
@@ -220,15 +264,10 @@ function fit(model::LIF, data::Vector{Float64};
         )
 
     elseif method == :gradient
-        # Gradient-based optimization using feature-space distance minimization
-        real_features = extract_feature_set(data)
-        feature_names = ["mean", "sdnn", "rmssd"]
-
-        # Validate that initial parameters can simulate
         initial_params = (I=model.I,)
         try
             test_sim = simulate(model, initial_params, min(100, length(data)))
-            @info "LIF gradient fit: Initial simulation successful ($(length(test_sim)) IBIs)"
+            @debug "LIF gradient fit: Initial simulation successful ($(length(test_sim)) IBIs)"
         catch e
             error("LIF gradient fit: Initial simulation failed with default parameters. " *
                   "Data may be too short or model parameters incompatible. Error: $e")
@@ -236,27 +275,12 @@ function fit(model::LIF, data::Vector{Float64};
 
         # Define loss function: MSE of key HRV features
         sim_failures = Ref(0)  # Track simulation failures
-        function loss(params_vec)
-            I_val = params_vec[1]
-
-            # Simulate with current I parameter
+        function loss(I_val::Float64)
             params = (I=I_val,)
             try
                 synthetic = simulate(model, params, length(data))
-                synth_features = extract_feature_set(synthetic)
-
-                # Compute normalized feature-space distance
-                distance = 0.0
-                for feat in feature_names
-                    real_val = real_features[!, feat][1]
-                    synth_val = synth_features[!, feat][1]
-                    if real_val > 0
-                        distance += ((real_val - synth_val) / real_val)^2
-                    else
-                        distance += (real_val - synth_val)^2
-                    end
-                end
-                return distance
+                # Compute RMSE
+                return sqrt(mean((synthetic - data).^2))
             catch e
                 sim_failures[] += 1
                 return 1e10  # Large penalty for failed simulations
@@ -265,32 +289,32 @@ function fit(model::LIF, data::Vector{Float64};
 
         # Get bounds from parameter space
         ps = parameter_space(model)
-        lower = [ps.I.lower]
-        upper = [ps.I.upper]
-        initial_x = [model.I]
 
-        result = optimize(loss, lower, upper, initial_x, Fminbox(LBFGS()),
-                         Optim.Options(iterations=500, g_tol=1e-6, f_tol=1e-8))
+        # Use Brent's univariate method (gradient-free): avoids ForwardDiff issues
+        # with DifferentialEquations callbacks and is optimal for this 1D problem.
+        result = optimize(loss, ps.I.lower, ps.I.upper,
+                         Optim.Brent();
+                         rel_tol=1e-6, abs_tol=1e-8)
 
         # Check if optimization was successful
-        if result.iterations <= 1 && result.minimum >= 1e9
+        if Optim.iterations(result) <= 1 && Optim.minimum(result) >= 1e9
             @warn "LIF gradient fit: Optimization failed - simulation errors likely. " *
                   "Sim failures: $(sim_failures[]). Returning initial parameters."
         end
 
-        # Extract optimized parameters
+        # Extract optimized parameters (scalar minimizer for univariate result)
         params_map = (
-            I = result.minimizer[1],
+            I = result.minimizer,
         )
 
         # Extract diagnostics
         diagnostics = Dict(
-            "method" => "LBFGS",
+            "method" => "Brent",
             "converged" => Optim.converged(result),
-            "iterations" => result.iterations,
-            "loss_final" => result.minimum,
+            "iterations" => Optim.iterations(result),
+            "loss_final" => Optim.minimum(result),
             "simulation_failures" => sim_failures[],
-            "optimization_successful" => result.minimum < 1e9
+            "optimization_successful" => Optim.minimum(result) < 1e9
         )
 
         return ModelFitResult(
@@ -303,6 +327,6 @@ function fit(model::LIF, data::Vector{Float64};
         )
 
     else
-        error("LIF supports :bayesian and :gradient fitting methods")
+        error("LIF supports :analytical, :gradient, and :bayesian fitting methods")
     end
 end

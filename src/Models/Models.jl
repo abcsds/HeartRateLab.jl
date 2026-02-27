@@ -89,6 +89,27 @@ struct ModelFitResult
     data::Vector{Float64}  # Original data used for fitting
 end
 
+"""
+    parameter_series(result::ModelFitResult, param::Symbol) -> Union{Vector{Float64}, Nothing}
+
+Return the per-point array for a fitted parameter, where available.
+
+The meaning of the returned array depends on the fitting method:
+- `:analytical` — per-beat trajectory from closed-form inversion (same length as `result.data`)
+- `:bayesian`   — MCMC posterior samples
+- `:gradient`   — `nothing` (scalar optimisation, no distribution available)
+
+# Example
+```julia
+result = fit(lif, ibis; method=:analytical)
+I_series = parameter_series(result, :I)   # Vector{Float64}, one value per beat
+```
+"""
+function parameter_series(result::ModelFitResult, param::Symbol)
+    result.posterior === nothing && return nothing
+    return get(result.posterior, string(param), nothing)
+end
+
 # Helper function to extract features (needed for gradient fitting)
 function extract_feature_set(data::Vector{Float64})
     # Compute basic HRV features

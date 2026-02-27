@@ -163,29 +163,37 @@ spikes. DifferentialEquations.jl is used to integrate this ODE with `Tsit5()` an
 
 | Parameter | Symbol | Value | Physiological meaning |
 |-----------|--------|-------|-----------------------|
-| Time constant | $\tau$ | 200 ms | Membrane integration timescale |
-| Resting potential | $V_\text{rest}$ | −65 mV | Baseline membrane voltage |
-| Reset potential | $V_\text{reset}$ | −65 mV | Voltage after spike |
-| Spike threshold | $V_\text{thr}$ | −60 mV | Threshold that triggers a beat |
-| Membrane resistance | $R$ | 10 MΩ | Input-current scaling |
-| **Input current** | **$I$** | **≈ 1.52, fitted** | **Sole free parameter — encodes heart rate** |
+| Time constant | $\tau$ | to explore | Sets intrinsic inter-beat timescale |
+| Resting potential | $V_\text{rest}$ | −70 mV | Baseline membrane voltage |
+| Reset potential | $V_\text{reset}$ | −70 mV | Voltage after spike (equals $V_\text{rest}$) |
+| Spike threshold | $V_\text{thr}$ | −40 mV | Threshold that triggers a beat |
+| Membrane resistance | $R$ | to explore | Scales input current to voltage units |
+| **Input current** | **$I$** | **fitted** | **Sole free parameter — encodes autonomic drive** |
 
 The **nullcline** (steady-state without spikes) satisfies $V^* = V_\text{rest} + R \cdot I$.
-For $I = 1.52$ we get $V^* \approx -49.8\,\text{mV}$, which lies **above** $V_\text{threshold}$,
-guaranteeing periodic spiking — the necessary condition for a functional pacemaker.
+For spiking to occur we need $V^* > V_\text{threshold}$, i.e., $R \cdot I > \Delta V$ where
+$\Delta V = V_\text{threshold} - V_\text{rest} = 30\,\text{mV}$.
+
+The analytical period is:
+$$T = \tau \cdot \ln\!\left(\frac{R I}{R I - \Delta V}\right)$$
+and the inverse (desired period $\to$ required $I$):
+$$I(T) = \frac{\Delta V}{R\,(1 - e^{-T/\tau})}$$
+So once $V_\text{rest}$ and $V_\text{threshold}$ are fixed ($\Delta V = 30\,\text{mV}$), the
+product $R \cdot I$ is the only relevant quantity — $R$ sets the scale of $I$ without changing
+the dynamics.
 
 ```{julia}
-# ── Fixed LIF physiological parameters ──────────────────────────────────────
-τ_lif       = 200.0   # ms
-V_rest_lif  = -65.0   # mV
-V_thr_lif   = -60.0   # mV
-V_reset_lif = -65.0   # mV
-R_lif       = 10.0    # MΩ
-I_normal    = 1.52    # dimensionless; typical resting drive
+# ── LIF physiological parameters (values to explore in this notebook) ───────
+τ_lif       = 220.0   # ms  — sets intrinsic inter-beat timescale
+V_rest_lif  = -70.0   # mV
+V_thr_lif   = -40.0   # mV
+V_reset_lif = -70.0   # mV
+R_lif       = 20.0    # mV / (current unit)  — scales I to voltage
+I_normal    = 1.52    # current; typical starting value to explore
 
 # ── Slope-field grid in (t, V) space ────────────────────────────────────────
-V_grid_vals = range(-67.5, -49.5, length = 12)
-t_grid_vals = range(0.0, 110.0,  length = 12)
+V_grid_vals = range(-85.0, -29.5, length = 12)
+t_grid_vals = range(0.0, 6 * τ_lif,  length = 20)
 
 T_flat    = vec([t for t in t_grid_vals, v in V_grid_vals])
 V_flat    = vec([v for t in t_grid_vals, v in V_grid_vals])
@@ -200,11 +208,11 @@ dV_arrows   = (dVdt_flat .* arrow_scale) ./ norms
 
 p_field = quiver(T_flat, V_flat,
     quiver  = (dT_arrows, dV_arrows),
-    xlabel  = "Time (ms, model units)",
+    xlabel  = "Time (ms)",
     ylabel  = "Membrane Voltage V (mV)",
     title   = "LIF Slope Field  (I = $(I_normal))",
     color   = :steelblue, alpha = 0.7, linewidth = 1.5,
-    xlims   = (0, 120), ylims = (-69, -48),
+    xlims   = (0, 6 * τ_lif), ylims = (-85, -28),
     legend  = :bottomright, label = "")
 
 hline!([V_rest_lif]; linestyle = :dash, color = :gray,   lw = 2,
@@ -242,7 +250,7 @@ cb = ContinuousCallback(spike_cond, spike_affect!, nothing,
                         rootfind = SciMLBase.RightRootFind)
 
 prob = ODEProblem(lif_ode!, [V_rest_lif],
-                 (0.0, 1200.0),
+                 (0.0, 8000.0),
                  [τ_lif, V_rest_lif, R_lif, I_normal])
 sol  = solve(prob, Tsit5(); callback = cb, dtmax = 0.1, saveat = 0.2)
 
@@ -260,42 +268,40 @@ if length(spike_times_trace) >= 2
     ibis_model = diff(spike_times_trace)
     mean_T_model = round(mean(ibis_model); digits = 1)
     println("Spikes detected : $(length(spike_times_trace))")
-    println("Mean model IBI  : $(mean_T_model) ms  →  physiological IBI ≈ $(round(mean_T_model * 10; digits=1)) ms")
+    println("Mean IBI        : $(mean_T_model) ms")
     for st in spike_times_trace
         vline!([st]; linestyle = :dot, color = :orange, alpha = 0.8, label = "")
     end
 end
 
-# ── Bottom panel: IBIs on the ×10 physiological timeline ────────────────────
-# Each IBI is plotted at the midpoint between its two bounding spikes,
-# rescaled to physiological time (model time × 10).
-p_ibi = plot(; xlabel = "Time (ms, physiological)",
+# Each IBI is plotted at the midpoint between its two bounding spikes
+p_ibi = plot(; xlabel = "Time (ms)",
                ylabel = "IBI (ms)",
-               title  = "Model IBIs — physiological timeline (×10 rescaling)",
+               title  = "Model IBIs",
                ylims  = (0, nothing), legend = :topright)
 
 if length(spike_times_trace) >= 2
     ibis_model   = diff(spike_times_trace)
-    # Midpoint of each inter-spike interval, scaled to physiological time
-    t_ibi_phys   = (spike_times_trace[1:end-1] .+ spike_times_trace[2:end]) ./ 2 .* 10
-    ibis_phys    = ibis_model .* 10
+    # Midpoint of each inter-spike interval
+    t_ibi_mid    = (spike_times_trace[1:end-1] .+ spike_times_trace[2:end]) ./ 2
+    ibis_ms      = ibis_model
 
     # Stem-style: vertical lines from zero up to each IBI value
-    for (t_i, ibi_i) in zip(t_ibi_phys, ibis_phys)
+    for (t_i, ibi_i) in zip(t_ibi_mid, ibis_ms)
         plot!(p_ibi, [t_i, t_i], [0.0, ibi_i];
               color = :teal, lw = 2, label = "")
     end
-    scatter!(p_ibi, t_ibi_phys, ibis_phys;
-             color = :teal, markersize = 6, label = "IBI (model × 10)")
+    scatter!(p_ibi, t_ibi_mid, ibis_ms;
+             color = :teal, markersize = 6, label = "IBI (ms)")
 
-    mean_ibi_phys = round(mean(ibis_phys); digits = 1)
-    hline!(p_ibi, [mean_ibi_phys];
+    mean_ibi = round(mean(ibis_ms); digits = 1)
+    hline!(p_ibi, [mean_ibi];
            linestyle = :dash, color = :orange, lw = 1.5,
-           label = "Mean IBI = $(mean_ibi_phys) ms")
-    xlims!(p_ibi, (0, t_ibi_phys[end] + 100))
+           label = "Mean IBI = $(mean_ibi) ms")
+    xlims!(p_ibi, (0-500, t_ibi_mid[end] + 1000))
 end
 
-plot(p_trace, p_ibi; layout = (2, 1), size = (800, 600))
+plot(p_trace, p_ibi; layout = (2, 1), size = (1200, 800))
 ```
 
 ### 4.3 Rolling-Window Estimation of Input Current I(t)
@@ -306,28 +312,34 @@ visible how the autonomic drive to the heart changes over time.
 
 **Window parameters**: 10-beat window · 2-beat stride.
 
-#### Method speed comparison (single window)
+#### Fitting the model to a single window
 
 ```{julia}
-window_size = 10
-stride      = 2
+window_size = 24
+stride      = 24
 window1     = real_data[1:window_size]
-lif_base    = LIF()
+lif_base = LIF(τ_lif, V_rest_lif, V_reset_lif, V_thr_lif, R_lif, I_normal)
 
-println("Fitting single window of $(window_size) beats with both methods…\n")
+# println("Fitting single window of $(window_size) beats with both methods…\n")
+println("Fitting single window of $(window_size) beats with :analytical method…")
+t_analytical = @elapsed result_analytical = fit(lif_base, window1; method = :analytical)
+println("  $(round(t_analytical; digits = 3)) s   I = $(round(result_analytical.params.I; digits = 6))")
+println()
+
+println("Fitting single window of $(window_size) beats with :gradient method…")
 
 t_grad  = @elapsed result_grad  = fit(lif_base, window1; method = :gradient)
-println("  :gradient  →  $(round(t_grad; digits = 3)) s   I = $(round(result_grad.params.I; digits = 6))")
+println("  $(round(t_grad; digits = 3)) s   I = $(round(result_grad.params.I; digits = 6))")
 println("  Converged : $(result_grad.diagnostics["converged"])  |  Iterations: $(result_grad.diagnostics["iterations"])")
 println()
 
-t_bayes = @elapsed result_bayes = fit(lif_base, window1;
-    method = :bayesian, chains = 1, samples = 200)
-println("  :bayesian  →  $(round(t_bayes; digits = 2)) s   I ≈ $(round(result_bayes.params.I; digits = 6))")
-println()
+# t_bayes = @elapsed result_bayes = fit(lif_base, window1;
+#     method = :bayesian, chains = 2, samples = 200)
+# println("  :bayesian  →  $(round(t_bayes; digits = 2)) s   I ≈ $(round(result_bayes.params.I; digits = 6))")
+# println()
 
-faster = t_grad < t_bayes ? ":gradient" : ":bayesian"
-println("▶ Faster method: $(faster) — will be used for the rolling fit")
+# faster = t_grad < t_bayes ? ":gradient" : ":bayesian"
+# println("▶ Faster method: $(faster) — will be used for the rolling fit")
 ```
 
 #### Rolling fit over full recording
@@ -337,36 +349,221 @@ n_beats       = length(real_data)
 window_starts = collect(1:stride:(n_beats - window_size + 1))
 t_cumsum_ms   = cumsum(real_data)          # absolute beat timestamps in ms
 
-I_series = Vector{Float64}(undef, length(window_starts))
-t_series  = Vector{Float64}(undef, length(window_starts))
+I_series    = Vector{Float64}(undef, length(window_starts))
+t_series    = Vector{Float64}(undef, length(window_starts))
+rmse_series = Vector{Float64}(undef, length(window_starts))
 
 println("Fitting $(length(window_starts)) windows (size=$(window_size), stride=$(stride))…")
-for (k, s) in enumerate(window_starts)
-    w         = real_data[s : s + window_size - 1]
-    res       = fit(LIF(), w; method = :gradient)
+t_rolling = @elapsed for (k, s) in enumerate(window_starts)
+    w   = real_data[s : s + window_size - 1]
+    res = fit(lif_base, w; method = :analytical)
     I_series[k] = res.params.I
+
+    # Prediction RMSE: simulate with fitted I and compare to actual IBIs
+    predicted       = simulate(lif_base, res.params, length(w))
+    rmse_series[k]  = sqrt(mean((w .- predicted) .^ 2))
+
     # Window centre time: midpoint beat timestamp
     center_idx  = s + window_size ÷ 2 - 1
     t_series[k] = t_cumsum_ms[center_idx]
 end
 println("Done — $(length(I_series)) I estimates computed.")
-
-t_sec = t_series ./ 1000.0          # convert ms → s for the x-axis
-
-p_I = plot(t_sec, I_series;
-    xlabel = "Time (s)",
-    ylabel = "Estimated Input Current I",
-    title  = "Continuous LIF Drive  I(t)  (window=$(window_size) beats · stride=$(stride))",
-    lw = 1.5, color = :teal, label = "Î(t)")
-hline!([1.52]; linestyle = :dash, color = :gray, lw = 1.5,
-       label = "Default I = 1.52")
-display(p_I)
+println("  Elapsed time: $(round(t_rolling; digits=3)) s")
 
 println("\nI(t) summary:")
 println("  Mean  : $(round(mean(I_series);    digits = 6))")
 println("  Std   : $(round(std(I_series);     digits = 6))")
 println("  Min   : $(round(minimum(I_series); digits = 6))")
 println("  Max   : $(round(maximum(I_series); digits = 6))")
+println("\nRMSE summary (ms):")
+println("  Mean  : $(round(mean(rmse_series);    digits = 3))")
+println("  Std   : $(round(std(rmse_series);     digits = 3))")
+println("  Min   : $(round(minimum(rmse_series); digits = 3))")
+println("  Max   : $(round(maximum(rmse_series); digits = 3))")
+```
+
+```{julia}
+t_sec         = t_series ./ 1000.0            # convert ms → s for the x-axis
+t_real_sec    = cumsum(real_data) ./ 1000.0   # physiological timeline for raw IBIs
+# xlim_range    = (0.0, t_real_sec[end])        # shared x-axis limits
+xlim_range    = (2000.0, 3000.0)
+
+# Convert RMSE (ms) to uncertainty in I-space via first-order approximation:
+#   δI ≈ (I / mean_IBI) × RMSE_IBI   (IBI ∝ 1/I in the LIF model)
+mean_ibi_global = mean(real_data)
+ribbon_I = (I_series ./ mean_ibi_global) .* rmse_series .* 0.1 # Scale factor since current scales between 1.48 and 1.56, not 0 to 100
+
+p_I = plot(t_sec, I_series;
+    ribbon = ribbon_I,
+    fillalpha = 0.25, fillcolor = :teal,
+    xlabel = "", ylabel = "Input Current I",
+    title  = "Continuous LIF Drive  I(t)  (window=$(window_size) beats · stride=$(stride))",
+    xlims = xlim_range,
+    lw = 1.5, color = :teal, label = "Î(t)")
+hline!([1.52]; linestyle = :dash, color = :gray, lw = 1.5,
+       label = "Default I = 1.52")
+
+p_rmse = plot(t_sec, rmse_series;
+    xlabel = "", ylabel = "RMSE (ms)",
+    title  = "Per-window IBI Prediction Error",
+    xlims = xlim_range,
+    lw = 1.5, color = :coral, label = "RMSE(t)")
+hline!([mean(rmse_series)]; linestyle = :dash, color = :gray, lw = 1.5,
+       label = "Mean = $(round(mean(rmse_series); digits=1)) ms")
+
+p_ibi = plot(t_real_sec, real_data;
+    xlabel = "Time (s)", ylabel = "IBI (ms)",
+    title  = "Raw IBI Signal",
+    xlims = xlim_range,
+    lw = 0.8, color = :steelblue, alpha = 0.7, label = "IBI(t)")
+hline!([mean(real_data)]; linestyle = :dash, color = :gray, lw = 1.5,
+       label = "Mean = $(round(mean(real_data); digits=1)) ms")
+
+plot(p_I, p_rmse, p_ibi; layout = (3, 1), size = (900, 800), link = :x)
+```
+
+#### Point-to-point analytical I(t) — full recording
+
+Rather than estimating a single $\hat{I}$ per window, the analytical inversion
+$I_k = \Delta V \;/\; \bigl(R\,(1 - e^{-T_k/\tau})\bigr)$
+gives an exact current value **for every beat** $k$.
+`parameter_series(result, :I)` retrieves this full array from the fit result.
+
+```{julia}
+# Single analytical fit over the entire recording
+result_full = fit(lif_base, real_data; method = :analytical)
+xlim_range = (2000.0, 3000.0)
+
+# Beat-by-beat I and its physiological timestamp
+I_pointwise = parameter_series(result_full, :I)          # one value per beat
+t_beats_sec = cumsum(real_data) ./ 1000.0                # beat timestamps (s)
+
+println("Beat-by-beat I summary ($(length(I_pointwise)) beats):")
+println("  Mean : $(round(mean(I_pointwise); digits=6))")
+println("  Std  : $(round(std(I_pointwise);  digits=6))")
+println("  Min  : $(round(minimum(I_pointwise); digits=6))")
+println("  Max  : $(round(maximum(I_pointwise); digits=6))")
+
+p_pt = plot(t_beats_sec, I_pointwise;
+    xlabel  = "Time (s)", ylabel  = "Input Current I",
+    title   = "Point-to-point Analytical I(t)  —  one value per beat",
+    lw = 0.6, color = :teal, alpha = 0.7, label = "I_k (per beat)", xlims = xlim_range)
+hline!([1.52]; linestyle = :dash, color = :gray, lw = 1.5,
+       label = "Default I = 1.52")
+hline!([mean(I_pointwise)];
+    linestyle = :dot, color = :gray, lw = 1.5,
+    label = "Mean = $(round(mean(I_pointwise); digits=4))")
+
+# Overlay the windowed estimate for comparison
+plot!(t_sec, I_series;
+    lw = 2.0, color = :orange, label = "Windowed Î(t) (w=$(window_size))")
+
+plot(p_pt, p_I, p_rmse, p_ibi; layout = (4, 1), size = (1200, 900), link = :x)
+```
+
+#### Concatenated Simulated Signal — Window-by-Window Reconstruction
+
+Each of the $(length(window_starts)) rolling windows has a fitted $\hat{I}_k$.
+We call `simulate()` per window to obtain `window_size` LIF IBIs, then concatenate
+all windows into a single synthetic recording.  A separate ODE sweep builds the
+corresponding membrane voltage trace for the first `seg_windows` windows so the
+characteristic sawtooth charging-and-reset pattern is visible, with the threshold
+current changing window-by-window.
+
+```{julia}
+# ── Build concatenated synthetic IBI series (one simulate() call per window) ─
+t0_concat = time()
+simulated_ibis_all = vcat([simulate(lif_base, (I = I_k,), window_size)
+                           for I_k in I_series]...)
+println("Simulated $(length(simulated_ibis_all)) IBIs from $(length(I_series)) windows  " *
+        "($(round((time()-t0_concat); digits=2)) s)")
+
+# ── Voltage trace for the first seg_windows windows ───────────────────────────
+seg_windows = 20              # windows to trace (~480 beats)
+
+# Helper: run LIF ODE for one window, return (t_vec, V_vec)
+function lif_window_trace(I_k, n_beats, τ, V_rest, V_reset, V_thr, R)
+    spikes_w = Float64[]
+
+    function cond_w(u, t, int)
+        u[1] - V_thr
+    end
+    function affect_w!(int)
+        push!(spikes_w, int.t)
+        int.u[1] = V_reset
+        length(spikes_w) >= n_beats && terminate!(int)
+    end
+    cb_w = ContinuousCallback(cond_w, affect_w!, nothing;
+                              rootfind = SciMLBase.RightRootFind)
+    prob_w = ODEProblem(lif_ode!, [V_rest],
+                        (0.0, 3000.0 * n_beats),
+                        [τ, V_rest, R, I_k])
+    sol_w  = solve(prob_w, Tsit5(); callback = cb_w, dtmax = 0.5, saveat = 0.5)
+    return sol_w.t, sol_w[1, :]
+end
+
+V_trace = Float64[]
+t_trace = Float64[]
+t_global_ode = 0.0
+for I_k in I_series[1:seg_windows]
+    tw, Vw = lif_window_trace(I_k, window_size,
+                              τ_lif, V_rest_lif, V_reset_lif, V_thr_lif, R_lif)
+    append!(t_trace, tw .+ t_global_ode)
+    append!(V_trace, Vw)
+    t_global_ode += tw[end]
+end
+t_trace_sec = t_trace ./ 1000.0
+println("Voltage trace: $(length(t_trace)) points over " *
+        "$(round(t_global_ode / 1000; digits = 1)) s  ($(seg_windows) windows)")
+```
+
+```{julia}
+# ── Align simulated and real timelines for comparison ─────────────────────────
+n_compare       = min(length(simulated_ibis_all), length(real_data))
+t_sim_sec_full  = cumsum(simulated_ibis_all[1:n_compare]) ./ 1000.0
+t_real_sec_full = cumsum(real_data[1:n_compare])          ./ 1000.0
+# xlim_cmp        = (0.0, t_real_sec_full[end])
+xlim_cmp        = (2000.0, 3000.0)
+
+# Panel 1: Membrane voltage trace
+p_vtrace = plot(t_trace_sec, V_trace;
+    xlabel = "", ylabel = "V (mV)",
+    title  = "LIF Voltage Trace — $(seg_windows) windows, window-by-window I",
+    xlims  = (0.0, t_trace_sec[end]),
+    lw = 0.5, color = :steelblue, alpha = 0.9, label = "V(t)")
+hline!([V_thr_lif];  linestyle = :dash, color = :crimson, lw = 1.2,
+       label = "V_thr = $(V_thr_lif) mV")
+hline!([V_rest_lif]; linestyle = :dash, color = :gray,    lw = 1.2,
+       label = "V_rest = $(V_rest_lif) mV")
+
+# Panel 2: Simulated IBIs with per-window RMSE ribbon
+rmse_sim = sqrt(mean((simulated_ibis_all[1:n_compare] .- real_data[1:n_compare]) .^ 2))
+# Per-beat RMSE: each window of window_size beats gets its own rmse_series[k]
+ribbon_beat = repeat(rmse_series, inner = window_size)[1:n_compare]
+
+p_sim = plot(t_sim_sec_full, simulated_ibis_all[1:n_compare];
+    ribbon = ribbon_beat,
+    fillalpha = 0.25, fillcolor = :teal,
+    xlabel = "", ylabel = "IBI (ms)",
+    title  = "Simulated IBIs — $(length(I_series)) windows concatenated  |  RMSE = $(round(rmse_sim; digits = 2)) ms",
+    xlims  = xlim_cmp,
+    lw = 0.7, color = :teal, alpha = 0.75, label = "Simulated IBI")
+mean_sim = mean(simulated_ibis_all[1:n_compare])
+hline!([mean_sim];
+    linestyle = :dash, color = :gray, lw = 1.5,
+    label = "Mean = $(round(mean_sim; digits = 1)) ms")
+
+# Panel 3: Real IBIs
+p_real_cmp = plot(t_real_sec_full, real_data[1:n_compare];
+    xlabel = "Time (s)", ylabel = "IBI (ms)",
+    title  = "Real IBIs  |  RMSE = $(round(rmse_sim; digits = 2)) ms",
+    xlims  = xlim_cmp,
+    lw = 0.7, color = :steelblue, alpha = 0.7, label = "Real IBI")
+hline!([mean(real_data[1:n_compare])];
+    linestyle = :dash, color = :gray, lw = 1.5,
+    label = "Mean = $(round(mean(real_data[1:n_compare]); digits = 1)) ms")
+
+plot(p_vtrace, p_sim, p_real_cmp; layout = (3, 1), size = (1200, 900), link = :x)
 ```
 
 ## Part 5: Visualization Suite
