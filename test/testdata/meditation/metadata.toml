@@ -1,0 +1,31 @@
+[normative]
+sigma_threshold = 4
+reference = "Evaluate new values: flag if |x - μ| > 4σ for any feature."
+description = "Use participant_features.csv for recording-level normative ranges."
+
+[files]
+windowed_features = "windowed_w60_s30_features.csv"
+participant_features = "participant_features.csv"
+
+[dataset]
+name = "meditation"
+physionet_url = "https://physionet.org/content/meditation/"
+format = "wfdb"
+population = "healthy"
+files_url = "https://physionet.org/files/meditation/1.0.0/data"
+all_records = ["C1med", "C1pre", "C2med", "C2pre", "C3med", "C3pre", "C4med", "C4pre", "C5med", "C5pre", "C6med", "C6pre", "C7med", "C7pre", "C8med", "C8pre", "Y1med", "Y1pre", "Y2med", "Y2pre", "Y3med", "Y3pre", "Y4med", "Y4pre", "N1", "N2", "N3", "N4", "N5", "N6", "N7", "N8", "N9", "N10", "N11", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12", "M13", "M14", "I1", "I2", "I3", "I4", "I5", "I6", "I7", "I8", "I9"]
+license = "Open Data Commons Attribution License v1.0"
+description = "Heart Rate Oscillations during Meditation — ECG during meditation vs rest"
+version = "1.0.0"
+annotator = "qrs"
+
+[collection]
+n_records_attempted = 58
+heartrateLab_version = "1.0.0"
+window_size = 60
+stride = 30
+date = "2026-02-28T03:20:47.844"
+n_records_collected = 58
+overlap = 30
+n_records_failed = 0
+elapsed_seconds = 595.9

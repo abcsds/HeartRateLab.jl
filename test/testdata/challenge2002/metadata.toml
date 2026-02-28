@@ -1,0 +1,31 @@
+[normative]
+sigma_threshold = 4
+reference = "Evaluate new values: flag if |x - μ| > 4σ for any feature."
+description = "Use participant_features.csv for recording-level normative ranges."
+
+[files]
+windowed_features = "windowed_w60_s30_features.csv"
+participant_features = "participant_features.csv"
+
+[dataset]
+name = "challenge2002"
+physionet_url = "https://physionet.org/content/challenge-2002/"
+format = "txt"
+population = "mixed"
+files_url = "https://physionet.org/files/challenge-2002/1.0.0/dataset"
+all_records = ["rr01", "rr02", "rr03", "rr04", "rr05", "rr06", "rr07", "rr08", "rr09", "rr10", "rr11", "rr12", "rr13", "rr14", "rr15", "rr16", "rr17", "rr18", "rr19", "rr20", "rr21", "rr22", "rr23", "rr24", "rr25", "rr26", "rr27", "rr28", "rr29", "rr30", "rr31", "rr32", "rr33", "rr34", "rr35", "rr36", "rr37", "rr38", "rr39", "rr40", "rr41", "rr42", "rr43", "rr44", "rr45", "rr46", "rr47", "rr48", "rr49", "rr50"]
+license = "Open Data Commons Attribution License v1.0"
+description = "PhysioNet Challenge 2002 — 24-hour RR interval time series (real and synthetic)"
+version = "1.0.0"
+annotator = ""
+
+[collection]
+n_records_attempted = 50
+heartrateLab_version = "1.0.0"
+window_size = 60
+stride = 30
+date = "2026-02-28T05:13:39.199"
+n_records_collected = 50
+overlap = 30
+n_records_failed = 0
+elapsed_seconds = 6770.0

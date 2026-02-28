@@ -102,6 +102,7 @@ const MAX_PARTICIPANT_BEATS = parse(Int, get(ENV, "MAX_PARTICIPANT_BEATS", "5000
 const DATASET_REGISTRY = [
 
     # ── Normal Sinus Rhythm Database ───────────────────────────────────────
+    # Verified 2025: 18 records confirmed at physionet.org/files/nsrdb/1.0.0
     (
         name          = "nsrdb",
         description   = "Normal Sinus Rhythm Database — 24-hour ECGs from healthy adults",
@@ -110,7 +111,10 @@ const DATASET_REGISTRY = [
         version       = "1.0.0",
         format        = :wfdb,
         annotator     = "atr",
+        has_dat       = true,
         txt_extension = "",
+        txt_scale     = 1.0,
+        txt_column    = 0,
         population    = "healthy",
         license       = "Open Data Commons Attribution License v1.0",
         records       = ["16265", "16272", "16273", "16420", "16483", "16539",
@@ -119,6 +123,7 @@ const DATASET_REGISTRY = [
     ),
 
     # ── MIT-BIH Arrhythmia Database ────────────────────────────────────────
+    # Verified 2025: 48 records confirmed at physionet.org/files/mitdb/1.0.0
     (
         name          = "mitbih",
         description   = "MIT-BIH Arrhythmia Database — 48 half-hour ECGs with annotated arrhythmias",
@@ -127,7 +132,10 @@ const DATASET_REGISTRY = [
         version       = "1.0.0",
         format        = :wfdb,
         annotator     = "atr",
+        has_dat       = true,
         txt_extension = "",
+        txt_scale     = 1.0,
+        txt_column    = 0,
         population    = "mixed",
         license       = "Open Data Commons Attribution License v1.0",
         records       = ["100", "101", "102", "103", "104", "105", "106", "107",
@@ -139,15 +147,20 @@ const DATASET_REGISTRY = [
     ),
 
     # ── Normal Sinus Rhythm RR Interval Database ───────────────────────────
+    # Verified 2025: annotation-only WFDB (.hea + .ecg, no .dat), 54 records
+    # Files listed at physionet.org/files/nsr2db/1.0.0
     (
         name          = "nsr2db",
-        description   = "Normal Sinus Rhythm RR Interval Database — RR intervals from healthy subjects",
+        description   = "Normal Sinus Rhythm RR Interval Database — beat annotations from healthy subjects",
         physionet_url = "https://physionet.org/content/nsr2db/",
         files_url     = "https://physionet.org/files/nsr2db/1.0.0",
         version       = "1.0.0",
-        format        = :txt,
-        annotator     = "",
-        txt_extension = ".txt",
+        format        = :wfdb,
+        annotator     = "ecg",
+        has_dat       = false,   # annotation-only: .hea + .ecg, no .dat signal file
+        txt_extension = "",
+        txt_scale     = 1.0,
+        txt_column    = 0,
         population    = "healthy",
         license       = "Open Data Commons Attribution License v1.0",
         records       = ["nsr001", "nsr002", "nsr003", "nsr004", "nsr005",
@@ -160,75 +173,136 @@ const DATASET_REGISTRY = [
                          "nsr036", "nsr037", "nsr038", "nsr039", "nsr040",
                          "nsr041", "nsr042", "nsr043", "nsr044", "nsr045",
                          "nsr046", "nsr047", "nsr048", "nsr049", "nsr050",
-                         "nsr051", "nsr052"],
+                         "nsr051", "nsr052", "nsr053", "nsr054"],
     ),
 
     # ── Heart Rate Oscillations during Meditation ──────────────────────────
+    # Verified 2025: annotation-only WFDB (.hea + .qrs) in data/ subdir
+    # 5 groups: Chi (C1-C8 med/pre), Yoga (Y1-Y4 med/pre), Normal (N1-N11),
+    #           Metron (M1-M14), Ironman (I1-I9) — 58 records total
     (
         name          = "meditation",
         description   = "Heart Rate Oscillations during Meditation — ECG during meditation vs rest",
         physionet_url = "https://physionet.org/content/meditation/",
-        files_url     = "https://physionet.org/files/meditation/1.0.0",
+        files_url     = "https://physionet.org/files/meditation/1.0.0/data",
         version       = "1.0.0",
         format        = :wfdb,
-        annotator     = "atr",
+        annotator     = "qrs",
+        has_dat       = false,   # annotation-only: .hea + .qrs, no .dat signal file
         txt_extension = "",
+        txt_scale     = 1.0,
+        txt_column    = 0,
         population    = "healthy",
         license       = "Open Data Commons Attribution License v1.0",
-        # Records: med1–med8, rest1–rest8
-        records       = ["med1", "med2", "med3", "med4", "med5", "med6", "med7", "med8",
-                         "rest1", "rest2", "rest3", "rest4", "rest5", "rest6", "rest7", "rest8"],
+        records       = [
+            # Chi group — meditation and pre-meditation segments (8 subjects × 2)
+            "C1med", "C1pre", "C2med", "C2pre", "C3med", "C3pre",
+            "C4med", "C4pre", "C5med", "C5pre", "C6med", "C6pre",
+            "C7med", "C7pre", "C8med", "C8pre",
+            # Yoga group — meditation and pre-meditation segments (4 subjects × 2)
+            "Y1med", "Y1pre", "Y2med", "Y2pre",
+            "Y3med", "Y3pre", "Y4med", "Y4pre",
+            # Normal sleeping subjects (11)
+            "N1", "N2", "N3", "N4", "N5", "N6",
+            "N7", "N8", "N9", "N10", "N11",
+            # Metronomic breathing subjects (14)
+            "M1", "M2", "M3", "M4", "M5", "M6", "M7",
+            "M8", "M9", "M10", "M11", "M12", "M13", "M14",
+            # Ironman triathlon athletes (9)
+            "I1", "I2", "I3", "I4", "I5", "I6", "I7", "I8", "I9",
+        ],
     ),
 
     # ── RR Interval Time Series Modeling Challenge 2002 ───────────────────
+    # Verified 2025: 50 plain-text files (rr01..rr50, no extension) in dataset/ subdir
+    # Values are RR intervals in SECONDS — txt_scale converts to milliseconds
     (
         name          = "challenge2002",
-        description   = "PhysioNet Challenge 2002 — RR interval modeling benchmark",
+        description   = "PhysioNet Challenge 2002 — 24-hour RR interval time series (real and synthetic)",
         physionet_url = "https://physionet.org/content/challenge-2002/",
-        files_url     = "https://physionet.org/files/challenge-2002/1.0.0",
+        files_url     = "https://physionet.org/files/challenge-2002/1.0.0/dataset",
         version       = "1.0.0",
         format        = :txt,
         annotator     = "",
-        txt_extension = ".txt",
+        has_dat       = false,
+        txt_extension = "",     # files have no extension (e.g. rr01, not rr01.txt)
+        txt_scale     = 1000.0, # values are in seconds; multiply by 1000 → milliseconds
+        txt_column    = 0,
         population    = "mixed",
         license       = "Open Data Commons Attribution License v1.0",
-        # Events: learning set records e0100..e0161 (even numbers), test set t0100..
-        records       = ["e0100", "e0102", "e0104", "e0106", "e0108",
-                         "e0110", "e0112", "e0114", "e0116", "e0118",
-                         "e0120", "e0122", "e0124", "e0126", "e0128",
-                         "e0130", "e0132", "e0134", "e0136", "e0138"],
+        records       = ["rr01", "rr02", "rr03", "rr04", "rr05",
+                         "rr06", "rr07", "rr08", "rr09", "rr10",
+                         "rr11", "rr12", "rr13", "rr14", "rr15",
+                         "rr16", "rr17", "rr18", "rr19", "rr20",
+                         "rr21", "rr22", "rr23", "rr24", "rr25",
+                         "rr26", "rr27", "rr28", "rr29", "rr30",
+                         "rr31", "rr32", "rr33", "rr34", "rr35",
+                         "rr36", "rr37", "rr38", "rr39", "rr40",
+                         "rr41", "rr42", "rr43", "rr44", "rr45",
+                         "rr46", "rr47", "rr48", "rr49", "rr50"],
     ),
 
     # ── Is the Normal Heart Rate Chaotic? ──────────────────────────────────
+    # Verified 2025: 15 files at physionet.org/files/chaos-heart-rate/1.0.0
+    # n=healthy, c=congestive heart failure, a=atrial fibrillation (1..5 each)
+    # Each file has 3 columns: RR_seconds  beat_type  elapsed_seconds
+    # txt_column=1 selects only the first column; txt_scale=1000 converts s→ms
     (
         name          = "chaos",
-        description   = "Is the Normal Heart Rate Chaotic? — Long RR timeseries from healthy subjects",
+        description   = "Is the Normal Heart Rate Chaotic? — ~24h RR series (healthy, CHF, AF)",
         physionet_url = "https://physionet.org/content/chaos-heart-rate/",
         files_url     = "https://physionet.org/files/chaos-heart-rate/1.0.0",
         version       = "1.0.0",
         format        = :txt,
         annotator     = "",
+        has_dat       = false,
         txt_extension = ".txt",
-        population    = "healthy",
-        license       = "Open Data Commons Attribution License v1.0",
-        records       = ["rr01", "rr02", "rr03", "rr04", "rr05", "rr06",
-                         "rr07", "rr08", "rr09", "rr10"],
+        txt_scale     = 1000.0, # values in column 1 are in seconds; → milliseconds
+        txt_column    = 1,      # 3-column file: col1=RR_s, col2=beat_type, col3=elapsed_s
+        population    = "mixed",
+        license       = "Open Data Commons Open Database License v1.0",
+        records       = ["n1rr", "n2rr", "n3rr", "n4rr", "n5rr",
+                         "c1rr", "c2rr", "c3rr", "c4rr", "c5rr",
+                         "a1rr", "a2rr", "a3rr", "a4rr", "a5rr"],
     ),
 
     # ── Spontaneous Ventricular Tachyarrhythmia Database ──────────────────
+    # Verified 2025: annotation-only WFDB (.hea + .qrs) in data/ subdir
+    # Using _mr1 baseline sinus rhythm records (one per patient; 8014 has mr2 only)
+    # Note: PhysioNet credentialed access may be required for downloads
     (
         name          = "mvtdb",
-        description   = "Spontaneous Ventricular Tachyarrhythmia Database — ECG with ventricular arrhythmias",
+        description   = "Spontaneous Ventricular Tachyarrhythmia Database — baseline sinus rhythm recordings",
         physionet_url = "https://physionet.org/content/mvtdb/",
-        files_url     = "https://physionet.org/files/mvtdb/1.0",
+        files_url     = "https://physionet.org/files/mvtdb/1.0/data",
         version       = "1.0",
         format        = :wfdb,
-        annotator     = "atr",
+        annotator     = "qrs",
+        has_dat       = false,   # annotation-only: .hea + .qrs, no .dat signal file
         txt_extension = "",
+        txt_scale     = 1.0,
+        txt_column    = 0,
         population    = "arrhythmia",
         license       = "Open Data Commons Attribution License v1.0",
-        records       = ["v301l", "v302l", "v303l", "v304l", "v305l",
-                         "v306l", "v307l", "v308l", "v309l", "v310l"],
+        records       = [
+            "0003_mr1", "0008_mr1", "0013_mr1", "0015_mr1", "0026_mr1",
+            "0029_mr1", "0030_mr1", "0039_mr1", "0040_mr1", "0041_mr1",
+            "0043_mr1", "0044_mr1", "0050_mr1", "0051_mr1", "0059_mr1",
+            "0062_mr1", "0065_mr1", "0067_mr1", "0071_mr1", "0072_mr1",
+            "0074_mr1", "0075_mr1", "0078_mr1", "0079_mr1", "0081_mr1",
+            "0082_mr1", "0086_mr1", "0088_mr1", "0094_mr1", "0095_mr1",
+            "0097_mr1", "0115_mr1", "0135_mr1", "0159_mr1", "0164_mr1",
+            "0174_mr1", "0175_mr1", "0182_mr1", "0183_mr1", "0196_mr1",
+            "0201_mr1", "0209_mr1", "0210_mr1", "0213_mr1", "0216_mr1",
+            "0217_mr1", "0231_mr1", "0243_mr1", "0251_mr1", "0263_mr1",
+            "0269_mr1", "0284_mr1", "0293_mr1", "0315_mr1", "0340_mr1",
+            "0358_mr1", "0369_mr1",
+            "8005_mr1", "8006_mr1", "8007_mr1", "8009_mr1", "8010_mr1",
+            "8013_mr1", "8014_mr2", "8015_mr1", "8019_mr1", "8021_mr1",
+            "8022_mr1", "8023_mr1", "8024_mr1", "8031_mr1", "8036_mr1",
+            "8049_mr1", "8051_mr1", "8075_mr1", "8076_mr1", "8079_mr1",
+            "8096_mr1",
+        ],
     ),
 
 ]
@@ -330,15 +404,38 @@ function progress_line(done::Int, total::Int, elapsed_s::Float64, label::String)
 end
 
 """
-Download a single WFDB record (.hea, .dat, annotator) into dest_dir.
+Read a specific column from a multi-column whitespace-delimited text file.
+`column` is 1-indexed. `scale` is multiplied onto each parsed value.
+Lines where the column cannot be parsed as Float64 are silently skipped
+(handles beat-type labels, comment lines, etc.).
+"""
+function read_txt_column(infile::String, column::Int, scale::Float64)::Vector{Float64}
+    result = Float64[]
+    open(infile, "r") do io
+        for line in eachline(io)
+            parts = split(strip(line))
+            length(parts) >= column || continue
+            v = tryparse(Float64, parts[column])
+            isnothing(v) && continue
+            push!(result, v * scale)
+        end
+    end
+    return result
+end
+
+"""
+Download a single WFDB record (.hea, [.dat], annotator) into dest_dir.
+Set `has_dat=false` for annotation-only databases (no signal .dat file).
 Uses the SHA manifest to skip files whose hashes already match.
 Returns the local record path (no extension) on success, nothing on failure.
 """
 function download_wfdb_record(base_url::String, record::String, annotator::String,
                                dest_dir::String,
-                               manifest::Dict{String,String})::Union{String, Nothing}
+                               manifest::Dict{String,String};
+                               has_dat::Bool=true)::Union{String, Nothing}
     local_base = joinpath(dest_dir, record)
-    for ext in [".hea", ".dat", ".$annotator"]
+    exts = has_dat ? [".hea", ".dat", ".$annotator"] : [".hea", ".$annotator"]
+    for ext in exts
         url  = joinpath(base_url, record * ext)
         dest = local_base * ext
         if !download_with_sha!(url, dest, manifest)
@@ -385,7 +482,14 @@ function load_record(ds, record::String, local_path::String)::Union{Vector{Float
             end
             result
         else
-            read_txt(abspath(local_path))
+            # Apply column selection and unit scaling for multi-column / seconds-encoded files.
+            txt_col   = hasproperty(ds, :txt_column) ? ds.txt_column : 0
+            txt_scale = hasproperty(ds, :txt_scale)  ? ds.txt_scale  : 1.0
+            if txt_col > 0
+                read_txt_column(abspath(local_path), txt_col, txt_scale)
+            else
+                read_txt(abspath(local_path)) .* txt_scale
+            end
         end
 
         # Standard preprocessing
@@ -531,6 +635,20 @@ function process_dataset(ds; window_size::Int, stride::Int, output_root::String)
     out_dir = joinpath(output_root, ds.name)
     mkpath(out_dir)
 
+    # ── Dataset-level skip ─────────────────────────────────────────────────
+    # If both aggregate output files already exist for this window/stride
+    # combination, skip the entire dataset (even if record caches are partial).
+    participant_csv = joinpath(out_dir, "participant_features.csv")
+    windowed_csv    = joinpath(out_dir, "windowed_w$(window_size)_s$(stride)_features.csv")
+    if SKIP_EXISTING && isfile(participant_csv) && isfile(windowed_csv)
+        n_parts = try countlines(participant_csv) - 1 catch; -1 end
+        println("  ✓ Skipping — aggregate outputs already exist")
+        println("    participant_features.csv  ($(n_parts) rows)")
+        println("    windowed_w$(window_size)_s$(stride)_features.csv")
+        println("    Set SKIP_EXISTING=false to force re-collection.")
+        return (ok=n_parts, fail=0)
+    end
+
     # Temp dir for downloads
     dl_dir = joinpath(out_dir, "_downloads")
     mkpath(dl_dir)
@@ -578,7 +696,9 @@ function process_dataset(ds; window_size::Int, stride::Int, output_root::String)
 
         # ── Download ───────────────────────────────────────────────────────
         local_path = if ds.format == :wfdb
-            download_wfdb_record(ds.files_url, record, ds.annotator, dl_dir, sha_manifest)
+            has_dat = hasproperty(ds, :has_dat) ? ds.has_dat : true
+            download_wfdb_record(ds.files_url, record, ds.annotator, dl_dir, sha_manifest;
+                                 has_dat=has_dat)
         else
             download_txt_record(ds.files_url, record, ds.txt_extension, dl_dir, sha_manifest)
         end
