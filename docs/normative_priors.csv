@@ -1,0 +1,45 @@
+feature,definition,equation,family,prior_call,param1_name,param1_value,param2_name,param2_value,n_valid,n_total,ks_pvalue,datasets,window_size,stride,status
+apen,Approximate entropy,log(C_m(r) / C_{m+1}(r)),Normal,,,NaN,,NaN,0,56472,NaN,nsrdb+nsr2db,360,120,not in CSV
+ccsi,Corrected cardiac sympathetic index,4 * SD2^2 / SD1,LogNormal,"LogNormal(6.64948, 0.878659)",μ,6.649483723999631,σ,0.8786592618464346,56472,56472,2.274064592482625e-6,nsrdb+nsr2db,360,120,ok
+cvi,Cardiac vagal index,log10(SD1 * SD2 * 16),Normal,"Normal(4.26936, 0.424368)",μ,4.269361868873552,σ,0.4243675840387835,56472,56472,1.0802024412690063e-28,nsrdb+nsr2db,360,120,ok
+cvsd,Coefficient of variation of successive differences,sdsd / mean(IBI),Gamma,"Gamma(3.20435, 0.0130001)",α,3.204348862258013,θ,0.0130001040956156,56472,56472,2.4787353932095975e-141,nsrdb+nsr2db,360,120,ok
+dfa2,DFA long-term scaling exponent alpha2,alpha2 from DFA (scales 4-64),Normal,,,NaN,,NaN,0,56472,NaN,nsrdb+nsr2db,360,120,not in CSV
+hf,High frequency power (0.15-0.4 Hz),integral(PSD; 0.15; 0.4) Hz,Gamma,"Gamma(0.691591, 460.854)",α,0.6915906068536339,θ,460.85408190943764,56472,56472,1.0583963580069326e-188,nsrdb+nsr2db,360,120,ok
+hf_peak,Peak frequency in HF band,argmax(PSD; 0.15; 0.4),Normal,"Normal(0.212262, 0.0625479)",μ,0.21226187931873128,σ,0.06254788942772876,56472,56472,5.887682393120889e-112,nsrdb+nsr2db,360,120,ok
+hf_percentage,HF power as percentage of total power,100 * HF / TP,Gamma,"Gamma(2.53548, 7.59191)",α,2.535484787806655,θ,7.591913141879362,56472,56472,7.611135703051224e-49,nsrdb+nsr2db,360,120,ok
+hf_relative,HF power as proportion of total power,HF / TP,Beta,"Beta(1.3594, 5.70271)",α,1.3593981088709934,β,5.702710973101243,56472,56472,2.8272596407872605e-50,nsrdb+nsr2db,360,120,ok
+hurst,Hurst exponent,H from R/S analysis,Beta,,,NaN,,NaN,0,56472,NaN,nsrdb+nsr2db,360,120,not in CSV
+lf,Low frequency power (0.04-0.15 Hz),integral(PSD; 0.04; 0.15) Hz,Gamma,"Gamma(0.870894, 705.956)",α,0.870893865072293,θ,705.9563870331689,56472,56472,1.624992582450826e-183,nsrdb+nsr2db,360,120,ok
+lf_hf_ratio,LF/HF power ratio,LF / HF,LogNormal,"LogNormal(0.858276, 0.856713)",μ,0.8582761105281326,σ,0.8567129798742524,56472,56472,8.35136750972781e-12,nsrdb+nsr2db,360,120,ok
+lf_peak,Peak frequency in LF band,argmax(PSD; 0.04; 0.15),Normal,"Normal(0.0643586, 0.0182054)",μ,0.06435864801892538,σ,0.018205361659575606,56472,56472,0.0,nsrdb+nsr2db,360,120,ok
+lf_percentage,LF power as percentage of total power,100 * LF / TP,Gamma,"Gamma(8.90829, 4.37525)",α,8.908289816519392,θ,4.375249491395322,56472,56472,2.5531043899773437e-39,nsrdb+nsr2db,360,120,ok
+lf_relative,LF power as proportion of total power,LF / TP,Beta,"Beta(5.29794, 8.29489)",α,5.297942940830514,β,8.294894276059216,56472,56472,2.6296411295783283e-63,nsrdb+nsr2db,360,120,ok
+max,Maximum inter-beat interval,max(IBI),Normal,"Normal(950.533, 196.306)",μ,950.5331668791614,σ,196.3056202668412,56472,56472,1.1435262842779372e-14,nsrdb+nsr2db,360,120,ok
+max_hr,Maximum heart rate,60000 / max(IBI),Normal,"Normal(65.782, 13.5154)",μ,65.78199376258196,σ,13.51536316387787,56472,56472,6.949987592006994e-45,nsrdb+nsr2db,360,120,ok
+mean,Mean inter-beat interval,mean(IBI),Normal,"Normal(778.072, 143.707)",μ,778.0717936420864,σ,143.7071709863939,56472,56472,5.345535074535386e-42,nsrdb+nsr2db,360,120,ok
+mean_hr,Mean heart rate,60000 / mean(IBI),Normal,"Normal(79.7801, 14.8552)",μ,79.78012449711554,σ,14.855200536046976,56472,56472,3.084324758876755e-69,nsrdb+nsr2db,360,120,ok
+median,Median inter-beat interval,median(IBI),Normal,"Normal(778.572, 146.874)",μ,778.5721242385607,σ,146.87383482298583,56472,56472,1.1052598549110693e-50,nsrdb+nsr2db,360,120,ok
+min,Minimum inter-beat interval,min(IBI),Normal,"Normal(627.069, 126.23)",μ,627.0685295367616,σ,126.23004743673624,56472,56472,2.6115910812611032e-30,nsrdb+nsr2db,360,120,ok
+min_hr,Minimum heart rate,60000 / min(IBI),Normal,"Normal(99.6572, 20.5263)",μ,99.65722858855088,σ,20.526323682624355,56472,56472,2.0792768380419172e-113,nsrdb+nsr2db,360,120,ok
+pnn20,Proportion of successive differences > 20 ms,sum(|diff(IBI)| > 20) / N,Beta,"Beta(2.63966, 12.5486)",α,2.6396550254649904,β,12.548569197726055,56472,56472,6.55535213532482e-29,nsrdb+nsr2db,360,120,ok
+pnn50,Proportion of successive differences > 50 ms,sum(|diff(IBI)| > 50) / N,Beta,"Beta(0.427202, 10.3405)",α,0.4272023856214657,β,10.340538146858982,56472,56472,1.5206319901174927e-153,nsrdb+nsr2db,360,120,ok
+rRR,Median relative RR interval distance,median(euclidean_dist(relRR; mean(relRR)))*100,Gamma,"Gamma(4.62985, 0.784604)",α,4.629846996254176,θ,0.7846039687328535,56472,56472,2.863936083716118e-215,nsrdb+nsr2db,360,120,ok
+range,Range of inter-beat intervals,max(IBI) - min(IBI),Gamma,"Gamma(3.62002, 89.3544)",α,3.6200190842704947,θ,89.35440112675104,56472,56472,8.339298420443414e-33,nsrdb+nsr2db,360,120,ok
+renyi0,Renyi entropy of order 0,H_0(IBI)  (Renyi entropy order 0),Normal,,,NaN,,NaN,0,56472,NaN,nsrdb+nsr2db,360,120,not in CSV
+renyi1,Renyi entropy of order 1,H_1(IBI)  (Renyi entropy order 1),Normal,,,NaN,,NaN,0,56472,NaN,nsrdb+nsr2db,360,120,not in CSV
+renyi2,Renyi entropy of order 2,H_2(IBI)  (Renyi entropy order 2),Normal,,,NaN,,NaN,0,56472,NaN,nsrdb+nsr2db,360,120,not in CSV
+rmssd,Root mean square of successive differences,sqrt(mean(diff(IBI).^2)),Gamma,"Gamma(2.70004, 12.1746)",α,2.7000437679228826,θ,12.174602121571073,56472,56472,7.484024857764401e-66,nsrdb+nsr2db,360,120,ok
+sampen,Sample entropy,log(A / B)  (template matches),Normal,,,NaN,,NaN,0,56472,NaN,nsrdb+nsr2db,360,120,not in CSV
+sd1,Poincare plot short-term variability,std((IBI[1:end-1] - IBI[2:end]) / sqrt(2)),Gamma,"Gamma(2.69983, 8.62112)",α,2.699834418875403,θ,8.621116595356314,56472,56472,7.667234263142532e-66,nsrdb+nsr2db,360,120,ok
+sd1_sd2_area,Poincare plot ellipse area,pi * SD1 * SD2,LogNormal,"LogNormal(8.20271, 0.977151)",μ,8.202710159475037,σ,0.9771511246385276,56472,56472,1.0772831288021622e-28,nsrdb+nsr2db,360,120,ok
+sd2,Poincare plot long-term variability,std((IBI[1:end-1] + IBI[2:end]) / sqrt(2)),Gamma,"Gamma(3.86522, 17.9922)",α,3.86522344901285,θ,17.99218224072282,56472,56472,1.7294080288082125e-45,nsrdb+nsr2db,360,120,ok
+sd2_sd1,Ratio of SD2 to SD1 (cardiac sympathetic index),SD2 / SD1,LogNormal,"LogNormal(1.15613, 0.525657)",μ,1.156132817377948,σ,0.5256572518341422,56472,56472,3.812824755010899e-5,nsrdb+nsr2db,360,120,ok
+sdann,Standard deviation of 5-min average NN intervals,std(5-min means of IBI),Gamma,"Gamma(0.869538, 27.9356)",α,0.869537962901679,θ,27.935626760592097,18609,56472,2.1995967525814255e-38,nsrdb+nsr2db,360,120,ok
+sdnn,Standard deviation of NN intervals,std(IBI),Gamma,"Gamma(4.01919, 13.1164)",α,4.019194458571141,θ,13.116438288899063,56472,56472,4.012310559040106e-55,nsrdb+nsr2db,360,120,ok
+sdsd,Standard deviation of successive differences,std(diff(IBI)),Gamma,"Gamma(2.69983, 12.1921)",α,2.6998344188758114,θ,12.192100011950728,56472,56472,7.667234263060535e-66,nsrdb+nsr2db,360,120,ok
+std_hr,Standard deviation of heart rate,60000 / std(IBI),Gamma,"Gamma(3.92275, 377.184)",α,3.9227530506736406,θ,377.1835188152172,56472,56472,6.091173630179463e-22,nsrdb+nsr2db,360,120,ok
+tinn,Triangular interpolation of NN interval histogram,M - N  (triangle base width),Gamma,"Gamma(5.39762, 30.5632)",α,5.397619716848059,θ,30.56315118774492,56472,56472,1.2175808299422648e-27,nsrdb+nsr2db,360,120,ok
+tp,Total power (0.003-0.4 Hz),integral(PSD; 0.003; 0.4) Hz,Gamma,"Gamma(0.996483, 1524.91)",α,0.9964825781455493,θ,1524.9065511896758,56472,56472,9.037859226951284e-163,nsrdb+nsr2db,360,120,ok
+triangular_index,HRV triangular index,N / max(histogram_weights),Gamma,"Gamma(6.10767, 1.68813)",α,6.107665823109426,θ,1.6881285092931946,56472,56472,1.7217920544271675e-27,nsrdb+nsr2db,360,120,ok
+ulf,Ultra-low frequency power (0-0.003 Hz),integral(PSD; 0; 0.003) Hz,Gamma,,,NaN,,NaN,0,56472,NaN,nsrdb+nsr2db,360,120,not in CSV
+vlf,Very low frequency power (0.003-0.04 Hz),integral(PSD; 0.003; 0.04) Hz,Gamma,"Gamma(1.23977, 891.757)",α,1.2397654568884413,θ,891.7570821780226,54083,56472,0.0,nsrdb+nsr2db,360,120,ok

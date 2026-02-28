@@ -23,9 +23,20 @@ using MacroTools
 import DFA
 import EntropyHub
 using Hurst: hurst_exponent
+import Distributions
 
 # config = Dict{String,Any}("freq_method" => :lomb_scargle, "fs" => 10)
 config = Dict{String,Any}("freq_method" => :welch, "fs" => 10)
+
+# ─── Distribution family lookup ────────────────────────────────────────────────
+# Maps docstring names → Distributions.jl types, used by @register to store
+# the analytical distribution family for each scalar feature.
+const DISTRIBUTION_MAP = Dict{String, Any}(
+    "Normal"    => Distributions.Normal,
+    "Gamma"     => Distributions.Gamma,
+    "Beta"      => Distributions.Beta,
+    "LogNormal" => Distributions.LogNormal,
+)
 
 struct HRMeasurement
     data::Array{T,1} where {T<:Real} # Inter-Beat-Intervals (IBIs) in milliseconds
@@ -46,14 +57,22 @@ struct HRFeature
     alias::Array{String}
     domains::Array{String}
     minimum_length::Int
+    distribution::Any  # Distribution family from Distributions.jl (e.g., Normal, Gamma, Beta)
 end
 function HRFeature(
-    name::String, func::Function; alias::Array{String}, domains::Array{String}, minimum_length::Int=10
+    name::String, func::Function;
+    alias::Array{String}, domains::Array{String},
+    minimum_length::Int=10, distribution=nothing,
 )
-    return HRFeature(name, func, alias, domains, minimum_length)
+    return HRFeature(name, func, alias, domains, minimum_length, distribution)
 end
 feature_registry = Dict{String,HRFeature}()
 representation_registry = Dict{String,HRFeature}()
+
+# ─── Normative prior registry ──────────────────────────────────────────────────
+# Maps feature name → fitted Distributions.jl instance (e.g., Normal(780.0, 143.7))
+# Populated at module load from docs/normative_priors.csv if it exists.
+const prior_registry = Dict{String, Any}()
 function_registry = Dict{String,Function}()
 """
     @register documented_function
@@ -78,7 +97,7 @@ macro register(expr::Expr)
             $(f)() = nothing
         end
     end
-    domains, aliases, representation, minimum_length = parse_docstring(docstr)
+    domains, aliases, representation, minimum_length, distribution = parse_docstring(docstr)
 
     # Return the memoized function definition
     # with standard documentation conventions
@@ -94,14 +113,14 @@ macro register(expr::Expr)
         end
         if !($representation)
             feature_registry[$(function_name)] = HRFeature(
-                $(function_name), $(f), $(aliases), $(domains), $(minimum_length)
+                $(function_name), $(f), $(aliases), $(domains), $(minimum_length), $(distribution)
             )
             # for a in $(aliases) # Register aliases
             #     feature_registry[a] = feature_registry[$(function_name)]
             # end
         else
             representation_registry[$(function_name)] = HRFeature(
-                $(function_name), $(f), $(aliases), $(domains), $(minimum_length)
+                $(function_name), $(f), $(aliases), $(domains), $(minimum_length), $(distribution)
             )
             for a in $(aliases) # Register aliases
                 representation_registry[a] = representation_registry[$(function_name)]
@@ -116,6 +135,7 @@ function parse_docstring(doc)
     aliases = []
     representation = false
     minimum_length = 10  # Default value
+    distribution = nothing  # Distribution family (from Distributions.jl)
     # Use regular expressions to find the word "Domains" and "Aliases" at the start of a line
     for line in split(doc, '\n')
         # if matches(r"^\s*Domains:", line) # Halucination, don't use this
@@ -133,6 +153,13 @@ function parse_docstring(doc)
             aliases = String.(strip.(split(aliases, ',')))
         elseif occursin("Representation:", line)
             occursin("true", line) ? representation = true : continue
+        elseif occursin("Distribution:", line)
+            # Extract the analytical distribution family name
+            dist_name = strip(split(line, ':')[2])
+            distribution = get(DISTRIBUTION_MAP, dist_name, nothing)
+            if distribution === nothing && !isempty(dist_name)
+                @warn "Unknown distribution family: $dist_name (valid: $(join(keys(DISTRIBUTION_MAP), ", ")))"
+            end
         elseif occursin("Minimum length:", line)
             # Extract the minimum length value
             length_str = strip(split(line, ':')[2])
@@ -141,7 +168,7 @@ function parse_docstring(doc)
             continue
         end
     end
-    return domains, aliases, representation, minimum_length
+    return domains, aliases, representation, minimum_length, distribution
 end
 
 # Level 1 Direct staticstics
@@ -153,6 +180,7 @@ end
         - `n`: An array of Inter-Beat-Intervals in milliseconds.
     Domains: time, statistics
     Aliases: average, mean_rr, mean_nn
+    Distribution: Normal
     
     Minimum length: 10
     """
@@ -165,6 +193,7 @@ end
     Calculate the standard deviation of the array `n`. This is the `sdnn`.
     Domains: time, statistics
     Aliases: std
+    Distribution: Gamma
     
     Minimum length: 10
     """
@@ -178,6 +207,7 @@ sdnn(n::Array{T,1}) where {T<:Real} = function_registry["sdnn"](HRMeasurement(n)
     Calculate the median value of the array `n`.
     Domains: time, statistics
     Aliases: median
+    Distribution: Normal
     
     Minimum length: 10
     """
@@ -190,6 +220,7 @@ end
     Calculate the maximum value of the array `n`. This is the largest Inter-Beat-Interval (IBI) in milliseconds.
     Domains: time, statistics
     Aliases: max, maximum_rr, maximum_nn
+    Distribution: Normal
     
     Minimum length: 10
     """
@@ -202,6 +233,7 @@ end
     Calculate the minimum of the array `n`. This is the smallest Inter-Beat-Interval (IBI) in milliseconds.
     Domains: time, statistics
     Aliases: min, minimum_rr, minimum_nn
+    Distribution: Normal
     
     Minimum length: 10
     """
@@ -272,6 +304,7 @@ end
         The average heart rate in BPM.
     Domains: time, statistics
     Aliases: mean_hr, average_hr
+    Distribution: Normal
     
     Minimum length: 10
     """
@@ -287,6 +320,7 @@ end
         The standard deviation of the heart rate in BPM.
     Domains: time, statistics
     Aliases: std_hr
+    Distribution: Gamma
     
     Minimum length: 10
     """
@@ -302,6 +336,7 @@ end
         The maximum heart rate in BPM.
     Domains: time, statistics
     Aliases: max_hr, maximum_hr
+    Distribution: Normal
     
     Minimum length: 10
     """
@@ -317,6 +352,7 @@ end
         The minimum heart rate in BPM.
     Domains: time, statistics
     Aliases: min_hr, minimum_hr
+    Distribution: Normal
     
     Minimum length: 10
     """
@@ -333,6 +369,7 @@ end
         The standard deviation of the successive differences.
     Domains: time, statistics
     Aliases: sdsd
+    Distribution: Gamma
     
     Minimum length: 20
     """
@@ -348,6 +385,7 @@ end
         The range of the IBIs.
     Domains: time, statistics
     Aliases: range
+    Distribution: Gamma
     
     Minimum length: 10
     """
@@ -363,6 +401,7 @@ end
         The RMSSD value.
     Domains: time, statistics
     Aliases: rmssd
+    Distribution: Gamma
     
     Minimum length: 20
     """
@@ -378,6 +417,7 @@ end
         The standard deviation of the average IBIs in 5-minute windows.
     Domains: time, statistics
     Aliases: sdann
+    Distribution: Gamma
     
     Minimum length: 50
     """
@@ -397,6 +437,7 @@ end
         The proportion of successive differences greater than 50 ms.
     Domains: time, statistics
     Aliases: pnn50
+    Distribution: Beta
     
     Minimum length: 50
     """
@@ -412,6 +453,7 @@ end
         The proportion of successive differences greater than 20 ms.
     Domains: time, statistics
     Aliases: pnn20
+    Distribution: Beta
     
     Minimum length: 50
     """
@@ -427,6 +469,7 @@ end
         The coefficient of variation of the successive differences.
     Domains: time, statistics
     Aliases: cvsd
+    Distribution: Gamma
     
     Minimum length: 20
     """
@@ -444,6 +487,7 @@ end
         The RMSSD value.
     Domains: time, statistics
     Aliases: rRR
+    Distribution: Gamma
     
     Minimum length: 10
     """
@@ -507,6 +551,7 @@ end
         The ultra low frequency power.
     Domains: frequency
     Aliases: ultra_low_frequency
+    Distribution: Gamma
     
     Minimum length: 128
     """
@@ -531,6 +576,7 @@ end
         The very low frequency power.
     Domains: frequency
     Aliases: very_low_frequency
+    Distribution: Gamma
     
     Minimum length: 128
     """
@@ -546,6 +592,7 @@ end
         The low frequency power.
     Domains: frequency
     Aliases: low_frequency
+    Distribution: Gamma
     
     Minimum length: 128
     """
@@ -561,6 +608,7 @@ end
         The high frequency power.
     Domains: frequency
     Aliases: high_frequency
+    Distribution: Gamma
     
     Minimum length: 128
     """
@@ -576,6 +624,7 @@ end
         The total power of the IBIs.
     Domains: frequency
     Aliases: total_power
+    Distribution: Gamma
     
     Minimum length: 128
     """
@@ -591,6 +640,7 @@ end
         The peak frequency in the low frequency band.
     Domains: frequency
     Aliases: lf_peak
+    Distribution: Normal
     
     Minimum length: 128
     """
@@ -606,6 +656,7 @@ end
         The peak frequency in the high frequency band.
     Domains: frequency
     Aliases: hf_peak
+    Distribution: Normal
     
     Minimum length: 128
     """
@@ -622,6 +673,7 @@ end
         The ratio of low frequency power to high frequency power.
     Domains: frequency
     Aliases: lf_hf_ratio
+    Distribution: LogNormal
     
     Minimum length: 128
     """
@@ -637,6 +689,7 @@ end
         The relative low frequency power.
     Domains: frequency
     Aliases: lf_relative_power
+    Distribution: Beta
     
     Minimum length: 128
     """
@@ -654,6 +707,7 @@ end
         The relative high frequency power.
     Domains: frequency
     Aliases: hf_relative_power
+    Distribution: Beta
     
     Minimum length: 128
     """
@@ -735,6 +789,7 @@ end
         The standard deviation of the points in the Poincare plot along the line perpendicular to the line of identity.
     Domains: geometric
     Aliases: sd1, sd1_width
+    Distribution: Gamma
     
     Minimum length: 20
     """
@@ -752,6 +807,7 @@ end
         The standard deviation of the points in the Poincare plot along the line of identity.
     Domains: geometric
     Aliases: sd2, sd2_length
+    Distribution: Gamma
     
     Minimum length: 20
     """
@@ -769,6 +825,7 @@ end
         The ratio of sd2 to sd1.
     Domains: geometric
     Aliases: sd2_sd1_ratio, csi, cardiac_sympathetic_index
+    Distribution: LogNormal
     
     Minimum length: 20
     """
@@ -784,6 +841,7 @@ end
         The area of the Poincare plot defined by sd1 and sd2.
     Domains: geometric
     Aliases: poincare_area
+    Distribution: LogNormal
     
     Minimum length: 20
     """
@@ -799,6 +857,7 @@ end
         The cardiac vagal index.
     Domains: geometric
     Aliases: cardiac_vagal_index
+    Distribution: Normal
     
     Minimum length: 20
     """
@@ -814,6 +873,7 @@ end
         The corrected cardiac sympathetic index.
     Domains: geometric
     Aliases: corrected_cardiac_sympathetic_index, corrected_csi
+    Distribution: LogNormal
     
     Minimum length: 20
     """
@@ -846,6 +906,7 @@ end
         The triangular index.
     Domains: geometric
     Aliases: triangular_index
+    Distribution: Gamma
     
     Minimum length: 20
     """
@@ -863,6 +924,7 @@ end
         The TINN index.
     Domains: geometric
     Aliases: triangular_interpolation_of_nn_intervals
+    Distribution: Gamma
     
     Minimum length: 20
     """
@@ -925,6 +987,7 @@ end
         The approximate entropy of the IBIs.
     Domains: nonlinear
     Aliases: approximate_entropy, apen
+    Distribution: Normal
 
     Minimum length: 100
     """
@@ -943,6 +1006,7 @@ end
         The sample entropy of the IBIs.
     Domains: nonlinear
     Aliases: sample_entropy, sampen
+    Distribution: Normal
 
     Minimum length: 100
     """
@@ -960,6 +1024,7 @@ end
         The Hurst exponent of the IBIs.
     Domains: nonlinear
     Aliases: hurst_exponent, hurst
+    Distribution: Beta
     
     Minimum length: 100
     """
@@ -987,6 +1052,7 @@ end
     """
         renyi0(n::HRMeasurement)
     See `renyi(n::HRMeasurement, order::Int=0)`.
+    Distribution: Normal
     
     Minimum length: 100
     """
@@ -996,6 +1062,7 @@ end
     """
         renyi1(n::HRMeasurement)
     See `renyi(n::HRMeasurement, order::Int=1)`.
+    Distribution: Normal
     
     Minimum length: 100
     """
@@ -1005,6 +1072,7 @@ end
     """
         renyi2(n::HRMeasurement)
     See `renyi(n::HRMeasurement, order::Int=2)`.
+    Distribution: Normal
     
     Minimum length: 100
     """
@@ -1063,6 +1131,7 @@ end
         α2
     Domains: nonlinear
     Aliases: dfa2, dfa_exponent_2
+    Distribution: Normal
     
     Minimum length: 100
     """
@@ -1198,6 +1267,151 @@ function valid_features(n_beats::Int)::Vector{String}
         end
     end
     return sort(valid)
+end
+
+# ─── Normative prior loading ───────────────────────────────────────────────────
+
+"""
+    load_normative_priors!(csv_path::String)
+
+Load fitted normative distribution parameters from a CSV file and populate
+the `prior_registry`.  Each row must have columns: `feature`, `family`,
+`param1_name`, `param1_value`, `param2_name`, `param2_value`, `status`.
+
+Only rows with `status == "ok"` are loaded.  The resulting entry is a concrete
+`Distributions.jl` instance (e.g., `Normal(780.0, 143.7)`) that can be used
+directly for PDF evaluation, sampling, or as a Bayesian prior.
+
+# Example
+```julia
+load_normative_priors!(joinpath(@__DIR__, "..", "docs", "normative_priors.csv"))
+prior_registry["rmssd"]  # => Gamma(1.234, 26.7)
+```
+"""
+function load_normative_priors!(csv_path::String)
+    isfile(csv_path) || error("Normative priors CSV not found: $csv_path")
+    return _load_priors_csv_fallback(csv_path)
+end
+
+# Internal: fallback CSV parser (no CSV.jl dependency)
+# Handles quoted fields containing commas.
+function _parse_csv_line(line::AbstractString)::Vector{String}
+    fields = String[]
+    current = IOBuffer()
+    in_quotes = false
+    for c in line
+        if c == '"'
+            in_quotes = !in_quotes
+        elseif c == ',' && !in_quotes
+            push!(fields, String(take!(current)))
+        else
+            write(current, c)
+        end
+    end
+    push!(fields, String(take!(current)))
+    return fields
+end
+
+function _load_priors_csv_fallback(csv_path::String)
+    lines = readlines(csv_path)
+    isempty(lines) && return 0
+    header = _parse_csv_line(lines[1])
+    idx = Dict(strip(col) => i for (i, col) in enumerate(header))
+    # Require essential columns
+    for required in ("feature", "family", "param1_name", "param1_value",
+                     "param2_name", "param2_value", "status")
+        haskey(idx, required) || error("Missing column '$required' in $csv_path")
+    end
+    n_loaded = 0
+    for line in lines[2:end]
+        fields = _parse_csv_line(line)
+        length(fields) < length(header) && continue
+        strip(fields[idx["status"]]) != "ok" && continue
+        dist = _reconstruct_distribution(
+            strip(fields[idx["family"]]),
+            strip(fields[idx["param1_name"]]), tryparse(Float64, strip(fields[idx["param1_value"]])),
+            strip(fields[idx["param2_name"]]), tryparse(Float64, strip(fields[idx["param2_value"]]))
+        )
+        if dist !== nothing
+            prior_registry[strip(fields[idx["feature"]])] = dist
+            n_loaded += 1
+        end
+    end
+    @info "Loaded $n_loaded normative priors from $csv_path"
+    return n_loaded
+end
+
+"""
+    _reconstruct_distribution(family, p1_name, p1_val, p2_name, p2_val)
+
+Reconstruct a `Distributions.jl` instance from the CSV row fields.
+"""
+function _reconstruct_distribution(family::AbstractString,
+                                    p1_name, p1_val,
+                                    p2_name, p2_val)
+    p1 = p1_val isa Number ? Float64(p1_val) : tryparse(Float64, string(p1_val))
+    p2 = p2_val isa Number ? Float64(p2_val) : tryparse(Float64, string(p2_val))
+    (p1 === nothing || isnan(p1)) && return nothing
+    (p2 === nothing || isnan(p2)) && return nothing
+    family_str = strip(String(family))
+    if family_str == "Normal"
+        return Distributions.Normal(p1, p2)
+    elseif family_str == "Gamma"
+        return Distributions.Gamma(p1, p2)
+    elseif family_str == "Beta"
+        return Distributions.Beta(p1, p2)
+    elseif family_str == "LogNormal"
+        return Distributions.LogNormal(p1, p2)
+    else
+        @warn "Unknown distribution family in priors CSV: $family_str"
+        return nothing
+    end
+end
+
+"""
+    normative_prior(feature_name::String) -> Distribution or nothing
+
+Return the fitted normative prior distribution for a feature, or `nothing`
+if no prior has been loaded for that feature.
+
+# Example
+```julia
+d = normative_prior("rmssd")
+if d !== nothing
+    println("RMSSD ~ ", typeof(d), params(d))
+    println("95% CI: ", quantile(d, 0.025), " – ", quantile(d, 0.975))
+end
+```
+"""
+function normative_prior(feature_name::String)
+    return get(prior_registry, feature_name, nothing)
+end
+
+"""
+    prior_call_string(feature_name::String) -> String
+
+Return a string representation of the Distributions.jl constructor call for the
+normative prior of `feature_name`.  Returns `"nothing"` if no prior exists.
+
+# Example
+```julia
+prior_call_string("rmssd")  # => "Gamma(1.234, 26.7)"
+```
+"""
+function prior_call_string(feature_name::String)::String
+    d = normative_prior(feature_name)
+    d === nothing && return "nothing"
+    return string(d)
+end
+
+# ─── Auto-load normative priors at module init ─────────────────────────────────
+const _PRIORS_CSV_PATH = joinpath(@__DIR__, "..", "docs", "normative_priors.csv")
+if isfile(_PRIORS_CSV_PATH)
+    try
+        _load_priors_csv_fallback(_PRIORS_CSV_PATH)
+    catch e
+        @warn "Failed to auto-load normative priors" exception=e
+    end
 end
 
 end # Features

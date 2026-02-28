@@ -3,6 +3,7 @@ module Visualization
 using Statistics
 using DataFrames
 using DataFrames: DataFrame
+import Random
 
 # Import Models module for accessing simulate_lorenz_trajectory and types
 # This is safe because Models is included in the parent module before Visualization
@@ -11,7 +12,10 @@ using ..Models: ModelFitResult
 
 # Import Features module for extract_feature_set and valid_features
 import ..Features
-using ..Features: extract_feature_set, valid_features
+using ..Features: extract_feature_set, valid_features, normative_prior, prior_registry
+
+# Distributions.jl — needed for quantile-based dispersion bands in normative plots
+import Distributions
 
 function getellipsepoints(cx, cy, rx, ry, θ; length=100)
 	t = range(0, 2*pi, length=length)
@@ -783,5 +787,8 @@ This function is provided by the HeartRateLabVisualizationExt extension when GLM
 function plot_feature_violins(real, ensembles; features=nothing)
     error("plot_feature_violins requires GLMakie. Please run: using GLMakie")
 end
+
+# ── Normative distribution comparison ──────────────────────────────────────
+include("normative.jl")
 
 end

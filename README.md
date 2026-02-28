@@ -54,11 +54,11 @@ julia> Pkg.add("Turing")  # For Bayesian inference
 
 ## Features
 
-- **54 HRV Features** across 9 domains (time, frequency, nonlinear, complexity, entropy)
+- **44 HRV Features** across 5 domains (time, statistics, frequency, geometric, nonlinear)
 - **Input/Output**: Read/write TXT, WFDB, XDF formats
 - **Preprocessing**: Handle outliers, ectopic beats, interpolation
 - **4 Mechanistic Models**: LIF, Van der Pol, Lorenz, DMD
-- **9 Visualization Functions**: Analysis, comparison, and 3D plots
+- **13 Visualization Functions**: Analysis, comparison, normative, and 3D plots
 - **Modular Extensions**: Load only what you need (DifferentialEquations, Turing, GLMakie optional)
 
 ## Documentation
@@ -96,8 +96,8 @@ Features are organized into two tiers based on computational complexity:
 
 | Set | Count | Complexity | Domains | Safe length |
 |-----|-------|------------|---------|-------------|
-| **`DEFAULT_FEATURES`** (default) | ~35 | O(n) – O(n log n) | time, frequency, geometric | Any |
-| **`FAST_FEATURES`** | ~36 | O(n) – O(n log n) | time, frequency, geometric | Any |
+| **`DEFAULT_FEATURES`** (default) | 36 | O(n) – O(n log n) | time, frequency, geometric | Any |
+| **`FAST_FEATURES`** | 37 | O(n) – O(n log n) | time, frequency, geometric | Any |
 | **`NONLINEAR_FEATURES`** | 8 | O(n²) or worse | nonlinear, entropy | < 5 000 beats |
 | **`ALL_FEATURES`** | 44 | O(n²) | all | < 5 000 beats |
 
@@ -156,6 +156,54 @@ This approach gives you:
 - **Robust normative ranges**: Aggregate across participants for population-level μ and σ.
 - **Efficient computation**: Each 60-beat window runs in O(1) even with `ALL_FEATURES`.
 
+#### Analytical Feature Distributions
+
+Every feature in the registry carries an **analytical distribution family** derived from the computational graph that transforms IBIs into feature values.  Given that IBIs come from a normally distributed random variable, the distribution of each derived feature follows from the mathematical operations applied:
+
+| Transform | Distribution | Features |
+|-----------|-------------|----------|
+| Mean / sum of Normals | **Normal** | `mean`, `median`, `max`, `min`, `mean_hr`, `max_hr`, `min_hr`, `lf_peak`, `hf_peak`, `cvi` |
+| √Var (sample std dev) | **Gamma** | `sdnn`, `rmssd`, `sdsd`, `sdann`, `range`, `cvsd`, `rRR`, `std_hr`, `sd1`, `sd2`, `triangular_index`, `tinn` |
+| ∫\|P(f)\|² df (spectral band power: sum of squared spectral components → sum of Exp → Gamma) | **Gamma** | `ulf`, `vlf`, `lf`, `hf`, `tp`, `lf_percentage`, `hf_percentage` |
+| Proportion in \[0,1\] | **Beta** | `pnn50`, `pnn20`, `lf_relative`, `hf_relative`, `hurst` |
+| Ratio of Gamma RVs (log is ≈ Normal) | **LogNormal** | `lf_hf_ratio`, `sd2_sd1`, `sd1_sd2_area`, `ccsi` |
+| Entropy / regression slope (CLT) | **Normal** | `apen`, `sampen`, `dfa1`, `dfa2`, `renyi0`, `renyi1`, `renyi2` |
+
+Distribution families are stored in each `HRFeature.distribution` field and are accessible via the feature registry:
+
+```julia
+using HeartRateLab
+
+# Inspect a feature's distribution family
+feat = feature_registry["sdnn"]
+feat.distribution  # Distributions.Gamma
+```
+
+##### Fitting normative priors from data
+
+The script `test/tools/fit_normative_distributions.jl` fits MLE parameters for each feature's distribution family using windowed normative datasets (nsrdb + nsr2db by default).  It produces:
+
+- **TOML file** with fitted parameters (usable as normative priors)
+- **CSV file** with parameters, sample sizes, and KS goodness-of-fit p-values
+
+```bash
+# Fit distributions from 360-beat windowed normative data
+julia --project=. test/tools/fit_normative_distributions.jl
+
+# Or with custom datasets and window size
+DATASETS=nsrdb,nsr2db WINDOW_SIZE=360 STRIDE=120 \
+  julia --project=. test/tools/fit_normative_distributions.jl
+```
+
+The fitted distributions encode population-level normative ranges.  For example, if `sdnn ~ Gamma(α=3.2, θ=16.5)`, you can compute percentiles, z-scores, and probability of observing a given SDNN value under the healthy-population reference:
+
+```julia
+using Distributions
+d = Gamma(3.2, 16.5)       # Fitted normative distribution for SDNN
+cdf(d, 30.0)               # P(SDNN ≤ 30 ms) under normative reference
+quantile(d, [0.05, 0.95])  # 90% normative interval
+```
+
 ### Mechanistic Models
 
 Fit and simulate from data-driven HRV models:
@@ -176,18 +224,31 @@ synthetic = simulate(result.model, result.params, n_beats=1000)
 Create publication-quality HRV analysis plots:
 
 ```julia
-plot_ibi_series(ibis)  # Time series with statistics
-plot_poincare(ibis)  # Beat-to-beat scatter plot
-plot_spectrum(ibis)  # Frequency domain with HRV bands
-plot_comparison(real, synthetic)  # Real vs synthetic comparison
-plot_lorenz_3d(ibis)  # Interactive 3D dynamics visualization
+# Core analysis
+plot_ibi_series(ibis)                    # Time series with statistics
+plot_poincare(ibis)                      # Beat-to-beat scatter plot
+plot_spectrum(ibis)                      # Frequency domain with HRV bands
+plot_flagship(ibis, fit_result)          # Combined flagship visualization
+
+# Model comparison
+plot_comparison(real, synthetic)         # Real vs synthetic comparison
+plot_model_heatmap(results)             # Model × feature reproduction heatmap
+plot_lorenz_3d(ibis)                    # Interactive 3D dynamics visualization
+plot_radar(datasets)                    # Radar/spider chart for feature comparison
+plot_correlations(feature_sets)         # Cross-dataset feature correlations
+plot_feature_violins(real, ensembles)   # Violin plots of feature distributions
+
+# Normative analysis
+plot_normative_kde_comparison(datasets, features)  # KDE overlay with σ-bands
+plot_feature_correlogram(df, features)             # Pearson correlation heatmap
+plot_normative_pairplot(datasets, features)        # Scatter matrix (pairplot)
 ```
 
 ## Motivation
 
 While several open-source HRV packages exist (NeuroKit in Python), most Julia options are unmaintained. HeartRateLab provides:
 
-- **Comprehensive**: 54 features across 9 analysis domains
+- **Comprehensive**: 44 features across 5 analysis domains
 - **Performant**: Leverages Julia's speed for batch processing
 - **Extensible**: Modular architecture with optional dependencies
 - **Modern**: Interactive GLMakie visualizations and ODE-based models
@@ -205,12 +266,12 @@ Heart Rate Variability (HRV) analysis involves examining variations in heart Int
 
 | Component | Status | Details |
 |-----------|--------|---------|
-| **Core Features** | ✅ Complete | 54 HRV features across 9 domains |
+| **Core Features** | ✅ Complete | 44 HRV features across 5 domains |
 | **Input/Output** | ✅ Complete | TXT, WFDB, XDF formats |
 | **Preprocessing** | ✅ Complete | Outlier removal, interpolation, windowing |
 | **Mechanistic Models** | ✅ Complete | LIF, Van der Pol, Lorenz (ODE-based) |
 | **Spectral Models** | ✅ Complete | DMD (data-driven decomposition) |
-| **Visualizations** | ✅ Complete | 9 analysis and comparison plots |
+| **Visualizations** | ✅ Complete | 13 analysis, comparison, and normative plots |
 | **Bayesian Inference** | ⏳ Planned | Turing.jl integration |
 | **Real-time Streaming** | ⏳ Planned | LSL integration for live HRV |
 | **Deep Learning Models** | ⏳ Planned | Neural ODE, VAE (Flux.jl) |

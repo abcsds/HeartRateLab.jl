@@ -51,8 +51,11 @@ export windowed
 # Re-export functions from submodules
 import .Features: extract_feature_set, windowed_feature_set, valid_features
 import .Features: FAST_FEATURES, ALL_FEATURES, NONLINEAR_FEATURES, DEFAULT_FEATURES
+import .Features: HRFeature, feature_registry, DISTRIBUTION_MAP
+import .Features: prior_registry, normative_prior, prior_call_string, load_normative_priors!
 import .Evaluation: simulate_ensemble, extract_ensemble_features, eval_distributional, eval_scalar, eval_distance
 import .Visualization: plot_ibi_series, plot_poincare, plot_spectrum, plot_comparison, plot_model_heatmap, plot_lorenz_3d, plot_radar, plot_correlations, plot_flagship
+import .Visualization: plot_normative_kde_comparison, plot_feature_correlogram, plot_normative_pairplot
 import .Models: VanDerPol, Lorenz, LIF, DMD, AbstractHRVModel, ModelFitResult, simulate, parameter_space, fit, parameter_series
 
 # export Features
@@ -62,7 +65,10 @@ import .Models: VanDerPol, Lorenz, LIF, DMD, AbstractHRVModel, ModelFitResult, s
 # export get_peaks
 export extract_feature_set, windowed_feature_set, valid_features, simulate_ensemble, extract_ensemble_features, eval_distributional, eval_scalar, eval_distance
 export FAST_FEATURES, ALL_FEATURES, NONLINEAR_FEATURES, DEFAULT_FEATURES
+export HRFeature, feature_registry, DISTRIBUTION_MAP
+export prior_registry, normative_prior, prior_call_string, load_normative_priors!
 export load_physionet, load_nsrdb, load_mitbih, load_nsr2db, load_healthy_rr_intervals, load_meditation, load_challenge_2002, load_chaos, load_ibs, load_simultaneous_measurements, load_mvtdb
 export plot_ibi_series, plot_poincare, plot_spectrum, plot_comparison, plot_model_heatmap, plot_lorenz_3d, plot_radar, plot_correlations, plot_flagship, fit
+export plot_normative_kde_comparison, plot_feature_correlogram, plot_normative_pairplot
 export VanDerPol, Lorenz, LIF, DMD, AbstractHRVModel, ModelFitResult, simulate, parameter_space, parameter_series
 end
