@@ -64,6 +64,12 @@ space stochastically, making it the only supported fitting method.
 | `β` | 1 – 4 | 8/3 ≈ 2.667 | Aspect ratio (dissipation) |
 | `threshold` | 5 – 15 | 10.0 | Z-value for IBI detection |
 
+!!! note
+    `parameter_space(::Lorenz)` also defines a `σ_noise` likelihood parameter used
+    internally by the Bayesian sampler. It is not an ODE parameter and is not returned
+    in `result.params`, but its convergence is reported in
+    `result.diagnostics["rhat_sigma_noise"]`.
+
 ## Examples
 
 ### Create and Simulate

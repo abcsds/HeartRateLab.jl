@@ -118,7 +118,7 @@ using HeartRateLab, DifferentialEquations
 # Fit multiple models
 lif_result = fit(LIF(), ibis; method=:gradient)
 vdp_result = fit(VanDerPol(), ibis; method=:gradient)
-lorenz_result = fit(Lorenz(), ibis; method=:gradient)
+lorenz_result = fit(Lorenz(), ibis; method=:bayesian)
 
 # Compute errors per feature (example)
 errors = Dict(
@@ -244,7 +244,7 @@ fig3 = plot_spectrum(ibis_real)
 # 2. Fit models
 lif = fit(LIF(), ibis_real; method=:gradient)
 vdp = fit(VanDerPol(), ibis_real; method=:gradient)
-lorenz = fit(Lorenz(), ibis_real; method=:gradient)
+lorenz = fit(Lorenz(), ibis_real; method=:bayesian)
 
 # 3. Generate synthetic data
 ibis_lif = simulate(lif.model, lif.params, length(ibis_real))

@@ -60,12 +60,11 @@ plausible values for the human sinoatrial node.
 
 | Parameter | Range | Default | Description |
 |-----------|-------|---------|-------------|
-| `I` | 1.48 – 1.56 μA | 1.52 | Input current; encodes autonomic drive and heart rate |
+| `I` | 1.48 – 1.56 | 1.52 | Input current; encodes autonomic drive and target heart rate |
 
-The bounds on `I` correspond to physiological heart rate limits:
-- `I ≈ 1.48` → very slow rate (~20 bpm)
-- `I ≈ 1.52` → resting rate (~75 bpm)
-- `I ≈ 1.56` → fast rate (~200 bpm)
+The bounds on `I` are set in `parameter_space(::LIF)`. Higher `I` values drive faster
+firing; lower values produce slower rhythms. Use `fit` to determine the `I` that best
+matches a measured IBI series.
 
 ## Fitting Methods
 

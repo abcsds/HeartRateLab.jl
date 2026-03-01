@@ -152,7 +152,7 @@ println("Converged: $(result.diagnostics["converged"])")
 println("Final loss: $(result.diagnostics["loss_final"])")
 
 # Generate synthetic data
-synthetic = simulate(result.model, result.params, n_beats=length(ibis))
+synthetic = simulate(result.model, result.params, length(ibis))
 
 # Compare with visualization
 using GLMakie
