@@ -35,7 +35,4 @@ how `ModelFitResult` stores fitted parameters, posteriors, and diagnostics.
 
 ## API Reference
 
-```@docs
-AbstractHRVModel
-ModelFitResult
-```
+See [Framework](@ref framework-page) for the full `AbstractHRVModel` and `ModelFitResult` API.

@@ -264,7 +264,7 @@ fig_radar = plot_radar(real_features_dict; names=feature_names)
 ## API Reference
 
 ```@autodocs
-Modules = [HeartRateLabVisualizationExt]
+Modules = [HeartRateLab.Visualization]
 Private = false
 ```
 

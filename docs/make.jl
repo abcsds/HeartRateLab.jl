@@ -7,6 +7,7 @@ makedocs(;
     modules=[HeartRateLab],
     authors="Alberto Barradas <abcsds@gmail.com> and contributors",
     sitename="HeartRateLab.jl",
+    checkdocs=:none,
     format=Documenter.HTML(;
         canonical="https://abcsds.github.io/HeartRateLab.jl",
         edit_link="main",
