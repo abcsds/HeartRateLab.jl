@@ -35,6 +35,8 @@ struct LIF <: AbstractHRVModel
     R::Float64            # Membrane resistance
     I::Float64            # Input current (fitted parameter)
 end
+LIF(; τ=200.0, V_rest=-65.0, V_reset=-65.0, V_threshold=-60.0, R=10.0, I=1.52) =
+    LIF(τ, V_rest, V_reset, V_threshold, R, I)
 
 """
     parameter_space(model::LIF) -> NamedTuple
