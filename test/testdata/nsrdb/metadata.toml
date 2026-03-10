@@ -4,7 +4,7 @@ reference = "Evaluate new values: flag if |x - μ| > 4σ for any feature."
 description = "Use participant_features.csv for recording-level normative ranges."
 
 [files]
-windowed_features = "windowed_w60_s30_features.csv"
+windowed_features = "windowed_w10_s5_features.csv"
 participant_features = "participant_features.csv"
 
 [dataset]
@@ -22,10 +22,10 @@ annotator = "atr"
 [collection]
 n_records_attempted = 18
 heartrateLab_version = "1.0.0"
-window_size = 60
-stride = 30
-date = "2026-02-28T01:00:01.971"
+window_size = 10
+stride = 5
+date = "2026-03-01T16:29:30.573"
 n_records_collected = 18
-overlap = 30
+overlap = 5
 n_records_failed = 0
-elapsed_seconds = 2675.8
+elapsed_seconds = 15346.8

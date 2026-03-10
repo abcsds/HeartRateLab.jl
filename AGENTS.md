@@ -7,7 +7,9 @@ HeartRateLab is a Julia package (v1.0.0) for comprehensive Heart Rate Variabilit
 ## Features
 
 ### Feature Registry System
-Features are declared with a custom `@register` macro in `Features.jl`. Each feature is a memoized function that receives an `HRMeasurement` struct. The registry tracks name, aliases, domains, and documentation. Feature extraction returns DataFrames.
+Features are declared with a custom `@register` macro in `Features.jl`. Each feature is a memoized function that receives an `HRMeasurement` struct. The registry tracks name, aliases, domains, documentation, and **analytical distribution family**. Feature extraction returns DataFrames.
+
+Each `HRFeature` stores a `distribution` field (from `Distributions.jl`) encoding the expected statistical distribution of that feature under the assumption that IBIs are normally distributed. The distribution families are: `Normal`, `Gamma`, `Beta`, `LogNormal`. This is specified via a `Distribution:` line in the feature's docstring.
 
 ```julia
 # Typical feature declaration pattern:
