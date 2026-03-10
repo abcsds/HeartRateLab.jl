@@ -45,6 +45,17 @@ function geometric()
 end
 
 """
+    vdp_field()
+
+Animated Van der Pol phase portrait + X(t) + Y(t) + IBI panels.
+Peaks of Y(t) (local maxima) are marked with ✕; the interval between
+consecutive peaks is displayed as an IBI in milliseconds.
+"""
+function vdp_field()
+    include("VDP_field.jl")
+end
+
+"""
     plot_flagship(data::Vector, fit_result; title::String="Flagship Visualization")
 
 Create a comprehensive visualization of HRV analysis results.
