@@ -29,19 +29,19 @@ function getellipsepoints(cx, cy, rx, ry, θ; length=100)
 end
 
 function default()
-    include("default.jl")
+    include(joinpath(@__DIR__, "default.jl"))
 end
 
 function bpm()
-    include("heart_rate.jl")
+    include(joinpath(@__DIR__, "heart_rate.jl"))
 end
 
 function bpm_tt()
-    include("heart_rate_tt.jl")
+    include(joinpath(@__DIR__, "heart_rate_tt.jl"))
 end
 
 function geometric()
-    include("geometric.jl")
+    include(joinpath(@__DIR__, "geometric.jl"))
 end
 
 """
@@ -52,7 +52,7 @@ Peaks of Y(t) (local maxima) are marked with ✕; the interval between
 consecutive peaks is displayed as an IBI in milliseconds.
 """
 function vdp_field()
-    include("VDP_field.jl")
+    include(joinpath(@__DIR__, "VDP_field.jl"))
 end
 
 """
@@ -257,6 +257,29 @@ function plot_spectrum(ibis::Vector{Float64}; method=:lomb, title="HRV Power Spe
         return ext.plot_spectrum(ibis; method=method, title=title)
     end
     error("plot_spectrum requires GLMakie. Please run: using GLMakie")
+end
+
+"""
+    live(; source=:lsl, sample_size=100, frames=typemax(Int), title="Heart Rate") → Figure
+
+Open a real-time heart-rate / RR-interval visualization (scrolling BPM tachogram).
+
+`source` selects the data feed:
+- `:lsl` — connect to a live Lab Streaming Layer RR/PP stream (requires `using LSL`),
+  e.g. from [HRBand-LSL](https://github.com/abcsds/HRBand-LSL) or
+  [RRStreamer](https://github.com/abcsds/RRStreamer). Selects the first stream whose
+  name matches `^RR` or `^PP` (int32 milliseconds).
+- `:simulate` — drive the display from a synthetic RR generator (no hardware/LSL;
+  for demos and testing the render pipeline).
+- a zero-argument `Function` returning the next RR interval in ms (`nothing` to stop).
+
+Requires `using GLMakie` (and `using LSL` for `source=:lsl`). This is the launcher
+behind `nix run .#viz`.
+"""
+function live(; kwargs...)
+    ext = Base.get_extension(parentmodule(parentmodule(@__MODULE__)), :HeartRateLabVisualizationExt)
+    ext === nothing && error("live() requires GLMakie. Please run: using GLMakie (and `using LSL` for source=:lsl)")
+    return ext.live_impl(; kwargs...)
 end
 
 """

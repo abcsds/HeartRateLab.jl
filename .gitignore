@@ -9,3 +9,18 @@ LOG.md
 VizHRV
 examples*.quarto_ipynb
 docs/*_files/
+
+# Agent context docs (local only, not part of the package)
+/AGENTS.md
+/CLAUDE.md
+/GEMINI.md
+
+# Local Backlog.md task tracker (MrLesk/Backlog.md shape)
+/backlog/
+
+# Interim GPU-free headless test runner (see backlog task-16)
+/noviz_runtests.jl
+/viz_check.jl
+
+# Dedicated real-time viz env built by `nix run .#viz` (git-LSL + GLMakie)
+/.viz-env/

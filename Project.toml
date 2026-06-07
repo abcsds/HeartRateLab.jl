@@ -74,9 +74,13 @@ XDF = "0.2.0"
 julia = "1.11"
 
 [extras]
+GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
 IJulia = "7073ff75-c697-5162-941a-fcdaad2a7d2a"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
 render = ["IJulia"]
-test = ["Test"]
+# GLMakie is a weakdep for core (so `using HeartRateLab` loads with no GPU/display)
+# but a test dependency so the visualization extension can be loaded and rendered
+# under Xvfb during `Pkg.test()`.
+test = ["Test", "GLMakie"]

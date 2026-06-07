@@ -27,29 +27,82 @@
       ### Development workflow ###
       # Define apps manually and include wrapper script definitions here
       apps = {
+        # All container apps allocate a TTY only when stdin is a terminal, so the
+        # same command works interactively AND headless (CI / agents / pipes).
+        # Interactive Julia REPL; forwards the host X11 display if one exists.
         default = {
           type = "app";
           program = toString (pkgs.writeShellScript "enter-container" ''
             #!${pkgs.runtimeShell}
-            # docker build . -t hrlab
-            # TODO: activate the GPU support in the container
-            # docker run -it --network=host --rm --gpus all --name julia -v .:/workdir hrlab:latest "/usr/local/julia/bin/julia --project=."
-            docker run -it -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:ro --network=host --volume="$HOME/.Xauthority:/root/.Xauthority:rw" --rm --name julia -v .:/workdir hrlab:latest "/usr/local/julia/bin/julia --project=."
+            TTY=""; [ -t 0 ] && TTY="-it"
+            XAUTH="''${XAUTHORITY:-$HOME/.Xauthority}"
+            exec docker run $TTY -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
+              --volume="$XAUTH:/root/.Xauthority:ro" -e XAUTHORITY=/root/.Xauthority \
+              --network=host --rm -v "$(pwd):/workdir" hrlab:latest \
+              "/usr/local/julia/bin/julia --project=."
           '');
         };
+        # Build the dev image (Julia 1.11 + WFDB + headless software-GL/Xvfb stack).
         build = {
           type = "app";
           program = toString (pkgs.writeShellScript "build" ''
             #!${pkgs.runtimeShell}
-            docker build --network=host . -t hrlab
-            docker run -it -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:ro --network=host --volume="$HOME/.Xauthority:/root/.Xauthority:rw" --rm -v .:/workdir hrlab:latest "/usr/local/julia/bin/julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'"
+            exec docker build --network=host . -t hrlab:latest
           '');
         };
+        # Full test suite, headless-safe: visualization tests render via Xvfb +
+        # software OpenGL inside the container, so no GPU/display is required.
         test = {
           type = "app";
           program = toString (pkgs.writeShellScript "test" ''
             #!${pkgs.runtimeShell}
-            docker run -it -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:ro --network=host --volume="$HOME/.Xauthority:/root/.Xauthority:rw" --rm -v .:/workdir hrlab:latest "/usr/local/julia/bin/julia --project=. -e 'using Pkg; Pkg.test()'"
+            TTY=""; [ -t 0 ] && TTY="-it"
+            exec docker run $TTY --rm --network=host -v "$(pwd):/workdir" hrlab:latest \
+              "cd /workdir && xvfb-run -a julia --project=. -e 'using Pkg; Pkg.test()'"
+          '');
+        };
+        # Real-time LSL biofeedback visualization. Runs NATIVELY on the host (real GPU
+        # + display), NOT in the container: GLMakie does not render reliably over a
+        # forwarded X display, and the live viz requires the git `abcsds/LSL.jl` (modern
+        # CEnum) — the registry LSL 0.3.0 drags in an ImageIO that cannot precompile on
+        # Julia 1.11. A dedicated, gitignored `.viz-env` is built once on first run.
+        # Usage: `nix run .#viz` (default multi-panel view) or `nix run .#viz -- geometric`
+        # (also: bpm, bpm_tt, vdp_field). Requires a live LSL RR/PP stream on the network.
+        viz = {
+          type = "app";
+          program = toString (pkgs.writeShellScript "viz" ''
+            #!${pkgs.runtimeShell}
+            set -e
+            VIEW="''${1:-default}"
+            ENVDIR="$PWD/.viz-env"
+            if [ ! -f "$ENVDIR/Manifest.toml" ]; then
+              echo "🔧 First run: building the real-time viz env at .viz-env (a few minutes)…"
+              julia --project="$ENVDIR" -e 'using Pkg; Pkg.develop(path=pwd()); Pkg.add(url="https://github.com/abcsds/LSL.jl"); Pkg.add(["GLMakie", "StatsBase"]); Pkg.precompile()'
+            fi
+            # Run the script directly in Main (where the env provides GLMakie/LSL as
+            # direct deps). The Visualization.default()/etc. wrappers can't be used here:
+            # they `include` the script INTO the HeartRateLab module, where `using GLMakie`
+            # fails now that GLMakie is a weakdep of the package.
+            case "$VIEW" in
+              default)   SCRIPT=default.jl ;;
+              geometric) SCRIPT=geometric.jl ;;
+              bpm)       SCRIPT=heart_rate.jl ;;
+              bpm_tt)    SCRIPT=heart_rate_tt.jl ;;
+              vdp_field) SCRIPT=VDP_field.jl ;;
+              *)         SCRIPT="$VIEW.jl" ;;
+            esac
+            echo "📈 Launching $SCRIPT — close the window to stop. (Needs a live LSL RR/PP stream.)"
+            exec julia --project="$ENVDIR" "$PWD/src/Visualization/$SCRIPT"
+          '');
+        };
+        # Format the tree with JuliaFormatter (BlueStyle, per .JuliaFormatter.toml).
+        fmt = {
+          type = "app";
+          program = toString (pkgs.writeShellScript "fmt" ''
+            #!${pkgs.runtimeShell}
+            TTY=""; [ -t 0 ] && TTY="-it"
+            exec docker run $TTY --rm --network=host -v "$(pwd):/workdir" hrlab:latest \
+              "cd /workdir && julia -e 'using Pkg; Pkg.activate(temp=true); Pkg.add(\"JuliaFormatter\"); using JuliaFormatter; format(pwd())'"
           '');
         };
         act = {

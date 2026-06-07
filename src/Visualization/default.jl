@@ -227,9 +227,9 @@ while true
     nn[] = [nn[][2:end]; sample[1] - rr[][end-1]];
     nn_negative[] = [nn_negative[][2:end]; nn[][end] < 0 ? nn[][end] : 0];
     nn_positive[] = [nn_positive[][2:end]; nn[][end] > 0 ? nn[][end] : 0];
-    if nn50[][1] < t[][1]
+    if !isempty(nn50[]) && nn50[][1, 1] < t[][1]
         idx = findlast(x -> x < t[][1], nn50[][1:end, 1])
-        a = nn50[][idx+1:end, :]
+        a = idx === nothing ? nn50[] : nn50[][idx+1:end, :]
     else
         a = nn50[]
     end

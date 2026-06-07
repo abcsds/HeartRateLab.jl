@@ -11,11 +11,28 @@ ARG INSTALL_QUARTO=false
 # Create a working directory within the container
 WORKDIR /workdir
 
-# Install base build tools and WFDB dependencies
+# Install base build tools, WFDB deps, and a HEADLESS software-OpenGL + Xvfb stack
+# so GLMakie can render in CI/agents/containers without a GPU or real display.
 RUN apt-get update && \
     apt-get -y install \
     gcc \
-    make
+    make \
+    xvfb \
+    xauth \
+    libgl1-mesa-dri \
+    libglu1-mesa \
+    libegl1 \
+    libopengl0 \
+    libxrandr2 \
+    libxinerama1 \
+    libxcursor1 \
+    libxi6 \
+    libxext6 \
+    libxrender1 \
+    libxfixes3 \
+    libx11-6 \
+    libxkbcommon0 \
+    libfontconfig1
 
 # Install Quarto dependencies if INSTALL_QUARTO=true
 RUN if [ "$INSTALL_QUARTO" = "true" ]; then \
@@ -36,15 +53,23 @@ RUN cd wfdb-10.7.0 && ./configure && make install && cd ..
 COPY Project.toml Manifest.toml /workdir/
 
 # Set environment variables
+# DISPLAY defaults to :0 but headless rendering goes through Xvfb (see below).
+# LIBGL_ALWAYS_SOFTWARE forces Mesa llvmpipe so GLMakie renders with no GPU.
+# LD_LIBRARY_PATH keeps the NixOS GL driver path for optional GPU passthrough;
+# harmless when empty (software GL via apt Mesa is used by default).
 ENV DISPLAY=${DISPLAY:-:0}
 ENV LD_LIBRARY_PATH="/run/opengl-driver/lib"
+ENV LIBGL_ALWAYS_SOFTWARE=1
 
 # Resolve and instantiate Julia packages
-# If Manifest.toml is out of sync with Project.toml, resolve first
+# GLMakie is a weak dependency, so core loads without a GPU; if Manifest.toml is out
+# of sync with Project.toml (e.g. GLMakie moved to [weakdeps]) resolve first.
 RUN julia -e 'using Pkg; Pkg.activate("/workdir"); try Pkg.instantiate() catch; Pkg.resolve(); Pkg.instantiate() end'
 
-# Precompile packages to speed up first use
-RUN julia --project=/workdir -e 'using Pkg; Pkg.precompile()' 2>&1 | grep -v "function_registry" || true
+# Precompile under a virtual X display so GLMakie + the visualization extension
+# precompile cleanly headless. Core packages don't need it; the `|| true` keeps the
+# build resilient if an optional weakdep precompile workload misbehaves.
+RUN xvfb-run -a julia --project=/workdir -e 'using Pkg; Pkg.precompile()' 2>&1 | grep -v "function_registry" || true
 
 # Install and configure Quarto if INSTALL_QUARTO=true
 RUN if [ "$INSTALL_QUARTO" = "true" ]; then \

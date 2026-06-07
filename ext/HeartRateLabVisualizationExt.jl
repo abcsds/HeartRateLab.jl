@@ -65,6 +65,7 @@ using GLMakie
 using DataFrames
 using Statistics
 using DSP
+import Random
 using HeartRateLab.Frequency: lomb_scargle, welch, get_power, find_peak
 
 """
@@ -872,6 +873,70 @@ end
 # - plot_ibi_series()
 # - plot_lorenz_3d()
 # - Model-specific phase portraits
+
+# ============================================================================
+# Real-time live view (backs HeartRateLab.Visualization.live / `nix run .#viz`)
+# ============================================================================
+
+# A synthetic RR generator (ms): ~850 ms baseline with respiratory sinus
+# arrhythmia plus small noise. Used by `source=:simulate` for demos/testing the
+# render pipeline with no hardware or LSL.
+function _simulate_source()
+    rng = Random.MersenneTwister(1)
+    i = Ref(0)
+    return function ()
+        i[] += 1
+        return 850.0 + 60.0 * sin(2π * i[] / 12) + 15.0 * Random.randn(rng)
+    end
+end
+
+# Render loop, decoupled from the data source. `next_rr` is a zero-arg callable
+# returning the next RR interval in ms, NaN to skip a tick, or `nothing` to stop.
+function _live_view(next_rr; sample_size::Int=100, frames::Int=typemax(Int),
+                    title::AbstractString="Heart Rate")
+    rr  = Observable(fill(NaN, sample_size))
+    bpm = Observable(fill(NaN, sample_size))
+    x   = Observable(collect(1:sample_size))
+    avg = Observable(0.0)
+    ttl = Observable(String(title))
+    fig = Figure(size=(1280, 720))
+    ax  = Axis(fig[1, 1], title=ttl, xlabel="beat (rolling window)", ylabel="Heart rate (BPM)")
+    lines!(ax, x, bpm, color=:teal)
+    hlines!(ax, avg, color=:coral, linestyle=:dash)
+    display(fig)
+    frame = 0
+    while frame < frames
+        v = next_rr()
+        v === nothing && break
+        (isnan(v) || v <= 0) && continue
+        rr[]  = [rr[][2:end]; Float64(v)]
+        b     = 60000.0 ./ rr[]
+        bpm[] = b
+        fin   = filter(isfinite, b)
+        avg[] = isempty(fin) ? 0.0 : mean(fin)
+        ttl[] = isempty(fin) ? String(title) : "$(title) — BPM ≈ $(round(avg[], digits=1))"
+        autolimits!(ax)
+        frame += 1
+    end
+    return fig
+end
+
+# Entry point delegated to from HeartRateLab.Visualization.live.
+function live_impl(; source=:lsl, sample_size::Int=100, frames::Int=typemax(Int),
+                   title::AbstractString="Heart Rate", kwargs...)
+    next_rr = if source === :simulate
+        _simulate_source()
+    elseif source isa Function
+        source
+    elseif source === :lsl
+        lslext = Base.get_extension(HeartRateLab, :HeartRateLabLSLExt)
+        lslext === nothing && error("source=:lsl requires LSL. Please run: using LSL")
+        lslext.rr_source(; kwargs...)
+    else
+        error("Unknown live source: $source (use :lsl, :simulate, or a zero-arg Function)")
+    end
+    return _live_view(next_rr; sample_size=sample_size, frames=frames, title=title)
+end
 
 """
     __init__()

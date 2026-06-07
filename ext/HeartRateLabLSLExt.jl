@@ -86,6 +86,38 @@ using LSL
 # - Biofeedback visualizations
 
 """
+    rr_source(; pattern=r"^(RR|PP)", timeout=1.0) -> Function
+
+Resolve a live LSL RR/PP stream (int32 beat intervals in milliseconds, e.g. from
+HRBand-LSL or RRStreamer), open an inlet, and return a zero-argument function that
+pulls and returns the next RR interval in ms (or `NaN` when no sample is available
+this tick). Blocks until at least one stream is present, then selects the first whose
+`source_id` matches `pattern` (falling back to the first available stream).
+
+Refactored from the former global-state `src/Visualization/heart_rate_tt.jl` script
+so it can drive `HeartRateLab.Visualization.live(source=:lsl)`.
+"""
+function rr_source(; pattern::Regex=r"^(RR|PP)", timeout::Real=1.0)
+    streams = LSL.resolve_streams(timeout=timeout)
+    while isempty(streams)
+        @info "No LSL streams found — retrying (start HRBand-LSL or RRStreamer)…"
+        streams = LSL.resolve_streams(timeout=timeout)
+    end
+    names = [LSL.source_id(s) for s in streams]
+    idx = findfirst(n -> occursin(pattern, n), names)
+    idx === nothing && (idx = 1)  # fall back to the first stream
+    stream = streams[idx]
+    @info "Connected to LSL stream: $(LSL.source_id(stream))"
+    inlet = LSL.StreamInlet(stream)
+    LSL.open_stream(inlet)
+    return function ()
+        timestamp, sample = LSL.pull_sample(inlet, timeout=timeout)
+        (timestamp == 0.0 || isempty(sample) || sample[1] <= 0) && return NaN
+        return Float64(sample[1])
+    end
+end
+
+"""
     __init__()
 
 Initialize the LSL extension. Called automatically when LSL is loaded.
