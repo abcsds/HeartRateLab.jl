@@ -91,6 +91,19 @@ function simulate(model::LIF, params::NamedTuple, n_beats::Int)::Vector{Float64}
     # Extract parameter (only I is variable)
     I = get(params, :I, model.I)
 
+    # Physiological time-scale factor.
+    #
+    # The membrane time constant τ (≈200) and voltage gap ΔV=V_threshold-V_rest
+    # (≈5 mV) yield an analytical period
+    #     T = τ · ln(R·I / (R·I − ΔV)) ≈ 80 (in raw ODE time units)
+    # which is ~10× too fast for a cardiac pacemaker (it implies ~750 BPM).
+    # The ODE is dimensionally consistent but its natural time unit is a
+    # decimillisecond, not a millisecond: one model time unit corresponds to
+    # TIME_SCALE physiological milliseconds. Scaling spike-time differences by
+    # TIME_SCALE puts the simulated IBIs in the physiological 700–1100 ms band
+    # (≈55–85 BPM) while preserving the monotone I→IBI relationship.
+    TIME_SCALE = 10.0
+
     # LIF ODE: τ dV/dt = -(V - V_rest) + R*I
     function lif_dynamics!(du, u, p, t)
         V = u[1]
@@ -144,8 +157,9 @@ function simulate(model::LIF, params::NamedTuple, n_beats::Int)::Vector{Float64}
               "I=$I may be too low to trigger spikes.")
     end
 
-    # Inter-beat intervals are spike-time differences
-    ibis = diff(spike_times)
+    # Inter-beat intervals are spike-time differences, rescaled from raw ODE
+    # time units to physiological milliseconds.
+    ibis = diff(spike_times) .* TIME_SCALE
 
     if length(ibis) >= n_beats
         return ibis[1:n_beats]

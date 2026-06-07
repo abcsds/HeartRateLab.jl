@@ -28,6 +28,41 @@ cd(@__DIR__)
     target = CSV.read("target/example.csv", DataFrame)
     @test isapprox(Matrix(ds), Matrix(target); rtol=1e-10)
 
+    @testset "Registry completeness" begin
+        # SPEC-F1/F2: the feature registry is the single source of truth for the
+        # scalar HRV features. The long-standing "~44 features" claim is exact:
+        # there are 44 registered features (representations such as `diff`,
+        # `pgram`, `dfa`, `dfa1`, `px`, `py`, `histogram`, `renyi`, `length`,
+        # `duration`, `max_t` live in `representation_registry`, not here).
+        feat_names = sort(String[keys(feature_registry)...])
+        @test length(feat_names) == 44
+
+        # Every registered feature must be a column in the comparison matrix, i.e.
+        # the matrix-vs-target test above actually exercises ALL of them, not a
+        # default subset. `ds` was built from `keys(feature_registry)`.
+        @test sort(DataFrames.names(ds)) == feat_names
+        @test sort(DataFrames.names(target)) == feat_names
+
+        n = HeartRateLab.Features.HRMeasurement(data)
+        @testset "Finiteness: $f" for f in feat_names
+            # SPEC-F4: every registered feature must produce a finite (non-NaN,
+            # non-Inf) value on the 4193-IBI example recording.
+            v = HeartRateLab.Features.function_registry[f](n)
+            ok = v isa Number ? isfinite(v) : all(isfinite, v)
+            @test ok
+        end
+
+        @testset "Distribution family: $f" for f in feat_names
+            # SPEC-F1: every scalar feature declares a valid analytical
+            # distribution family (Normal/Gamma/Beta/LogNormal) in its docstring,
+            # parsed by @register into the HRFeature.distribution field.
+            valid = (HeartRateLab.Features.DISTRIBUTION_MAP |> values |> collect)
+            d = feature_registry[f].distribution
+            @test d !== nothing
+            @test d in valid
+        end
+    end
+
     @testset "Features.Windowed" begin
         # Test windowed feature extraction
         ds_windowed = HeartRateLab.Features.windowed_feature_set(

@@ -726,7 +726,8 @@ end
         The low frequency power as a percentage.
     Domains: frequency
     Aliases: lf_%
-    
+    Distribution: Gamma
+
     Minimum length: 128
     """
     return function_registry["lf_relative"](n) * 100
@@ -741,7 +742,8 @@ end
         The high frequency power as a percentage.
     Domains: frequency
     Aliases: hf_%
-    
+    Distribution: Gamma
+
     Minimum length: 128
     """
     return function_registry["hf_relative"](n) * 100

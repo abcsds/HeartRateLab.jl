@@ -187,8 +187,16 @@ function fit(model::VanDerPol, data::Vector{Float64};
         lower = [0.1, 40.0]
         upper = [3.0, 120.0]
 
-        # Optimize using LBFGS with box constraints
-        result = optimize(loss, lower, upper, x0, Fminbox(LBFGS()))
+        # Optimize using LBFGS with box constraints.
+        #
+        # The objective is non-differentiable in closed form (it runs a
+        # simulation), so Optim builds a finite-difference gradient. The
+        # default HagerZhang line search is brittle with that combination under
+        # Fminbox (its `ϕdϕ` can return a scalar instead of a (ϕ, dϕ) tuple,
+        # triggering a BoundsError). BackTracking is robust here and converges
+        # in a handful of iterations while still being LBFGS-driven.
+        result = optimize(loss, lower, upper, x0,
+                          Fminbox(LBFGS(linesearch=Optim.LineSearches.BackTracking())))
 
         # Extract fitted parameters
         fitted_params = (

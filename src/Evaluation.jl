@@ -191,7 +191,8 @@ function simulate_ensemble(
     params::NamedTuple,
     n_beats::Int;
     n_sim::Int=100,
-    rng=Random.default_rng()
+    rng=Random.default_rng(),
+    noise::Float64=0.02
 )::Vector{Vector{Float64}}
 
     # Input validation
@@ -201,16 +202,30 @@ function simulate_ensemble(
     if n_sim <= 0
         throw(ArgumentError("n_sim must be positive, got $n_sim"))
     end
+    if noise < 0
+        throw(ArgumentError("noise must be non-negative, got $noise"))
+    end
 
-    # Generate n_sim independent series
+    # Generate n_sim independent series.
+    #
+    # Deterministic models (e.g. LIF) produce an identical IBI series on every
+    # call for fixed params, which would make the ensemble degenerate (zero
+    # variance, identical members). To obtain a genuine empirical distribution
+    # we add a small amount of multiplicative observation noise to each beat,
+    # drawn from `rng`. This keeps the ensemble reproducible under a seeded
+    # `rng` while making the members independent. Stochastic models also
+    # benefit from this measurement-noise layer; set `noise=0.0` to disable.
     ensemble = Vector{Vector{Float64}}()
 
     for i in 1:n_sim
-        # Simulate one series from the model
-        # Note: RNG state automatically advances with each call
+        # Simulate one base series from the model
         series = simulate(model, params, n_beats)
 
-        # Store the series
+        # Apply per-beat observation noise (multiplicative, mean-preserving)
+        if noise > 0
+            series = series .* (1.0 .+ noise .* randn(rng, length(series)))
+        end
+
         push!(ensemble, series)
     end
 
@@ -285,31 +300,32 @@ function extract_ensemble_features(
         features = valid_features(min_length)
     end
 
-    # Extract features from each series
-    all_features = []
+    # `extract_feature_set` accepts a list of String feature names.
+    feat_names = collect(String, features)
+
+    # Extract features from each series. `extract_feature_set` returns a
+    # one-row DataFrame; we read that row into a NamedTuple-friendly Dict.
+    all_features = Vector{Dict{String,Any}}()
 
     for series in ensemble
         try
-            # Extract features for this series
-            series_feats = extract_feature_set(series)
+            # Extract requested features for this series (one-row DataFrame)
+            series_feats = extract_feature_set(series; features=feat_names)
 
-            # Filter to requested features
-            filtered = Dict(
-                f => get(series_feats, f, NaN)
-                for f in features
+            row = Dict{String,Any}(
+                f => (f in names(series_feats) ? series_feats[1, f] : NaN)
+                for f in feat_names
             )
-
-            push!(all_features, filtered)
+            push!(all_features, row)
         catch e
             # If extraction fails for a series, record NaN for all features
-            failed = Dict(f => NaN for f in features)
-            push!(all_features, failed)
+            push!(all_features, Dict{String,Any}(f => NaN for f in feat_names))
         end
     end
 
-    # Convert to DataFrame
+    # Convert to DataFrame (always a DataFrame, even when empty)
     if isempty(all_features)
-        return DataFrame(Dict(f => Float64[] for f in features))
+        return DataFrame([f => Float64[] for f in feat_names])
     end
 
     return DataFrame(all_features)
@@ -410,32 +426,42 @@ function eval_distributional(
                 continue
             end
 
-            # Run the test
+            # Run the test. All three are two-sample comparisons between the
+            # real observations and the ensemble samples (both are empirical
+            # samples, so one-sample-vs-distribution tests do not apply).
             if test == :ks
-                # Kolmogorov-Smirnov test
-                test_result = ExactOneSampleKSTest(ensemble_valid, real_valid)
-                stat = test_result.δ⁺  # or δ⁻, or max
+                # Two-sample Kolmogorov-Smirnov test (compares empirical CDFs)
+                test_result = ApproximateTwoSampleKSTest(
+                    Float64.(real_valid), Float64.(ensemble_valid)
+                )
+                stat = test_result.δ  # max CDF distance, always >= 0
                 pval = pvalue(test_result)
 
             elseif test == :mw
-                # Mann-Whitney U test
-                test_result = MannWhitneyUTest(real_valid, ensemble_valid)
-                stat = test_result.U
+                # Mann-Whitney U test (non-parametric rank test)
+                test_result = MannWhitneyUTest(
+                    Float64.(real_valid), Float64.(ensemble_valid)
+                )
+                stat = Float64(test_result.U)
                 pval = pvalue(test_result)
 
             elseif test == :ad
-                # Anderson-Darling test (one sample)
-                # Compare ensemble to real as reference
-                test_result = ExactOneSampleADTest(ensemble_valid, real_valid)
-                stat = test_result.A²
+                # k-sample Anderson-Darling test (goodness-of-fit)
+                test_result = KSampleADTest(
+                    Float64.(real_valid), Float64.(ensemble_valid)
+                )
+                stat = test_result.A²k
                 pval = pvalue(test_result)
             end
 
-            # Store result
+            # Store result. `feature_name` is kept as-is (String when derived
+            # from column names, Symbol when the caller passed a `features`
+            # Symbol list) so downstream membership checks against the caller's
+            # `features` argument behave consistently.
             push!(results, (
                 feature = feature_name,
-                statistic = stat,
-                p_value = pval,
+                statistic = Float64(stat),
+                p_value = Float64(pval),
                 test_name = test
             ))
 

@@ -130,7 +130,7 @@ end
 
     # Test 7: fit(:gradient) - NOW IMPLEMENTED (Phase C)
     data = HeartRateLab.read_txt("testdata/example.txt")[1:200]
-    @test_broken fitted_grad = HeartRateLab.Models.fit(vdp, data; method=:gradient)
+    fitted_grad = HeartRateLab.Models.fit(vdp, data; method=:gradient)
 
     @test fitted_grad.model isa HeartRateLab.Models.VanDerPol
     @test fitted_grad.method == :gradient
