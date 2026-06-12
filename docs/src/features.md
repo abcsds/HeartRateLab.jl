@@ -121,7 +121,7 @@ valid = valid_features(length(ibis))
 # Signal length 10:  11 features
 # Signal length 50:  25 features
 # Signal length 100: 32 features
-# Signal length 128: 44 features (all)
+# Signal length 128: 53 features (all)
 ```
 
 ### Feature Preprocessing

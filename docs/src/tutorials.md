@@ -32,7 +32,7 @@ long_ibis = ibis
 
 # Check valid features
 valid_short = valid_features(length(short_ibis))  # ~11 features
-valid_long = valid_features(length(long_ibis))   # ~44 features
+valid_long = valid_features(length(long_ibis))   # ~53 features
 
 println("Features for $(length(short_ibis)) beats: $(length(valid_short))")
 println("Features for $(length(long_ibis)) beats: $(length(valid_long))")

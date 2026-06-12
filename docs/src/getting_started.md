@@ -62,7 +62,7 @@ end
 **Output:**
 ```
 Loaded 500 beats
-Extracted 44 features
+Extracted 53 features
 mean_ibi: 800.25
 std_ibi: 45.32
 rmssd: 38.14
