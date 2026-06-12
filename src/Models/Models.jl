@@ -60,7 +60,7 @@ Result of fitting an HRV model to data. Stores both point estimates and uncertai
 
 # Fields
 - `model::AbstractHRVModel`: The model type that was fitted
-- `method::Symbol`: Fitting method used (`:bayesian`, `:gradient`, or `:evolutionary`)
+- `method::Symbol`: Fitting method used (`:analytical`, `:bayesian`, or `:gradient`)
 - `params::NamedTuple`: Point estimate of parameters (MAP/MLE for Bayesian, best individual otherwise)
 - `posterior`: Posterior samples for Bayesian fitting (Turing.Chain), nothing otherwise
 - `diagnostics::Dict`: Convergence info, iteration count, loss history, etc.
@@ -68,9 +68,9 @@ Result of fitting an HRV model to data. Stores both point estimates and uncertai
 
 # Fitting Methods
 
+- `:analytical`: Closed-form / per-beat inversion where available (e.g. LIF)
 - `:bayesian`: Markov Chain Monte Carlo via Turing.jl, produces full posterior over parameters
 - `:gradient`: Gradient-based optimization via Optim.jl, minimizes feature-space distance
-- `:evolutionary`: Evolutionary algorithm via BlackBoxOptim.jl or Evolutionary.jl, non-differentiable models
 
 # Example
 
@@ -83,7 +83,7 @@ simulated = simulate(result.model, point_estimate, 100)  # Generate synthetic da
 """
 struct ModelFitResult
     model::AbstractHRVModel
-    method::Symbol  # :bayesian, :gradient, or :evolutionary
+    method::Symbol  # :analytical, :bayesian, or :gradient
     params::NamedTuple  # Point estimate (MAP/MLE or best individual)
     posterior  # Turing.Chain for Bayesian, nothing otherwise
     diagnostics::Dict  # convergence status, iterations, loss history, etc.

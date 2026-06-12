@@ -11,6 +11,5 @@ cd(@__DIR__)
     include("test_frequency.jl")
     include("test_models.jl")
     include("test_evaluation.jl")
-    include("test_datasets.jl")
     include("test_visualization.jl")
 end

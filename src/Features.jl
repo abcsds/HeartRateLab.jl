@@ -22,6 +22,7 @@ using Memoization
 using MacroTools
 import DFA
 import EntropyHub
+import LinearAlgebra
 using Hurst: hurst_exponent
 import Distributions
 
@@ -358,6 +359,40 @@ end
     """
     return ms2bpm(function_registry["min"](n))
 end
+@register function median_hr(n::HRMeasurement)
+    """
+        median_hr(n::HRMeasurement)
+    Calculate the median heart rate in BPM from the Inter-Beat-Intervals (IBIs).
+    Arguments:
+        - `n`: An array of Inter-Beat-Intervals in milliseconds.
+    Returns:
+        The median heart rate in BPM.
+    Domains: time, statistics
+    Aliases: median_hr
+    Distribution: Normal
+
+    Minimum length: 10
+    """
+    # median is preserved under the monotonic ms2bpm transform
+    return ms2bpm(function_registry["median"](n))
+end
+@register function range_hr(n::HRMeasurement)
+    """
+        range_hr(n::HRMeasurement)
+    Calculate the range (max − min) of the instantaneous heart rate in BPM.
+    Arguments:
+        - `n`: An array of Inter-Beat-Intervals in milliseconds.
+    Returns:
+        The heart-rate range in BPM.
+    Domains: time, statistics
+    Aliases: range_hr, hr_range
+    Distribution: Gamma
+
+    Minimum length: 10
+    """
+    hr = ms2bpm.(n.data)
+    return maximum(hr) - minimum(hr)
+end
 # Level 3 Time domain features
 @register function sdsd(n::HRMeasurement)
     """
@@ -474,6 +509,22 @@ end
     Minimum length: 20
     """
     return function_registry["sdsd"](n) / function_registry["mean"](n)
+end
+@register function cvnni(n::HRMeasurement)
+    """
+        cvnni(n::HRMeasurement)
+    Calculate the coefficient of variation of the NN intervals (SDNN / mean).
+    Arguments:
+        - `n`: An array of Inter-Beat-Intervals in milliseconds.
+    Returns:
+        The coefficient of variation of the NN intervals.
+    Domains: time, statistics
+    Aliases: cvnni, cv_nni, coefficient_of_variation
+    Distribution: Normal
+
+    Minimum length: 10
+    """
+    return function_registry["sdnn"](n) / function_registry["mean"](n)
 end
 @register function rRR(n::HRMeasurement)
     """
@@ -874,7 +925,7 @@ end
     Returns:
         The corrected cardiac sympathetic index.
     Domains: geometric
-    Aliases: corrected_cardiac_sympathetic_index, corrected_csi
+    Aliases: corrected_cardiac_sympathetic_index, corrected_csi, modified_csi, csi_mod
     Distribution: LogNormal
     
     Minimum length: 20
@@ -1080,6 +1131,129 @@ end
     """
     return function_registry["renyi"](n, 2)
 end
+@register function shan_en(n::HRMeasurement)
+    """
+        shan_en(n::HRMeasurement)
+    Calculate the Shannon entropy of the Inter-Beat-Interval histogram.
+    Arguments:
+        - `n`: An array of Inter-Beat-Intervals in milliseconds.
+    Returns:
+        The Shannon entropy (nats) of the binned RR distribution.
+    Domains: nonlinear
+    Aliases: shannon_entropy, shan_en
+    Distribution: Normal
+
+    Minimum length: 20
+    """
+    w = function_registry["histogram"](n).weights
+    p = w ./ sum(w)
+    p = p[p .> 0]
+    return -sum(p .* log.(p))
+end
+@register function svd_en(n::HRMeasurement, m::Int64=2, tau::Int64=1)
+    """
+        svd_en(n::HRMeasurement, m=2, tau=1)
+    Calculate the Singular Value Decomposition (SVD) entropy of the IBIs: the Shannon
+    entropy of the normalized singular-value spectrum of the delay-embedded series.
+    Arguments:
+        - `n`: An array of Inter-Beat-Intervals in milliseconds.
+        - `m`: Embedding dimension (default 2).
+        - `tau`: Embedding delay (default 1).
+    Returns:
+        The normalized SVD entropy in [0, 1].
+    Domains: nonlinear
+    Aliases: svd_entropy, svd_en
+    Distribution: Normal
+
+    Minimum length: 100
+    """
+    x = n.data
+    M = length(x) - (m - 1) * tau
+    Y = reduce(hcat, [x[(1:M) .+ (i - 1) * tau] for i in 1:m])
+    s = LinearAlgebra.svdvals(Y)
+    s = s ./ sum(s)
+    s = s[s .> 0]
+    return -sum(s .* log.(s)) / log(m)
+end
+@register function fuzzyen(n::HRMeasurement, m::Int64=2)
+    """
+        fuzzyen(n::HRMeasurement, m=2)
+    Calculate the fuzzy entropy of the Inter-Beat-Intervals (IBIs).
+    Arguments:
+        - `n`: An array of Inter-Beat-Intervals in milliseconds.
+        - `m`: The embedding dimension (default 2).
+    Returns:
+        The fuzzy entropy of the IBIs.
+    Domains: nonlinear
+    Aliases: fuzzy_entropy, fuzzyen
+    Distribution: Normal
+
+    Minimum length: 100
+    """
+    # standard fuzzy-membership tolerance ~0.2·SD (data is in ms; default r=0.2 is mis-scaled)
+    r = (0.2 * StatsBase.std(n.data), 2.0)
+    Fuzz, _, _ = EntropyHub.FuzzEn(n.data, m=m, r=r)
+    return Fuzz[end]
+end
+@register function spec_en(n::HRMeasurement)
+    """
+        spec_en(n::HRMeasurement)
+    Calculate the spectral entropy of the Inter-Beat-Intervals (IBIs): the Shannon
+    entropy of the normalized power spectral density.
+    Arguments:
+        - `n`: An array of Inter-Beat-Intervals in milliseconds.
+    Returns:
+        The spectral entropy of the IBIs.
+    Domains: nonlinear, frequency
+    Aliases: spectral_entropy, spec_en
+    Distribution: Normal
+
+    Minimum length: 20
+    """
+    Spec, _ = EntropyHub.SpecEn(n.data)
+    return Spec
+end
+@register function perm_en(n::HRMeasurement, m::Int64=3, tau::Int64=1)
+    """
+        perm_en(n::HRMeasurement, m=3, tau=1)
+    Calculate the permutation entropy of the Inter-Beat-Intervals (IBIs).
+    Arguments:
+        - `n`: An array of Inter-Beat-Intervals in milliseconds.
+        - `m`: The embedding (order) dimension (default 3).
+        - `tau`: The embedding delay (default 1).
+    Returns:
+        The permutation entropy of the IBIs.
+    Domains: nonlinear
+    Aliases: permutation_entropy, perm_en
+    Distribution: Normal
+
+    Minimum length: 100
+    """
+    Perm, _, _ = EntropyHub.PermEn(n.data, m=m, tau=tau)
+    return Perm[end]
+end
+@register function mse(n::HRMeasurement, m::Int64=2, r::Number=6, scales::Int64=3)
+    """
+        mse(n::HRMeasurement, m=2, r=6, scales=3)
+    Calculate the Multiscale Entropy (MSE) complexity index of the IBIs: the summed
+    sample entropy across coarse-grained time scales.
+    Arguments:
+        - `n`: An array of Inter-Beat-Intervals in milliseconds.
+        - `m`: The embedding dimension (default 2).
+        - `r`: The radius distance threshold (default 6).
+        - `scales`: The number of temporal scales (default 3).
+    Returns:
+        The MSE complexity index (sum over scales).
+    Domains: nonlinear
+    Aliases: multiscale_entropy, mse
+    Distribution: Normal
+
+    Minimum length: 100
+    """
+    Mobj = EntropyHub.MSobject(EntropyHub.SampEn, m=m, r=r)
+    _, CI = EntropyHub.MSEn(n.data, Mobj, Scales=scales)
+    return CI
+end
 @register function dfa(n::HRMeasurement)
     """
         dfa(n::HRMeasurement)
@@ -1094,14 +1268,25 @@ end
     
     Minimum length: 100
     """
-    # α1: short-scale exponent (small scales, typically 4-16)
+    # DFA scaling windows follow the Peng/Francis convention: α1 over 4≤n≤16, α2 over
+    # 16≤n≤64, with the short/long crossover fixed at n=16. The two ranges do NOT overlap
+    # (α2's boxmin is 16, not 4) so α2 is a genuine long-term exponent.
+    # Refs:
+    #   Peng CK, Havlin S, Stanley HE, Goldberger AL. Chaos 1995;5(1):82–87.
+    #     doi:10.1063/1.166141  — origin of the n=16 crossover and α1/α2 decomposition.
+    #   Francis DP et al. J Physiol 2002;542:619–629. doi:10.1113/jphysiol.2001.013389
+    #     — verbatim "α1 over n=4 to 16 and α2 between n=16 and 64".
+    #   Vest AN et al. Physiol Meas 2018;39:105004. doi:10.1088/1361-6579/aae021
+    #     — PhysioNet Cardiovascular Signal Toolbox: minBox=4, midBox=16, α2 16≤n≤N/4(=64).
+    # NB a competing clinical convention uses α1=4–11, α2=>11 (Iyengar 1996; Kubios 4–12/13–64;
+    # neurokit2 4–11/12–None). HeartRateLab implements the Peng/Francis 4–16 / 16–64 split.
+    # With boxratio=2 the geometric box sizes are α1→[4,8,16], α2→[16,32,64].
     scales, fluc = DFA.dfa(n.data, boxmax=16, boxmin=4, boxratio=2, overlap=0.0)
     log_scales = log10.(scales)
     log_fluc = log10.(fluc)
     intercept, α1 = DFA.polyfit(log_scales, log_fluc)
 
-    # α2: long-scale exponent (large scales, typically 16-128)
-    scales, fluc = DFA.dfa(n.data, boxmax=64, boxmin=4, boxratio=2, overlap=0.0)
+    scales, fluc = DFA.dfa(n.data, boxmax=64, boxmin=16, boxratio=2, overlap=0.0)
     log_scales = log10.(scales)
     log_fluc = log10.(fluc)
     intercept, α2 = DFA.polyfit(log_scales, log_fluc)
@@ -1155,12 +1340,16 @@ end
 #
 #   ALL_FEATURES        — The complete set: FAST_FEATURES ∪ NONLINEAR_FEATURES.
 #
-# Use `features=ALL_FEATURES` (or `features=:all`) for the full 44-feature
+# Use `features=ALL_FEATURES` (or `features=:all`) for the full 53-feature
 # extraction when the recording is short enough, or when you have time.
 
 """Features with O(n²) or higher complexity (entropy, DFA, Hurst, Rényi).  Expensive on long recordings."""
 const NONLINEAR_FEATURES = [
     "apen", "sampen",          # Approximate & sample entropy (EntropyHub, O(n²))
+    "fuzzyen",                 # Fuzzy entropy (EntropyHub, O(n²))
+    "shan_en", "svd_en",       # Shannon (histogram) & SVD entropy
+    "spec_en", "perm_en",      # Spectral & permutation entropy (EntropyHub)
+    "mse",                     # Multiscale entropy complexity index (EntropyHub)
     "hurst",                   # Hurst exponent (R/S analysis)
     "dfa1", "dfa2",            # Detrended Fluctuation Analysis exponents
     "renyi0", "renyi1", "renyi2",  # Rényi entropies of order 0, 1, 2
@@ -1170,7 +1359,8 @@ const NONLINEAR_FEATURES = [
     FAST_FEATURES
 
 All registered features **except** the computationally expensive nonlinear ones
-(`apen`, `sampen`, `hurst`, `dfa1`, `dfa2`, `renyi0`, `renyi1`, `renyi2`).
+(entropy family `apen`/`sampen`/`fuzzyen`/`shan_en`/`svd_en`/`spec_en`/`perm_en`/`mse`,
+plus `hurst`, `dfa1`, `dfa2`, `renyi0`, `renyi1`, `renyi2`).
 Runs in O(n) or O(n log n) and is safe for arbitrarily long recordings.
 """
 const FAST_FEATURES  = sort(setdiff(String.(keys(feature_registry)), NONLINEAR_FEATURES))
@@ -1189,7 +1379,7 @@ const DEFAULT_FEATURES = sort(setdiff(FAST_FEATURES, ["ulf"]))
 """
     ALL_FEATURES
 
-The complete feature set (44 features).  Includes the nonlinear features that
+The complete feature set (53 features).  Includes the nonlinear features that
 are O(n²) or worse.  Use only on recordings shorter than ~5 000 beats, or when
 you can afford the compute.
 """

@@ -30,12 +30,13 @@ cd(@__DIR__)
 
     @testset "Registry completeness" begin
         # SPEC-F1/F2: the feature registry is the single source of truth for the
-        # scalar HRV features. The long-standing "~44 features" claim is exact:
-        # there are 44 registered features (representations such as `diff`,
-        # `pgram`, `dfa`, `dfa1`, `px`, `py`, `histogram`, `renyi`, `length`,
-        # `duration`, `max_t` live in `representation_registry`, not here).
+        # scalar HRV features. There are 53 registered features (44 original + 9 added
+        # in d-19: cvnni, median_hr, range_hr, shan_en, svd_en, fuzzyen, spec_en,
+        # perm_en, mse). Representations such as `diff`, `pgram`, `dfa`, `dfa1`, `px`,
+        # `py`, `histogram`, `renyi`, `length`, `duration`, `max_t` live in
+        # `representation_registry`, not here.
         feat_names = sort(String[keys(feature_registry)...])
-        @test length(feat_names) == 44
+        @test length(feat_names) == 53
 
         # Every registered feature must be a column in the comparison matrix, i.e.
         # the matrix-vs-target test above actually exercises ALL of them, not a
@@ -70,7 +71,7 @@ cd(@__DIR__)
         )
         # CSV.write("target/example_windowed_60_10.csv", ds_windowed)
         @test ds_windowed isa DataFrames.DataFrame
-        @test size(ds_windowed) == (414, 44)
+        @test size(ds_windowed) == (414, 53)
         target_windowed = CSV.read("target/example_windowed_60_10.csv", DataFrame)
         # Compare allowing for floating-point precision and NaN equality
         m_ds = Matrix(ds_windowed)

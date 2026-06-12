@@ -514,7 +514,7 @@ end
         result = windowed_feature_set(ibis; window_size=window_size, stride=stride)
 
         # windowed_feature_set extracts the default registry feature set, so the
-        # column count is bounded by that set (a subset of all 44 registry features).
+        # column count is bounded by that set (a subset of all 53 registry features).
         @test ncol(result) <= length(DEFAULT_FEATURES)
 
         # All column names must be valid feature names from the registry.

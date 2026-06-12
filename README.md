@@ -10,14 +10,14 @@ A comprehensive Julia package for **Heart Rate Variability (HRV) analysis** comb
 
 ## Quick Start
 
-Extract 44 HRV features from inter-beat-interval (IBI) time series in 3 lines:
+Extract 53 HRV features from inter-beat-interval (IBI) time series in 3 lines:
 
 ```julia
 using HeartRateLab
 
 ibis = read_txt("your_data.txt")           # Load IBI data (milliseconds)
 features = extract_feature_set(ibis)       # Fast features (time, frequency, geometric)
-features_all = extract_feature_set(ibis; features=:all)  # All 44 features (adds nonlinear)
+features_all = extract_feature_set(ibis; features=:all)  # All 53 features (adds nonlinear)
 ```
 
 Fit a mechanistic model and generate synthetic HRV data:
@@ -54,7 +54,7 @@ julia> Pkg.add("Turing")  # For Bayesian inference
 
 ## Features
 
-- **44 HRV Features** across 5 domains (time, statistics, frequency, geometric, nonlinear)
+- **53 HRV Features** across 5 domains (time, statistics, frequency, geometric, nonlinear)
 - **Input/Output**: Read/write TXT, WFDB, XDF formats
 - **Preprocessing**: Handle outliers, ectopic beats, interpolation
 - **4 Mechanistic Models**: LIF, Van der Pol, Lorenz, DMD
@@ -64,12 +64,11 @@ julia> Pkg.add("Turing")  # For Bayesian inference
 ## Documentation
 
 - **[API Documentation](https://abcsds.github.io/HeartRateLab.jl/dev/)** - Complete function reference
-- **[User Guide](docs/guide.md)** - Tutorials and common workflows
-- **[Examples](examples/)** - Runnable example scripts
+- **[Flagship demo](docs/flagship_demo.qmd)** - End-to-end worked example (rendered via `nix run .#render`)
 
 ## Key Components
 
-### Feature Extraction (44 Features)
+### Feature Extraction (53 Features)
 
 Extract comprehensive HRV metrics across multiple domains:
 
@@ -80,7 +79,7 @@ features = extract_feature_set(ibis)               # ← DEFAULT_FEATURES
 # Fast set: same but includes ulf (needs ≥24h recording for meaningful ulf)
 features_fast = extract_feature_set(ibis; features=:fast)
 
-# Full 44-feature extraction (adds nonlinear: apen, sampen, hurst, dfa, rényi)
+# Full 53-feature extraction (adds nonlinear: apen, sampen, hurst, dfa, rényi)
 features_all = extract_feature_set(ibis; features=:all)
 
 # Only the expensive nonlinear features
@@ -96,14 +95,14 @@ Features are organized into two tiers based on computational complexity:
 
 | Set | Count | Complexity | Domains | Safe length |
 |-----|-------|------------|---------|-------------|
-| **`DEFAULT_FEATURES`** (default) | 36 | O(n) – O(n log n) | time, frequency, geometric | Any |
-| **`FAST_FEATURES`** | 37 | O(n) – O(n log n) | time, frequency, geometric | Any |
-| **`NONLINEAR_FEATURES`** | 8 | O(n²) or worse | nonlinear, entropy | < 5 000 beats |
-| **`ALL_FEATURES`** | 44 | O(n²) | all | < 5 000 beats |
+| **`DEFAULT_FEATURES`** (default) | 39 | O(n) – O(n log n) | time, frequency, geometric | Any |
+| **`FAST_FEATURES`** | 40 | O(n) – O(n log n) | time, frequency, geometric | Any |
+| **`NONLINEAR_FEATURES`** | 14 | O(n²) or worse | nonlinear, entropy | < 5 000 beats |
+| **`ALL_FEATURES`** | 53 | O(n²) | all | < 5 000 beats |
 
 `DEFAULT_FEATURES` = `FAST_FEATURES` minus `ulf` (ultra-low frequency power requires ≥ 24-hour recordings to be physiologically meaningful).
 
-The **nonlinear features** (`apen`, `sampen`, `hurst`, `dfa1`, `dfa2`, `renyi0`, `renyi1`, `renyi2`) use algorithms whose time and memory consumption grow quadratically (or worse) with signal length. On recordings longer than ~5 000 beats they become slow; above ~50 000 beats they can exhaust available RAM.
+The **nonlinear features** (`apen`, `sampen`, `fuzzyen`, `shan_en`, `svd_en`, `spec_en`, `perm_en`, `mse`, `hurst`, `dfa1`, `dfa2`, `renyi0`, `renyi1`, `renyi2`) use algorithms whose time and memory consumption grow quadratically (or worse) with signal length. On recordings longer than ~5 000 beats they become slow; above ~50 000 beats they can exhaust available RAM.
 
 The default `features=:default` setting is safe for any recording length and covers the most commonly reported HRV metrics in the literature (RMSSD, SDNN, pNN50, LF/HF ratio, Poincaré SD1/SD2, etc.).
 
@@ -248,7 +247,7 @@ plot_normative_pairplot(datasets, features)        # Scatter matrix (pairplot)
 
 While several open-source HRV packages exist (NeuroKit in Python), most Julia options are unmaintained. HeartRateLab provides:
 
-- **Comprehensive**: 44 features across 5 analysis domains
+- **Comprehensive**: 53 features across 5 analysis domains
 - **Performant**: Leverages Julia's speed for batch processing
 - **Extensible**: Modular architecture with optional dependencies
 - **Modern**: Interactive GLMakie visualizations and ODE-based models
@@ -266,14 +265,14 @@ Heart Rate Variability (HRV) analysis involves examining variations in heart Int
 
 | Component | Status | Details |
 |-----------|--------|---------|
-| **Core Features** | ✅ Complete | 44 HRV features across 5 domains |
+| **Core Features** | ✅ Complete | 53 HRV features across 5 domains |
 | **Input/Output** | ✅ Complete | TXT, WFDB, XDF formats |
 | **Preprocessing** | ✅ Complete | Outlier removal, interpolation, windowing |
 | **Mechanistic Models** | ✅ Complete | LIF, Van der Pol, Lorenz (ODE-based) |
-| **Spectral Models** | ✅ Complete | DMD (data-driven decomposition) |
-| **Visualizations** | ✅ Complete | 13 analysis, comparison, and normative plots |
-| **Bayesian Inference** | ⏳ Planned | Turing.jl integration |
-| **Real-time Streaming** | ⏳ Planned | LSL integration for live HRV |
+| **Spectral Models** | 🧪 Beta | DMD (data-driven; reconstructs dynamics about the mean) |
+| **Bayesian Inference** | ✅ Available | Turing.jl MCMC fitting (`:bayesian`) + convergence (`rhat`) |
+| **Real-time Streaming** | ✅ Available | LSL RR/PP live HRV via `nix run .#viz` |
+| **Visualizations** | 🚧 Expanding | Offline + live LSL plots; entropy/fractal/DMD + 3D views in progress |
 | **Deep Learning Models** | ⏳ Planned | Neural ODE, VAE (Flux.jl) |
 
 ## Contributing
@@ -281,22 +280,21 @@ Heart Rate Variability (HRV) analysis involves examining variations in heart Int
 Contributions are welcome! To get started:
 
 1. Fork and clone the repository
-2. Create a development environment: `julia --project`
-3. Run tests: `using Pkg; Pkg.test()`
+2. Build the dev/test image: `nix run .#build`
+3. Run the suite: `nix run .#test` (WFDB tools + X11 display via Docker)
 4. Make your changes in a feature branch
 5. Submit a pull request
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ## Citation
 
 If you use HeartRateLab in your research, please cite:
 
 ```bibtex
-@software{barradas2024heartrateLab,
+@software{barradas2025heartrateLab,
   author = {Barradas, Alberto},
   title = {HeartRateLab.jl: Comprehensive Heart Rate Variability Analysis},
-  year = {2024},
+  version = {0.1.0},
+  year = {2025},
   url = {https://github.com/abcsds/HeartRateLab.jl}
 }
 ```
