@@ -1,9 +1,13 @@
 using HeartRateLab: HeartRateLab
 using Test
 using StatsBase
+using Random
 
 # Set working directory to test directory for relative paths
 cd(@__DIR__)
+
+# d-15: seed so the `rand`-based synthetic tests below are reproducible.
+Random.seed!(20260612)
 
 @testset "Preprocessing" begin
     @testset "replace_zeros" begin
@@ -194,5 +198,88 @@ cd(@__DIR__)
                 [2.0, 5.0, 8.0],
             )
         end
+    end
+end
+
+# d-13: mutating `!` pairs, the resampling `interpolate`, and NaN/edge cases that the
+# main suite leaves untested.
+@testset "Preprocessing edge paths & mutating pairs" begin
+    @testset "interpolate_nans fills interior NaN — all 4 methods on RR-scale data" begin
+        # Regression for the reversed-argument bug: on real RR-scale data each method must
+        # RUN (the reversed form threw ExtrapolationError, since values 790–810 lie far
+        # outside the index range 1–5) and fill the interior NaN with a method-consistent
+        # value — NOT only :linear (the other 3 branches were previously only exercised by
+        # the degenerate [1,2,NaN,…] fixture where the bug is invisible).
+        rr = [800.0, 810.0, NaN, 790.0, 805.0]
+        for (m, expected) in ((:constant, 810.0),   # last-value hold (left neighbour)
+                              (:linear, 800.0),      # midpoint of 810, 790
+                              (:quadratic, 791.667),
+                              (:cubic, 799.062))
+            out = HeartRateLab.interpolate_nans(copy(rr); method=m)
+            @test length(out) == length(rr)
+            @test !any(isnan, out)
+            @test out[3] ≈ expected atol = 0.01
+        end
+        @test HeartRateLab.interpolate_nans([800.0, NaN, 800.0]) ≈ [800.0, 800.0, 800.0]
+        @test all(x -> x ≈ 810.0, HeartRateLab.interpolate_nans([810.0, NaN, NaN, 810.0]))
+        @test isequal(HeartRateLab.interpolate_nans([800.0]), [800.0])   # single, no NaN
+    end
+
+    @testset "interpolate_nans preserves length and fills boundary NaNs (d-25)" begin
+        # Length is PRESERVED: leading/trailing NaNs are filled by extrapolation, not trimmed
+        # (the old strip_extremes behaviour shortened the array — a footgun for length-sensitive
+        # callers). Interior NaN interpolated; boundary NaNs linearly extrapolated.
+        out = HeartRateLab.interpolate_nans([NaN, 800.0, 810.0, NaN, 790.0, NaN])
+        @test length(out) == 6                  # SAME length as the input
+        @test !any(isnan, out)
+        @test out ≈ [790.0, 800.0, 810.0, 800.0, 790.0, 780.0]
+    end
+
+    @testset "interpolate_nans error & non-Float paths" begin
+        # > half the series is NaN → ArgumentError.
+        @test_throws ArgumentError HeartRateLab.interpolate_nans([800.0, NaN, NaN, NaN, 810.0])
+        # Unsupported method → ArgumentError.
+        @test_throws ArgumentError HeartRateLab.interpolate_nans([800.0, NaN, 810.0]; method=:bogus)
+        # Signature is Array{Float64,1}: integer input → MethodError (documented contract).
+        @test_throws MethodError HeartRateLab.interpolate_nans([1, 2, 3])
+        # Empty input → no NaNs to fill → returns empty (length-preserving, no error).
+        @test HeartRateLab.interpolate_nans(Float64[]) == Float64[]
+    end
+
+    @testset "interpolate_nans! mutates IN PLACE and matches the non-mutating pair (d-25)" begin
+        # d-25 fixed: interpolate_nans! now genuinely mutates its argument in place (no
+        # strip_extremes rebind), the point of the `!`.
+        x  = [800.0, 810.0, NaN, 790.0, 805.0]
+        x0 = copy(x)
+        out = HeartRateLab.interpolate_nans(x)        # non-mutating
+        @test isequal(x, x0)                           # the non-mutating pair leaves input intact
+        z = copy(x)
+        r = HeartRateLab.interpolate_nans!(z)
+        @test r === z                                  # returns the SAME array (mutated in place)
+        @test !any(isnan, z)                           # filled in place
+        @test isequal(z, out)                          # same result as the non-mutating pair
+    end
+
+    @testset "replace_ectopic_beats! mutates IN PLACE and matches the non-mutating pair" begin
+        e  = [800.0, 810.0, 400.0, 805.0, 800.0, 795.0]  # 400 ms is ectopic
+        e0 = copy(e)
+        out = HeartRateLab.replace_ectopic_beats(e)
+        @test isequal(e, e0)                          # the non-mutating pair leaves input intact
+        z = copy(e)
+        r = HeartRateLab.replace_ectopic_beats!(z)
+        @test r === z                                  # returns the SAME array (mutated in place)
+        @test isequal(z, out)                          # same result as the pair
+    end
+
+    @testset "interpolate (resampling) — numerical contract" begin
+        sig = collect(800.0:5.0:1000.0)             # 41 RR intervals, 800..1000 ms
+        out = HeartRateLab.interpolate(sig; method=:linear, fs=10)
+        @test out isa Vector{Float64}
+        @test all(isfinite, out)
+        @test out[1] == sig[1]                       # resampled series starts at the first value
+        @test out[end] ≈ sig[end]                    # …and ends at the last
+        @test length(out) == 362                     # one sample / 100 ms over the cumulative span
+        # NaN input must be rejected, not silently propagated.
+        @test_throws ArgumentError HeartRateLab.interpolate([800.0, NaN, 810.0])
     end
 end

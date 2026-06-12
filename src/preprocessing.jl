@@ -139,33 +139,40 @@ Returns:
     the array with the interpolated values
 """
 function interpolate_nans!(n::Array{Float64,1}; method::Symbol=:linear)
-    n = strip_extremes(n)
-    # Check if the number of missing values is valid
-    n_nan = count(isnan, n)
-    n_nan > length(n) / 2 &&
-        throw(ArgumentError("Too many missing values: $n_nan out of $(length(n))"))
-
-    # Identify indices of valid values and NaN values
-    valid_indices = findall(!isnan, n)
+    # Mutates `n` IN PLACE and PRESERVES length. Leading/trailing NaNs are filled by
+    # extrapolation (extrapolate=true) rather than trimmed — earlier versions called
+    # `strip_extremes`, which both shortened the array and (via rebinding) defeated the
+    # in-place `!` contract. (d-25)
     NaN_idx = findall(isnan, n)
+    isempty(NaN_idx) && return n        # nothing to do; length unchanged
+    length(NaN_idx) > length(n) / 2 &&
+        throw(ArgumentError("Too many missing values: $(length(NaN_idx)) out of $(length(n))"))
 
-    # Extract valid values
+    valid_indices = findall(!isnan, n)
     valid_values = n[valid_indices]
-    x = Float64.(collect(1:length(n)))
-    # Select interpolation method
-    if method == :constant
-        itp = DataInterpolations.ConstantInterpolation(x[valid_indices], valid_values)
+
+    # With a single anchor we cannot build an interpolant — constant-fill, still in place.
+    if length(valid_indices) == 1
+        n[NaN_idx] .= valid_values[1]
+        return n
+    end
+
+    # DataInterpolations takes (u = data values, t = sample points); interpolate the valid
+    # VALUES over their index positions, then evaluate at the missing indices. extrapolate=true
+    # lets boundary NaNs be filled instead of dropped, so length is preserved.
+    t = Float64.(valid_indices)
+    itp = if method == :constant
+        DataInterpolations.ConstantInterpolation(valid_values, t; extrapolate=true)
     elseif method == :linear
-        itp = DataInterpolations.LinearInterpolation(x[valid_indices], valid_values)
+        DataInterpolations.LinearInterpolation(valid_values, t; extrapolate=true)
     elseif method == :quadratic
-        itp = DataInterpolations.QuadraticInterpolation(x[valid_indices], valid_values)
+        DataInterpolations.QuadraticInterpolation(valid_values, t; extrapolate=true)
     elseif method == :cubic
-        itp = DataInterpolations.CubicSpline(x[valid_indices], valid_values)
+        DataInterpolations.CubicSpline(valid_values, t; extrapolate=true)
     else
         throw(ArgumentError("Unsupported interpolation method: $method"))
     end
-    # Replace missing values with interpolated values
-    n[NaN_idx] .= itp(NaN_idx)
+    n[NaN_idx] .= itp(Float64.(NaN_idx))
     return n
 end
 function interpolate_nans(n::Array{Float64,1}; method::Symbol=:linear)

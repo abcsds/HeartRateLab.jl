@@ -110,3 +110,38 @@ cd(@__DIR__)
         end
     end
 end
+
+# d-12: the 11 representation features (non-scalar outputs) live in
+# representation_registry and were only exercised transitively. Cover them directly.
+@testset "Representation features" begin
+    data = HeartRateLab.read_txt("testdata/example.txt")
+    N = length(data)
+    n = HeartRateLab.Features.HRMeasurement(data)
+    fr = HeartRateLab.Features.function_registry
+    rr = HeartRateLab.Features.representation_registry
+
+    # All 11 are registered as representations (not scalar features).
+    for name in ["diff", "length", "duration", "pgram", "max_t",
+                 "px", "py", "histogram", "renyi", "dfa", "dfa1"]
+        @test haskey(rr, name)
+    end
+
+    @test length(fr["diff"](n)) == N - 1          # successive differences
+    @test fr["length"](n) == N                    # beat count
+    @test fr["duration"](n) > 0                    # recording duration
+    @test isfinite(fr["max_t"](n)) && fr["max_t"](n) > 0
+    @test length(fr["px"](n)) == N - 1            # Poincaré x = IBI[1:end-1]
+    @test length(fr["py"](n)) == N - 1            # Poincaré y = IBI[2:end]
+
+    pg = fr["pgram"](n)                            # Lomb-Scargle periodogram
+    @test length(pg.power) == length(pg.freq)
+    @test all(pg.power .>= 0)
+
+    h = fr["histogram"](n)                         # StatsBase.Histogram
+    @test sum(h.weights) > 0
+
+    d = fr["dfa"](n)                               # (α1, α2)
+    @test length(d) == 2 && all(isfinite, d)
+    @test isfinite(fr["dfa1"](n))                  # α1 scalar
+    @test isfinite(fr["renyi"](n, 2))              # Rényi entropy of order 2
+end

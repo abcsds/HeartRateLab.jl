@@ -1,15 +1,22 @@
 using HeartRateLab: HeartRateLab
 using Test
 using Statistics
+using Random
+using DataFrames
 
 # Set working directory to test directory for relative paths
 cd(@__DIR__)
 # cd("test/")
 
+# d-15: seed the global RNG so the stochastic model tests (simulate noise, MCMC
+# sampling) are reproducible. Individual testsets re-seed for independence.
+Random.seed!(20260612)
+
 # ============================================================================
 # DMD Model - IMPLEMENTED
 # ============================================================================
 @testset "DMD Model" begin
+    Random.seed!(1)
     # Load IBI data for testing
     ibis = HeartRateLab.read_txt("testdata/example.txt")[1:60]  # Use first 60 for faster tests
 
@@ -86,6 +93,7 @@ end
 # Van der Pol Model - PARTIALLY IMPLEMENTED (simulate only)
 # ============================================================================
 @testset "Van der Pol Model" begin
+    Random.seed!(2)
     # Create a Van der Pol model instance
     vdp = HeartRateLab.Models.VanDerPol()
 
@@ -178,17 +186,23 @@ end
     @test length(fitted_result.posterior["μ"]) == expected_samples
     @test length(fitted_result.posterior["heart_rate"]) == expected_samples
 
-    # Test 11: Diagnostics include R-hat values
+    # Test 11: Diagnostics include R-hat values (d-16: assert real convergence-range
+    # values, not just ">0" — a hardcoded 1.0 used to pass that).
     @test haskey(fitted_result.diagnostics, "rhat_mu")
     @test haskey(fitted_result.diagnostics, "rhat_heart_rate")
     @test haskey(fitted_result.diagnostics, "rhat_sigma_noise")
-    @test fitted_result.diagnostics["rhat_mu"] > 0
+    for k in ("rhat_mu", "rhat_heart_rate", "rhat_sigma_noise")
+        rh = fitted_result.diagnostics[k]
+        @test rh isa Real && isfinite(rh)
+        @test 0.5 < rh < 3.0   # plausible split-R-hat range for a (short) fitted chain
+    end
 end
 
 # ============================================================================
 # Lorenz Model - IMPLEMENTED (requires DifferentialEquations.jl)
 # ============================================================================
 @testset "Lorenz Model (requires DifferentialEquations)" begin
+    Random.seed!(3)
     lorenz = HeartRateLab.Models.Lorenz(σ=10.0, ρ=28.0, β=8/3, threshold=10.0)
 
     # Test 1: Model can be created
@@ -304,6 +318,7 @@ end
 # LIF Simulation - DiffEq with Callbacks
 # ============================================================================
 @testset "LIF Simulation - DiffEq with Callbacks" begin
+    Random.seed!(4)
     lif = HeartRateLab.Models.LIF(I=1.52)
 
     # Test 1: Simulate produces correct number of IBIs
@@ -332,6 +347,7 @@ end
 # LIF Physiological Validation
 # ============================================================================
 @testset "LIF Physiological Validation" begin
+    Random.seed!(5)
     # Test 1: I=1.48 produces relatively slower heart rate compared to I=1.52
     lif_slow = HeartRateLab.Models.LIF(I=1.48)
     ibis_slow = HeartRateLab.Models.simulate(lif_slow, (I=1.48,), 50)
@@ -377,4 +393,55 @@ end
 
     # Test 7: Different I values produce different mean IBIs
     @test abs(mean_ibi_slow - mean_ibi_fast) > 10  # At least 10ms difference
+end
+
+# ============================================================================
+# d-12: previously untested exported Models API
+# ============================================================================
+@testset "Models API: rhat / parameter_series / extract_feature_set" begin
+    M = HeartRateLab.Models
+
+    @testset "_split_rhat convergence diagnostic" begin
+        Random.seed!(99)
+        # Well-mixed chains drawn from the SAME distribution → R-hat ≈ 1.
+        converged = randn(400, 4)
+        rh_conv = M._split_rhat(converged)
+        @test isfinite(rh_conv)
+        @test 0.9 < rh_conv < 1.1
+
+        # Chains centered at very different means → R-hat ≫ 1 (non-convergence).
+        divergent = hcat(randn(400), randn(400) .+ 10,
+                         randn(400) .+ 20, randn(400) .+ 30)
+        rh_div = M._split_rhat(divergent)
+        @test rh_div > 1.5
+
+        # Degenerate input (too few iterations) → NaN, not a crash.
+        @test isnan(M._split_rhat(zeros(2, 1)))
+    end
+
+    @testset "parameter_series" begin
+        mfr = M.ModelFitResult(
+            M.VanDerPol(), :bayesian, (μ = 1.5, heart_rate = 75.0),
+            Dict("μ" => [1.0, 2.0, 3.0]), Dict{String,Any}("rhat_mu" => 1.0),
+            [800.0, 810.0, 790.0],
+        )
+        @test M.parameter_series(mfr, :μ) == [1.0, 2.0, 3.0]
+        @test M.parameter_series(mfr, :not_a_param) === nothing
+
+        # No posterior (e.g. :gradient fit) → nothing.
+        mfr_nopost = M.ModelFitResult(
+            M.VanDerPol(), :gradient, (μ = 1.5,), nothing, Dict{String,Any}(), [800.0],
+        )
+        @test M.parameter_series(mfr_nopost, :μ) === nothing
+    end
+
+    @testset "extract_feature_set(::Vector)" begin
+        d = [800.0, 820.0, 810.0, 790.0]
+        df = M.extract_feature_set(d)
+        @test df isa DataFrame
+        @test names(df) == ["mean", "sdnn", "rmssd"]
+        @test df.mean[1] ≈ mean(d)
+        @test df.sdnn[1] ≈ std(d)
+        @test df.rmssd[1] ≈ sqrt(mean(diff(d) .^ 2))
+    end
 end

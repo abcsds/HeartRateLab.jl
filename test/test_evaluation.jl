@@ -330,6 +330,14 @@ end
         # Should have fewer features for short signals
         valid_short = valid_features(50)
         @test ncol(result_short) <= length(valid_short)
+
+        # d-16: exact boundary membership, not just a length bound. `apen` declares a
+        # minimum length of 100, so it must be excluded at n=50 and included at n=150;
+        # `mean` (minimum length ~1) is always present and the set grows with n.
+        @test "apen" ∉ valid_features(50)
+        @test "apen" ∈ valid_features(150)
+        @test "mean" ∈ valid_features(50)
+        @test length(valid_features(50)) < length(valid_features(150))
     end
 
     @testset "Ensemble with single series" begin
@@ -413,8 +421,10 @@ end
         ensemble = simulate_ensemble(model, params, n_beats; n_sim=n_sim)
 
         for series in ensemble
-            # All IBIs should be in physiological range
-            @test all((series .> 300) .| (series .< 10))  # Some might be small due to noise
+            # d-16: the old `all((s .> 300) .| (s .< 10))` was a near-tautology (true for any
+            # value outside (10, 300]). Assert strictly-positive + bounded; the ≥70% physiological
+            # majority is checked just below.
+            @test all(series .> 0)
             @test all(series .< 2000)
 
             # Most values should be reasonable
