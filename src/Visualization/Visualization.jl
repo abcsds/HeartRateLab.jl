@@ -14,6 +14,10 @@ using ..Models: ModelFitResult
 import ..Features
 using ..Features: extract_feature_set, valid_features, normative_prior, prior_registry
 
+# Import Frequency for the headless (Plots.jl) power spectrum
+import ..Frequency
+using ..Frequency: lomb_scargle, welch, get_power
+
 # Distributions.jl — needed for quantile-based dispersion bands in normative plots
 import Distributions
 
@@ -247,16 +251,130 @@ end
 """
     plot_spectrum(ibis::Vector{Float64}; method=:lomb, title="HRV Power Spectrum") -> Figure
 
-Create a power spectrum plot of inter-beat-interval series with frequency bands.
-This function is provided by the HeartRateLabVisualizationExt extension when GLMakie is loaded.
+Power spectrum of an IBI series with the HRV frequency bands shaded by colour
+(ULF gray, VLF blueviolet, LF teal, HF coral) and the spectral peak marked.
+
+`method` selects the estimator: `:lomb` (Lomb-Scargle, default; handles the uneven IBI
+sampling) or `:welch`. Renders headless via Plots.jl (no display/GLMakie required).
 """
 function plot_spectrum(ibis::Vector{Float64}; method=:lomb, title="HRV Power Spectrum")
-    # Try to delegate to the extension if it's loaded
-    ext = Base.get_extension(parentmodule(parentmodule(@__MODULE__)), :HeartRateLabVisualizationExt)
-    if ext !== nothing
-        return ext.plot_spectrum(ibis; method=method, title=title)
+    if !isdefined(Main, :plot)
+        println("Visualization requires Plots.jl. Please run: using Plots")
+        return nothing
     end
-    error("plot_spectrum requires GLMakie. Please run: using GLMakie")
+    plot = Main.plot; plot! = Main.plot!; vspan! = Main.vspan!; scatter! = Main.scatter!
+
+    pgram = method === :welch ? welch(ibis) : lomb_scargle(ibis)
+    freq = collect(pgram.freq)
+    power = collect(pgram.power)
+
+    fig = plot(; size=(800, 500), title=title, xlabel="Frequency (Hz)",
+               ylabel="Power (ms²/Hz)", legend=:topright, xlims=(0.0, 0.4))
+
+    # HRV frequency bands as colour-shaded regions (drawn first, behind the spectrum).
+    vspan!(fig, [0.0, 0.0033];   color=:gray,       alpha=0.15, label="ULF")
+    vspan!(fig, [0.0033, 0.04];  color=:blueviolet, alpha=0.16, label="VLF")
+    vspan!(fig, [0.04, 0.15];    color=:teal,       alpha=0.18, label="LF")
+    vspan!(fig, [0.15, 0.4];     color=:coral,      alpha=0.20, label="HF")
+
+    plot!(fig, freq, power; color=:black, linewidth=1.5, label="Spectrum")
+
+    # Mark the spectral peak.
+    if !isempty(power)
+        pk = argmax(power)
+        scatter!(fig, [freq[pk]], [power[pk]]; marker=:x, markersize=7,
+                 color=:red, label="Peak")
+    end
+    return fig
+end
+
+"""
+    plot_lif(model::LIF; n_beats=6, dt=0.5, title="LIF Membrane Dynamics") -> Figure
+
+Visualise the Leaky Integrate-and-Fire membrane trajectory V(t): the characteristic
+charge-up / threshold-crossing / reset sawtooth, with the resting and threshold
+potentials marked. Integrates the LIF ODE `τ dV/dt = -(V - V_rest) + R·I` (Euler, step
+`dt` ms) for `n_beats` spike cycles. Renders headless via Plots.jl.
+"""
+function plot_lif(model::Models.LIF; n_beats::Int=6, dt::Float64=0.5,
+                  title="LIF Membrane Dynamics")
+    if !isdefined(Main, :plot)
+        println("Visualization requires Plots.jl. Please run: using Plots")
+        return nothing
+    end
+    plot = Main.plot; plot! = Main.plot!; hline! = Main.hline!
+
+    τ, Vr, Vreset, Vth, R, I = model.τ, model.V_rest, model.V_reset,
+                               model.V_threshold, model.R, model.I
+    ts = Float64[]; Vs = Float64[]
+    V = Vr; t = 0.0; spikes = 0
+    # cap steps so a non-spiking (sub-threshold) parameterisation still terminates
+    maxsteps = round(Int, n_beats * 50 * τ / dt) + 100_000
+    step = 0
+    while spikes < n_beats && step < maxsteps
+        push!(ts, t); push!(Vs, V)
+        V += dt * (-(V - Vr) + R * I) / τ
+        t += dt
+        step += 1
+        if V >= Vth
+            push!(ts, t); push!(Vs, Vth)        # draw the spike to threshold
+            push!(ts, t); push!(Vs, Vreset)     # …then the instantaneous reset
+            V = Vreset
+            spikes += 1
+        end
+    end
+
+    fig = plot(ts, Vs; color=:teal, linewidth=1.6, label="V(t)", size=(800, 450),
+               title=title, xlabel="Time (ms)", ylabel="Membrane potential (mV)",
+               legend=:bottomright)
+    hline!(fig, [Vth]; color=:red, linestyle=:dash, label="V_threshold")
+    hline!(fig, [Vr]; color=:gray, linestyle=:dot, label="V_rest")
+    return fig
+end
+
+"""
+    plot_dmd(dmd_result::ModelFitResult; title="DMD Modes & Reconstruction") -> Figure
+
+Two-panel DMD visualisation: (top) the mode spectrum — each dynamic mode's amplitude
+|b| against its oscillation frequency (from the eigenvalue phase), with marker size
+scaled by amplitude; (bottom) the original IBI series overlaid with the DMD
+reconstruction. Renders headless via Plots.jl.
+"""
+function plot_dmd(dmd_result::ModelFitResult; title="DMD Modes & Reconstruction")
+    if !isdefined(Main, :plot)
+        println("Visualization requires Plots.jl. Please run: using Plots")
+        return nothing
+    end
+    plot = Main.plot; plot! = Main.plot!
+
+    dmd = dmd_result.model
+    data = dmd_result.data
+    evals = dmd.evals
+    b = dmd.b
+
+    # Mode frequency (cycles per beat) from the eigenvalue phase; amplitude = |b|.
+    freqs = abs.(angle.(evals)) ./ (2π)
+    amps = abs.(b)
+    ampsz = isempty(amps) ? Float64[] : 4 .+ 16 .* (amps ./ maximum(amps))
+
+    p1 = Main.scatter(freqs, amps; markersize=ampsz, color=:purple, alpha=0.7,
+                      legend=false, xlabel="Mode frequency (cycles/beat)",
+                      ylabel="Amplitude |b|", title="Mode spectrum")
+
+    recon = try
+        Models.simulate(dmd, nothing, length(data))
+    catch
+        Float64[]
+    end
+    p2 = plot(1:length(data), data; color=:black, linewidth=1.2, label="Original",
+              xlabel="Beat", ylabel="IBI (ms)", title="Reconstruction")
+    if !isempty(recon)
+        m = min(length(recon), length(data))
+        plot!(p2, 1:m, recon[1:m]; color=:coral, linewidth=1.4, linestyle=:dash,
+              label="DMD reconstruction")
+    end
+
+    return Main.plot(p1, p2; layout=(2, 1), size=(800, 700), plot_title=title)
 end
 
 """

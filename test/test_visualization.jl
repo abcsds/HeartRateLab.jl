@@ -16,6 +16,32 @@ cd(@__DIR__)
     @test size(fig) != ()
 end
 
+# d-08: headless Plots.jl plots — power spectrum + dedicated LIF/DMD model viz.
+# These need only Plots.jl (no GLMakie/display), so they run in the always-on section.
+@testset "Offline spectrum & model plots (d-08)" begin
+    data = Float64.(HeartRateLab.read_txt("testdata/example.txt"))
+
+    @testset "plot_spectrum (headless, banded)" begin
+        fig = HeartRateLab.plot_spectrum(data)
+        @test fig isa Plots.Plot
+        # bands (4 vspan) + spectrum line + peak marker → ≥ 6 series
+        @test length(fig.series_list) >= 6
+        @test HeartRateLab.plot_spectrum(data; method=:welch) isa Plots.Plot
+    end
+
+    @testset "plot_lif (membrane V(t))" begin
+        fig = HeartRateLab.plot_lif(HeartRateLab.Models.LIF(); n_beats=5)
+        @test fig isa Plots.Plot
+        @test length(fig.series_list) >= 3   # V(t) + threshold + rest lines
+    end
+
+    @testset "plot_dmd (modes + reconstruction)" begin
+        dmd_fit = HeartRateLab.Models.fit(HeartRateLab.Models.DMD(rank=5), data[1:200])
+        fig = HeartRateLab.plot_dmd(dmd_fit)
+        @test fig isa Plots.Plot
+    end
+end
+
 # Gate visualization tests on GLMakie availability
 try
     using GLMakie
@@ -113,8 +139,8 @@ end
 end
 
 @testset "plot_radar" begin
-    dataset1 = [600, 620, 590, 610, 580, 630, 600, 610, 620, 600]
-    dataset2 = [610, 625, 595, 615, 585, 635, 605, 615, 625, 605]
+    dataset1 = Float64[600, 620, 590, 610, 580, 630, 600, 610, 620, 600]
+    dataset2 = Float64[610, 625, 595, 615, 585, 635, 605, 615, 625, 605]
     datasets = Dict("Dataset1" => dataset1, "Dataset2" => dataset2)
 
     fig = HeartRateLab.plot_radar(datasets; title="Test Radar")
