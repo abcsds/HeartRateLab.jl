@@ -18,6 +18,10 @@ using ..Features: extract_feature_set, valid_features, normative_prior, prior_re
 import ..Frequency
 using ..Frequency: lomb_scargle, welch, get_power
 
+# DFA and EntropyHub for the fractal-scaling and complexity branch visualizations (d-07)
+import DFA
+import EntropyHub
+
 # Distributions.jl — needed for quantile-based dispersion bands in normative plots
 import Distributions
 
@@ -375,6 +379,70 @@ function plot_dmd(dmd_result::ModelFitResult; title="DMD Modes & Reconstruction"
     end
 
     return Main.plot(p1, p2; layout=(2, 1), size=(800, 700), plot_title=title)
+end
+
+"""
+    plot_dfa(ibis::Vector{Float64}; title="Detrended Fluctuation Analysis") -> Figure
+
+Canonical DFA log-log scaling plot: log₁₀ F(n) vs log₁₀ n (box size), with the two
+scaling-exponent fits overlaid — α1 over the short-term window 4≤n≤16 and α2 over the
+long-term window 16≤n≤64 (Peng/Francis convention; see Features `dfa`). The fitted
+slopes (α1, α2) are shown in the legend. Renders headless via Plots.jl.
+"""
+function plot_dfa(ibis::Vector{Float64}; title="Detrended Fluctuation Analysis")
+    if !isdefined(Main, :plot)
+        println("Visualization requires Plots.jl. Please run: using Plots")
+        return nothing
+    end
+    plot = Main.plot; plot! = Main.plot!; scatter! = Main.scatter!
+
+    scales, fluc = DFA.dfa(ibis; boxmax=64, boxmin=4, boxratio=2, overlap=0.0)
+    ls = log10.(Float64.(scales)); lf = log10.(Float64.(fluc))
+    m1 = scales .<= 16
+    m2 = scales .>= 16
+    b1, α1 = DFA.polyfit(ls[m1], lf[m1])
+    b2, α2 = DFA.polyfit(ls[m2], lf[m2])
+
+    fig = plot(; size=(750, 550), title=title, xlabel="log₁₀ n (box size, beats)",
+               ylabel="log₁₀ F(n)", legend=:topleft)
+    scatter!(fig, ls, lf; color=:black, markersize=5, label="F(n)")
+    # α1 fit line over the short-term window
+    x1 = ls[m1]
+    plot!(fig, x1, b1 .+ α1 .* x1; color=:teal, linewidth=2,
+          label="α1 = $(round(α1, digits=3)) (n 4–16)")
+    # α2 fit line over the long-term window
+    x2 = ls[m2]
+    plot!(fig, x2, b2 .+ α2 .* x2; color=:coral, linewidth=2,
+          label="α2 = $(round(α2, digits=3)) (n 16–64)")
+    return fig
+end
+
+"""
+    plot_complexity(ibis::Vector{Float64}; m=2, r=6, scales=10,
+                    title="Multiscale Entropy") -> Figure
+
+Multiscale-entropy complexity curve: sample entropy of the coarse-grained series at
+each temporal scale (EntropyHub `MSEn` with a `SampEn` object). A flat/rising curve
+indicates higher complexity; a decaying one indicates simpler dynamics. The complexity
+index (area under the curve) is shown in the title. Renders headless via Plots.jl.
+"""
+function plot_complexity(ibis::Vector{Float64}; m::Int=2, r::Number=6, scales::Int=10,
+                         title="Multiscale Entropy")
+    if !isdefined(Main, :plot)
+        println("Visualization requires Plots.jl. Please run: using Plots")
+        return nothing
+    end
+    plot = Main.plot; scatter! = Main.scatter!
+
+    Mobj = EntropyHub.MSobject(EntropyHub.SampEn; m=m, r=r)
+    MSx, CI = EntropyHub.MSEn(ibis, Mobj; Scales=scales)
+    sc = collect(1:length(MSx))
+
+    fig = plot(sc, MSx; color=:purple, linewidth=2, marker=:circle, markersize=4,
+               label="SampEn", size=(750, 500),
+               title="$title (CI = $(round(CI, digits=2)))",
+               xlabel="Scale factor τ", ylabel="Sample entropy", legend=:topright)
+    return fig
 end
 
 """

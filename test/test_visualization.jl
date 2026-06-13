@@ -42,6 +42,23 @@ end
     end
 end
 
+# d-07: branch visualizations for the previously-uncovered computational branches
+# (fractal/DFA scaling, entropy/complexity). DMD modes are covered by plot_dmd (d-08).
+@testset "Branch plots (d-07)" begin
+    data = Float64.(HeartRateLab.read_txt("testdata/example.txt"))
+
+    @testset "plot_dfa (log-log scaling)" begin
+        fig = HeartRateLab.plot_dfa(data)
+        @test fig isa Plots.Plot
+        @test length(fig.series_list) >= 3   # F(n) points + α1 + α2 fit lines
+    end
+
+    @testset "plot_complexity (multiscale entropy)" begin
+        fig = HeartRateLab.plot_complexity(data; scales=8)
+        @test fig isa Plots.Plot
+    end
+end
+
 # Gate visualization tests on GLMakie availability
 try
     using GLMakie
