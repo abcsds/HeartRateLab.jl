@@ -94,12 +94,21 @@ hlines!(ax_nn, 0, color=:black);
 lines!(ax_nn, t, nn, color=:red);
 band!(ax_nn, t, 0, nn_negative, color=:deeppink);
 band!(ax_nn, t, 0, nn_positive, color=:blueviolet);
-scatter!(ax_nn, nn50, color=:maroon, markersize=10);
+# NN50 markers as Point2f filtered to the window (d-26 squash fix — a raw matrix leaks
+# Δnn into x and stretches the shared time axis to 0).
+nn50_visible = lift(nn50, t) do m, tt
+    (m === nothing || size(m, 1) == 0) && return Point2f[]
+    [Point2f(m[i, 1], m[i, 2]) for i in axes(m, 1) if (m[i, 1] > 0 && m[i, 1] >= tt[1])]
+end
+scatter!(ax_nn, nn50_visible, color=:maroon, markersize=10);
 
 lines!(ax_sd, t, sdnn, color=:teal);
 lines!(ax_rm, t, rmssd, color=:coral);
 
-scatter!(ax_pp, pp_x, pp_y, color=:purple);
+# Poincaré: age-faded points + comet trajectory (newest beat opaque), matching default view.
+pp_colors = [RGBAf(0.5, 0.0, 0.5, a) for a in range(0.08, 1.0, length=sample_size - 1)]
+lines!(ax_pp, pp_x, pp_y, color=pp_colors, linewidth=1.5);
+scatter!(ax_pp, pp_x, pp_y, color=pp_colors, markersize=6);
 # lines!(ax_ff, freq, power, color=:teal); 
 # FIXME: LombScargle changes the length of freq and power
 
@@ -213,13 +222,9 @@ while true
         b = zeros(Float32, 1, 2) + [t[][end] Float32(nn[][end])]
         nn50[] = [a; b]
     else
-        if isempty(a)
-            nn50[] = zeros(Float32, 1, 2) + [t[][end] Float32(nn[][end])]
-        else
-            nn50[] = a
-        end
+        nn50[] = a   # sub-threshold beat: no marker (was fabricating a spurious one)
     end
-    pnn50[] = 100 * (length(nn50[]) / length(nn[]));
+    pnn50[] = 100 * (size(nn50[], 1) / length(nn[]));
     sdnn[] = [sdnn[][2:end]; std(rr[])];
     rmssd[] = [rmssd[][2:end]; std(nn[])];
     pp_x[] = [pp_x[][2:end]; rr[][end-1]];
@@ -244,5 +249,6 @@ while true
     autolimits!(ax_pp)
     autolimits!(ax_sd)
     autolimits!(ax_rm)
+    xlims!(ax_rr, t[][1], t[][end])   # pin shared time axis to the live window (d-26)
     # autolimits!(ax_ff)
 end
