@@ -56,7 +56,7 @@ import .Features: prior_registry, normative_prior, prior_call_string, load_norma
 import .Evaluation: simulate_ensemble, extract_ensemble_features, eval_distributional, eval_scalar, eval_distance
 import .Visualization: plot_ibi_series, plot_poincare, plot_spectrum, plot_comparison, plot_model_heatmap, plot_lorenz_3d, plot_radar, plot_correlations, plot_flagship
 import .Visualization: plot_normative_kde_comparison, plot_feature_correlogram, plot_normative_pairplot
-import .Visualization: plot_lif, plot_dmd, plot_dfa, plot_complexity
+import .Visualization: plot_lif, plot_dmd, plot_dfa, plot_complexity, plot_time_frequency_3d, plot_poincare_3d
 import .Models: VanDerPol, Lorenz, LIF, DMD, AbstractHRVModel, ModelFitResult, simulate, parameter_space, fit, parameter_series
 
 # export Features
@@ -72,6 +72,6 @@ export prior_registry, normative_prior, prior_call_string, load_normative_priors
 # only ever defined in the dead ModelsExt. Salvaged to test/tools/dataset_loaders.jl (backlog d-18).
 export plot_ibi_series, plot_poincare, plot_spectrum, plot_comparison, plot_model_heatmap, plot_lorenz_3d, plot_radar, plot_correlations, plot_flagship, fit
 export plot_normative_kde_comparison, plot_feature_correlogram, plot_normative_pairplot
-export plot_lif, plot_dmd, plot_dfa, plot_complexity
+export plot_lif, plot_dmd, plot_dfa, plot_complexity, plot_time_frequency_3d, plot_poincare_3d
 export VanDerPol, Lorenz, LIF, DMD, AbstractHRVModel, ModelFitResult, simulate, parameter_space, parameter_series
 end

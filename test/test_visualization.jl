@@ -59,6 +59,22 @@ end
     end
 end
 
+# d-22: advanced 3D visualizations (headless GR 3D).
+@testset "Advanced 3D plots (d-22)" begin
+    data = Float64.(HeartRateLab.read_txt("testdata/example.txt"))
+
+    @testset "plot_time_frequency_3d (waterfall)" begin
+        fig = HeartRateLab.plot_time_frequency_3d(data; window_size=120, stride=40)
+        @test fig isa Plots.Plot
+    end
+
+    @testset "plot_poincare_3d (time-evolving)" begin
+        fig = HeartRateLab.plot_poincare_3d(data[1:300])
+        @test fig isa Plots.Plot
+        @test HeartRateLab.plot_poincare_3d([800.0, 810.0]) === nothing  # <3-IBI guard
+    end
+end
+
 # Gate visualization tests on GLMakie availability
 try
     using GLMakie

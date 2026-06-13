@@ -446,6 +446,71 @@ function plot_complexity(ibis::Vector{Float64}; m::Int=2, r::Number=6, scales::I
 end
 
 """
+    plot_time_frequency_3d(ibis::Vector{Float64}; window_size=120, stride=30,
+                           method=:lomb, title="Time–Frequency Spectrum") -> Figure
+
+3D time–frequency waterfall: a sliding window is swept across the IBI series and a
+power spectrum computed per window, then stacked into a surface (x = frequency,
+y = window position in beats, z = power). Shows how the LF/HF content evolves over the
+recording. Renders headless via Plots.jl (GR 3D).
+"""
+function plot_time_frequency_3d(ibis::Vector{Float64}; window_size::Int=120,
+                                stride::Int=30, method=:lomb,
+                                title="Time–Frequency Spectrum")
+    if !isdefined(Main, :surface)
+        println("Visualization requires Plots.jl. Please run: using Plots")
+        return nothing
+    end
+    n = length(ibis)
+    n < window_size && (window_size = n)
+    starts = collect(1:stride:max(1, n - window_size + 1))
+    freqgrid = nothing
+    rows = Vector{Vector{Float64}}()
+    for s in starts
+        w = ibis[s:min(s + window_size - 1, n)]
+        length(w) < 8 && continue
+        pg = method === :welch ? welch(w) : lomb_scargle(w)
+        fg = collect(pg.freq); pw = collect(pg.power)
+        if freqgrid === nothing
+            freqgrid = fg
+        elseif length(fg) != length(freqgrid)
+            continue   # keep a rectangular grid (consistent window length → same freq grid)
+        end
+        push!(rows, pw)
+    end
+    Z = permutedims(reduce(hcat, rows))           # (num_windows × num_freq)
+    ytimes = collect(1:length(rows)) .* stride    # window position (beats)
+    return Main.surface(freqgrid, ytimes, Z; size=(850, 600), title=title,
+                        xlabel="Frequency (Hz)", ylabel="Beat", zlabel="Power",
+                        colormap=:viridis, xlims=(0.0, 0.4))
+end
+
+"""
+    plot_poincare_3d(ibis::Vector{Float64}; title="Time-Evolving Poincaré") -> Figure
+
+3D Poincaré trajectory: the usual ΔRR scatter lifted by time on the z-axis
+(x = RR[n-1], y = RR[n], z = beat index), so the recurrence cloud becomes a path. During
+steady sinus rhythm it reads as an elliptical spiral (SD1/SD2 diameters) whose radius
+changes with the HRV state. Coloured by time. Renders headless via Plots.jl (GR 3D).
+"""
+function plot_poincare_3d(ibis::Vector{Float64}; title="Time-Evolving Poincaré")
+    if !isdefined(Main, :plot)
+        println("Visualization requires Plots.jl. Please run: using Plots")
+        return nothing
+    end
+    length(ibis) < 3 && (println("plot_poincare_3d needs ≥ 3 IBIs"); return nothing)
+    plot = Main.plot; scatter! = Main.scatter!
+    px = ibis[1:end-1]
+    py = ibis[2:end]
+    z = collect(1:length(px))
+    fig = plot(px, py, z; line_z=z, color=:viridis, linewidth=2, label="trajectory",
+               size=(820, 640), title=title, xlabel="RR[n-1] (ms)",
+               ylabel="RR[n] (ms)", zlabel="Beat", legend=false, colorbar=true)
+    scatter!(fig, px, py, z; marker_z=z, color=:viridis, markersize=2, label="")
+    return fig
+end
+
+"""
     live(; source=:lsl, sample_size=100, frames=typemax(Int), title="Heart Rate") → Figure
 
 Open a real-time heart-rate / RR-interval visualization (scrolling BPM tachogram).
