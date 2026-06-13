@@ -12,8 +12,8 @@ cd(@__DIR__)
         "Model2" => Float64[600, 625, 585, 610, 575, 635, 600, 615, 625, 595]
     )
     fig = HeartRateLab.plot_comparison(real_data, models; title="Test Comparison")
-    @test fig isa Any
-    @test size(fig) != ()
+    @test fig isa Plots.Plot
+    @test !isempty(fig.series_list)
 end
 
 # d-08: headless Plots.jl plots — power spectrum + dedicated LIF/DMD model viz.
@@ -75,88 +75,47 @@ end
     end
 end
 
-# Gate visualization tests on GLMakie availability
-try
-    using GLMakie
-    using DSP
-    using Statistics
+# d-17/task-11: the offline plots are Plots.jl (no GLMakie/display) — test directly with
+# structural assertions; NO try/catch sham-skips that hide failures.
+@testset "Offline plots (Plots.jl)" begin
+    t = range(0, 100, length=128)
+    ibis = 800 .+ 100 .* sin.(2π .* t ./ 50) .+ randn(128) .* 20
 
-    @testset "Offline Visualization" begin
-        # Create synthetic IBI data for testing
-        t = range(0, 100, length=128)
-        ibis = 800 .+ 100 .* sin.(2π .* t / 50) .+ randn(128) .* 20
-
-        # Get the visualization functions (they are re-exported from the extension)
-        plot_ibi_series = HeartRateLab.plot_ibi_series
-        plot_poincare = HeartRateLab.plot_poincare
-        plot_spectrum = HeartRateLab.plot_spectrum
-
-        # Test 1: plot_ibi_series can be created
-        try
-            fig_ibi = plot_ibi_series(ibis)
-            @test fig_ibi !== nothing
-        catch e
-            @warn "plot_ibi_series test failed" exception=e
-            @test false
-        end
-
-        # Test 2: plot_poincare can be created
-        try
-            fig_poincare = plot_poincare(ibis)
-            @test fig_poincare !== nothing
-        catch e
-            @warn "plot_poincare test failed" exception=e
-            @test false
-        end
-
-        # Test 3: plot_spectrum can be created
-        try
-            fig_spectrum = plot_spectrum(ibis)
-            @test fig_spectrum !== nothing
-        catch e
-            @warn "plot_spectrum test failed" exception=e
-            @test false
-        end
-
-        # Test 4: Functions handle edge cases (short series)
-        try
-            short_ibis = ibis[1:5]
-            fig_short = plot_ibi_series(short_ibis)
-            @test fig_short !== nothing
-        catch e
-            @warn "Short series handling test skipped" exception=e
-        end
-
-        # Test 5: Functions work with custom titles
-        try
-            fig_titled = plot_ibi_series(ibis; title="Custom Title")
-            @test fig_titled !== nothing
-        catch e
-            @warn "Custom title test skipped" exception=e
-        end
+    @testset "plot_ibi_series" begin
+        fig = HeartRateLab.plot_ibi_series(ibis)
+        @test fig isa Plots.Plot
+        @test !isempty(fig.series_list)
+        @test HeartRateLab.plot_ibi_series(ibis; title="Custom Title") isa Plots.Plot
+        @test HeartRateLab.plot_ibi_series(ibis[1:5]) isa Plots.Plot   # short series
     end
 
-    @testset "plot_lorenz_3d" begin
-        using HeartRateLab.Models
+    @testset "plot_poincare" begin
+        fig = HeartRateLab.plot_poincare(ibis)
+        @test fig isa Plots.Plot
+        @test length(fig.series_list) >= 3   # scatter + SD1/SD2 ellipse + diagonal
+    end
 
-        # Create a Lorenz model and mock result
-        lorenz = Lorenz()
+    @testset "plot_lorenz_3d (from fitted result)" begin
+        lorenz = HeartRateLab.Models.Lorenz()
         params = (σ=10.0, ρ=28.0, β=8/3, threshold=10.0, σ_noise=0.1)
-        result = Models.ModelFitResult(lorenz, :gradient, params, nothing, Dict(), Float64[])
-
-        # Test that plot_lorenz_3d can be created
-        try
-            fig = HeartRateLab.plot_lorenz_3d(result; title="Test Lorenz 3D")
-            @test fig !== nothing
-            @test isa(fig, Any)
-        catch e
-            @warn "plot_lorenz_3d test failed" exception=e
-            @test false
-        end
+        result = HeartRateLab.Models.ModelFitResult(
+            lorenz, :gradient, params, nothing, Dict{String,Any}(), Float64[])
+        @test HeartRateLab.plot_lorenz_3d(result; title="Test Lorenz 3D") isa Plots.Plot
     end
+end
 
-catch err
-    @info "Visualization tests skipped - GLMakie or DSP not available" exception=err
+# GLMakie-dependent paths: the launcher API is always checked; the GLMakie ext load is
+# gated and SKIPS CLEANLY when headless (no crash, no sham).
+@testset "Live launchers & GLMakie extension" begin
+    V = HeartRateLab.Visualization
+    for fn in (:default, :bpm, :bpm_tt, :geometric, :vdp_field, :live)
+        @test isdefined(V, fn)
+    end
+    if (try; @eval(Main, using GLMakie); true; catch; false; end)
+        @test Base.get_extension(HeartRateLab, :HeartRateLabVisualizationExt) !== nothing
+    else
+        @test_skip "GLMakie unavailable (headless): ext load + live render not exercised"
+    end
 end
 
 @testset "plot_model_heatmap" begin
@@ -167,8 +126,8 @@ end
         score=[0.85, 0.92, 0.78, 0.88, 0.95, 0.91]
     )
     fig = HeartRateLab.plot_model_heatmap(results; title="Test Heatmap")
-    @test fig !== nothing
-    @test size(fig) != ()
+    @test fig isa Plots.Plot
+    @test !isempty(fig.series_list)
 end
 
 @testset "plot_radar" begin
@@ -177,8 +136,8 @@ end
     datasets = Dict("Dataset1" => dataset1, "Dataset2" => dataset2)
 
     fig = HeartRateLab.plot_radar(datasets; title="Test Radar")
-    @test fig isa Any
-    @test size(fig) != ()
+    @test fig isa Plots.Plot
+    @test !isempty(fig.series_list)
 end
 
 @testset "plot_correlations" begin
@@ -202,17 +161,17 @@ end
 
     # Test with default features (all available)
     fig = HeartRateLab.plot_correlations(feature_sets; title="Test Correlations")
-    @test fig isa Any
-    @test size(fig) != ()
+    @test fig isa Plots.Plot
+    @test !isempty(fig.series_list)
 
     # Test with specific features
     fig2 = HeartRateLab.plot_correlations(feature_sets; features=["SDNN", "RMSSD"], title="Test Correlations - Subset")
-    @test fig2 isa Any
+    @test fig2 isa Plots.Plot
     @test size(fig2) != ()
 
     # Test with single dataset
     single_set = Dict("Dataset" => data1)
     fig3 = HeartRateLab.plot_correlations(single_set; title="Single Dataset Correlations")
-    @test fig3 isa Any
+    @test fig3 isa Plots.Plot
     @test size(fig3) != ()
 end
