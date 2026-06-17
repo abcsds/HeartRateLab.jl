@@ -23,10 +23,10 @@ features_all = extract_feature_set(ibis; features=:all)  # All 53 features (adds
 Fit a mechanistic model and generate synthetic HRV data:
 
 ```julia
-using DifferentialEquations
-model = LIF(τ=50, I_base=0.5, threshold=1.0, noise_amp=0.1)
+using DifferentialEquations            # required for the ODE-based models
+model = LIF()                          # leaky integrate-and-fire (physiological defaults)
 result = fit(model, ibis; method=:gradient)
-synthetic = simulate(result.model, result.params, n_beats=1000)
+synthetic = simulate(result.model, result.params, 1000)   # n_beats is positional
 ```
 
 Visualize HRV analysis results:
@@ -215,7 +215,7 @@ Fit and simulate from data-driven HRV models:
 # - DMD: data-driven spectral decomposition
 
 result = fit(LIF(), ibis; method=:gradient)
-synthetic = simulate(result.model, result.params, n_beats=1000)
+synthetic = simulate(result.model, result.params, 1000)   # n_beats is positional
 ```
 
 ### Visualization
@@ -271,7 +271,7 @@ Heart Rate Variability (HRV) analysis involves examining variations in heart Int
 | **Mechanistic Models** | ✅ Complete | LIF, Van der Pol, Lorenz (ODE-based) |
 | **Spectral Models** | 🧪 Beta | DMD (data-driven; reconstructs dynamics about the mean) |
 | **Bayesian Inference** | ✅ Available | Turing.jl MCMC fitting (`:bayesian`) + convergence (`rhat`) |
-| **Real-time Streaming** | ✅ Available | LSL RR/PP live HRV via `nix run .#viz` |
+| **Real-time Streaming** | 🧪 Available (setup) | Live LSL RR/PP HRV; needs an LSL stream + first-run `.viz-env`, launched via `HeartRateLab.Visualization.bpm_tt()` (no `nix run .#viz` yet) |
 | **Visualizations** | 🚧 Expanding | Offline + live LSL plots; entropy/fractal/DMD + 3D views in progress |
 | **Deep Learning Models** | ⏳ Planned | Neural ODE, VAE (Flux.jl) |
 
