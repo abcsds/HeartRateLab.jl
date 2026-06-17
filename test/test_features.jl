@@ -145,3 +145,36 @@ end
     @test isfinite(fr["dfa1"](n))                  # α1 scalar
     @test isfinite(fr["renyi"](n, 2))              # Rényi entropy of order 2
 end
+
+# Parity-checked correctness of features that were previously WRONG (cross-library
+# validation, 2026-06-17). These assert canonical values / definitions and would
+# FAIL on the pre-fix code, so they guard against regressions to the old bugs.
+@testset "Corrected feature definitions (parity-checked)" begin
+    data = HeartRateLab.read_txt("testdata/example.txt")
+    fr = HeartRateLab.Features.function_registry
+
+    @testset "pNN50 / pNN20 use |Δ| over N-1" begin
+        m = HeartRateLab.Features.HRMeasurement(data)
+        # Reference values from neurokit2 0.2.13 on the identical RR series
+        # (proportion = count(|Δ| > thr) / (N-1)). The old signed `Δ > thr`/N code
+        # gave 0.0522 / 0.2490 — roughly half — so these tolerances exclude it.
+        @test isapprox(fr["pnn50"](m), 0.0680; atol=0.002)
+        @test isapprox(fr["pnn20"](m), 0.4969; atol=0.003)
+
+        # A single large DECREASE must count (the signed-difference bug missed these):
+        # diffs of [800,800,740,800] are [0,-60,+60] ⇒ |Δ|>50 on 2 of 3 successive diffs.
+        mdec = HeartRateLab.Features.HRMeasurement([800.0, 800.0, 740.0, 800.0])
+        @test fr["pnn50"](mdec) ≈ 2 / 3
+    end
+
+    @testset "ApEn / SampEn are canonical (not a log-ratio)" begin
+        m = HeartRateLab.Features.HRMeasurement(data)
+        # Canonical ApEn/SampEn at HRL's default embedding m=2, tolerance r=6 ms
+        # (EntropyHub's estimate at embedding m). The old code returned a nonstandard
+        # log-ratio (apen 0.525, sampen -0.49 — even negative), so these guard it.
+        @test isapprox(fr["apen"](m), 1.18; atol=0.03)
+        @test isapprox(fr["sampen"](m), 1.17; atol=0.03)
+        @test fr["sampen"](m) > 0          # the old log-ratio could go negative
+        @test fr["apen"](m) > 0
+    end
+end

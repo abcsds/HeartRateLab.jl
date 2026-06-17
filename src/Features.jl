@@ -465,34 +465,42 @@ end
 @register function pnn50(n::HRMeasurement)
     """
         pnn50(n::HRMeasurement)
-    Calculate the proportion of successive differences of the Inter-Beat-Intervals (IBIs) that are greater than 50 ms.
+    Calculate the proportion of |successive differences| of the Inter-Beat-Intervals
+    (IBIs) that exceed 50 ms (NN50 count divided by the number of successive
+    differences, N-1). The standard definition uses the ABSOLUTE difference
+    (Task Force 1996; matches neurokit2 / hrv-analysis).
     Arguments:
         - `n`: An array of Inter-Beat-Intervals in milliseconds.
     Returns:
-        The proportion of successive differences greater than 50 ms.
+        The proportion of absolute successive differences greater than 50 ms.
     Domains: time, statistics
     Aliases: pnn50
     Distribution: Beta
-    
+
     Minimum length: 50
     """
-    return sum(function_registry["diff"](n) .> 50) / function_registry["length"](n)
+    d = function_registry["diff"](n)
+    return count(x -> abs(x) > 50, d) / length(d)
 end
 @register function pnn20(n::HRMeasurement)
     """
         pnn20(n::HRMeasurement)
-    Calculate the proportion of successive differences of the Inter-Beat-Intervals (IBIs) that are greater than 20 ms.
+    Calculate the proportion of |successive differences| of the Inter-Beat-Intervals
+    (IBIs) that exceed 20 ms (NN20 count divided by the number of successive
+    differences, N-1). The standard definition uses the ABSOLUTE difference
+    (Task Force 1996; matches neurokit2 / hrv-analysis).
     Arguments:
         - `n`: An array of Inter-Beat-Intervals in milliseconds.
     Returns:
-        The proportion of successive differences greater than 20 ms.
+        The proportion of absolute successive differences greater than 20 ms.
     Domains: time, statistics
     Aliases: pnn20
     Distribution: Beta
-    
+
     Minimum length: 50
     """
-    return sum(function_registry["diff"](n) .> 20) / function_registry["length"](n)
+    d = function_registry["diff"](n)
+    return count(x -> abs(x) > 20, d) / length(d)
 end
 @register function cvsd(n::HRMeasurement)
     """
@@ -1044,8 +1052,13 @@ end
 
     Minimum length: 100
     """
+    # EntropyHub.ApEn returns m+1 estimates (embedding dimensions 0..m); the
+    # canonical approximate entropy at embedding m is the last element. (The tolerance
+    # r is an ABSOLUTE distance in ms here, HRL's documented convention; tools that use
+    # r = 0.2·SDNN will report a different value for the same series — a convention
+    # difference, not a disagreement.)
     apens, _ = EntropyHub.ApEn(n.data, m=m, r=r)
-    return log(apens[end-1] / apens[end])
+    return apens[end]
 end
 @register function sampen(n::HRMeasurement, m::Int64=2, r::Number=6)
     """
@@ -1063,9 +1076,11 @@ end
 
     Minimum length: 100
     """
-    sampen1, _ = EntropyHub.SampEn(n.data, m=m, r=r)
-    sampen2, _ = EntropyHub.SampEn(n.data, m=+1, r=r)
-    return log(sampen1[end] / sampen2[end])
+    # EntropyHub.SampEn returns m+1 estimates (embedding dimensions 0..m); the
+    # canonical sample entropy at embedding m is the last element. (Same absolute-r
+    # convention note as `apen`.)
+    sampens, _ = EntropyHub.SampEn(n.data, m=m, r=r)
+    return sampens[end]
 end
 @register function hurst(n::HRMeasurement)
     """
