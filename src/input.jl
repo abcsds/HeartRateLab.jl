@@ -58,6 +58,11 @@ function read_wfdb(record::String, annotator::String)
     run(pipeline(`ann2rr -r "$record" -a "$annotator" -i s -c`; stdout=io))
     a = read_txt(temp)
     rm(temp)
-    return round.(Int, a*1000)
+    # ann2rr -i s emits intervals in seconds; convert to integer-millisecond
+    # resolution but keep the Float64 element type. read_txt returns Float64 and
+    # the feature pipeline (lomb_scargle/welch/Hurst are typed ::Float64) only
+    # accepts Float64 — returning Vector{Int} here silently breaks every
+    # frequency- and Hurst-domain feature on WFDB records.
+    return round.(a .* 1000)
 end
 
