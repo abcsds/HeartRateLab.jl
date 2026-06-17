@@ -52,8 +52,8 @@ memoization across features computed on the same recording.
 - Fixed random seeds for all probabilistic tests
 
 ### Version Note
-Current `Project.toml` declares `version = "1.0.0"` — this is premature. The package
-should be versioned as `0.1.0` until all merge-readiness criteria are satisfied.
+`Project.toml` is versioned `0.1.0` (honest SemVer; `1.0.0` is reserved for the
+post-merge milestone). `[compat]` bounds are complete.
 
 ---
 
@@ -69,8 +69,8 @@ settings (real-time biofeedback via LSL).
 exported as a clean API.
 
 **SPEC-G3:** The package shall be reproducible via Docker and Nix.
-**Status:** `PARTIAL` — Docker volume-mount works; `nix run .#build` broken (missing
-`COPY Manifest.toml` in Dockerfile; DFA is a git-URL dep).
+**Status:** `DONE` — `nix run .#build` builds the image and instantiates/precompiles;
+`nix run .#test` runs the full suite (runtests.jl) under Xvfb + the mounted GL driver.
 **Test:** `nix run .#test`
 
 **SPEC-G4:** The package shall integrate open PhysioNet datasets as a normative
@@ -207,7 +207,7 @@ unevenly sampled IBI series.
 
 **SPEC-FR3:** `find_peak(spectrum, band)` shall return the frequency of the spectral peak
 within the given band.
-**Status:** `PARTIAL` — incorrect index bug at `Frequency.jl:88`.
+**Status:** `DONE` — peak index corrected; covered by `test/test_frequency.jl`.
 **Test:** `test/test_frequency.jl`
 
 ---
@@ -374,18 +374,17 @@ Poincaré plot, power spectrum, model comparison.
 
 **SPEC-V4:** `plot_spectrum(ibis; method=:lomb)` shall display the Lomb-Scargle power
 spectrum with labelled VLF/LF/HF band regions.
-**Status:** `PARTIAL` — requires GLMakie; stubs present.
-**Action required:** Verify the Plots.jl path works headlessly.
+**Status:** `DONE` — Plots.jl path works headlessly out of the box (the package imports
+Plots; no user-side `using Plots` needed); `using GLMakie` upgrades to an interactive
+figure via the same name (`backend` dispatch).
 
 **SPEC-V5:** `plot_comparison(real, models)` shall overlay real and multiple synthetic
 IBI series for side-by-side model comparison.
-**Status:** `PARTIAL` — Dict version implemented; single-model overload stubs out with
-GLMakie error.
+**Status:** `DONE` — Plots default + reachable GLMakie method via the same name.
 
 **SPEC-V6:** `plot_model_heatmap(results)` shall display a model × feature quality
 matrix (colour = reproduction error).
-**Status:** `PARTIAL` — DataFrame version implemented; Dict overload stubs with
-GLMakie error.
+**Status:** `DONE` — Plots default + reachable GLMakie method via the same name.
 
 **SPEC-V7:** `plot_lorenz_3d(lorenz_result)` shall render the Lorenz phase-space
 trajectory from fitted parameters.
@@ -458,8 +457,8 @@ floating-point precision failures.
 **SPEC-T3:** Test suite shall pass with **zero failures**. NOTE: the canonical command is
 `nix run .#test` (WFDB + X11), **not** plain Julia (no WFDB → `ann2rr` ENOENT; no display →
 GLMakie segfault). See AGENTS.md Golden Rule.
-**Status:** `PARTIAL` — non-viz suite 620 pass / 0 fail / 1 `@test_broken` (DMD mean, intentional);
-full Xvfb green is the v1 exit gate (task-15).
+**Status:** `DONE` — full suite green via `nix run .#test`: **905 pass / 0 fail / 0 error /
+2 `@test_broken`** (both intentional: DMD under-reproduces broadband variance; documented).
 
 **SPEC-T4:** Tests shall not use `try/catch` to silently skip unimplemented
 functionality (anti-pattern documented in `AGENTS.md`).

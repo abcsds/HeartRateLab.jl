@@ -72,12 +72,20 @@
         #
         # GKSwstype=100 forces GR/Plots offscreen so the offline-plot tests render
         # to memory rather than poking the X server.
+        #
+        # 3. Mount /run/opengl-driver (read-only). The GLMakie visualization tests now
+        #    create REAL Figures (the extension is live), so they need a GL driver.
+        #    The image sets LD_LIBRARY_PATH=/run/opengl-driver/lib; mounting the NixOS
+        #    driver tree provides llvmpipe (software GL), so GLMakie renders under Xvfb
+        #    with no GPU. Without this mount the viz tests fail to create a GL context.
         test = {
           type = "app";
           program = toString (pkgs.writeShellScript "test" ''
             #!${pkgs.runtimeShell}
             TTY=""; [ -t 0 ] && TTY="-it"
-            exec docker run $TTY --rm --network=host -v "$(pwd):/workdir" hrlab:latest \
+            exec docker run $TTY --rm --network=host \
+              -v /run/opengl-driver:/run/opengl-driver:ro \
+              -v "$(pwd):/workdir" hrlab:latest \
               "Xvfb :99 -screen 0 1280x1024x24 >/dev/null 2>&1 & sleep 3; cd /workdir && DISPLAY=:99 GKSwstype=100 julia --project=. test/runtests.jl"
           '');
         };
