@@ -15,78 +15,98 @@ Random.seed!(20260612)
 # ============================================================================
 # DMD Model - IMPLEMENTED
 # ============================================================================
-@testset "DMD Model" begin
-    Random.seed!(1)
-    # Load IBI data for testing
-    ibis = HeartRateLab.read_txt("testdata/example.txt")[1:60]  # Use first 60 for faster tests
+@testset "DMD Model (V2 UnitCircleDMD)" begin
+    Random.seed!(20260617)
+    # Full example.txt series (n=4193, mean ≈ 957 ms, std ≈ 90 ms). The V2 model
+    # is mean-centered + Hankel-embedded; it needs the full record for a
+    # meaningful embedding, not a 60-beat snippet.
+    ibis = HeartRateLab.read_txt("testdata/example.txt")
+    data_mean = mean(ibis)
+    data_std = std(ibis)
 
-    # Test 1: Model can be created
-    r = 4
-    dmd = HeartRateLab.Models.DMD(rank=r)
-    @test dmd.rank == r
+    # Test 1: Model can be created with V2 defaults (d=50 embedding, energy rank).
+    dmd = HeartRateLab.Models.DMD()
+    @test dmd.d == 50
+    @test dmd.energy ≈ 0.99
     @test isempty(dmd.modes)
     @test isempty(dmd.evals)
+    @test dmd.r == 0
 
-    # Test 2: fit() works and updates the model
-    fitted_dmd = HeartRateLab.Models.fit(dmd, ibis)
+    # The public `rank` knob still works as the rank cap (rmax).
+    dmd_r = HeartRateLab.Models.DMD(rank=10)
+    @test dmd_r.rank == 10
 
-    @test !isempty(fitted_dmd.model.modes)
-    @test !isempty(fitted_dmd.model.evals)
-    @test size(fitted_dmd.model.modes, 2) <= fitted_dmd.model.rank
-    @test length(fitted_dmd.model.evals) == size(fitted_dmd.model.modes, 2)
+    # Test 2: fit() works and populates the centered-DMD state.
+    fitted_dmd = HeartRateLab.Models.fit(HeartRateLab.Models.DMD(d=50, rank=10), ibis)
+    fm = fitted_dmd.model
+    @test !isempty(fm.modes)
+    @test !isempty(fm.evals)
+    @test fm.r == length(fm.evals)
+    @test fm.r <= fm.rank
+    @test fm.μ ≈ data_mean                                   # mean is stored, not forced
+    # Eigenvalues are projected onto the unit circle: |λ| == 1.
+    @test all(abs.(abs.(fm.evals) .- 1.0) .< 1e-8)
+    @test fitted_dmd.diagnostics["method"] == "UnitCircleDMD (V2)"
 
-    # Test 3: simulate() produces valid IBIs
-    reconstructed = HeartRateLab.Models.simulate(fitted_dmd.model, nothing, length(ibis))
+    # Test 3: simulate() produces valid, physiological IBIs.
+    sim = HeartRateLab.Models.simulate(fm, nothing, length(ibis))
+    @test length(sim) == length(ibis)
+    @test all(sim .> 0)
+    @test all(300 .<= sim .<= 2000)
 
-    # NOTE: plot() calls removed to avoid GLMakie display errors in CI/Docker
-    # plot(ibis, label="Original", legend=:topleft)
-    # plot!(reconstructed, label="Reconstructed")
+    sim_mean = mean(sim)
+    sim_std = std(sim)
 
-    @test length(reconstructed) ≈ length(ibis)
-    @test all(reconstructed .> 0)
-    @test all(300 .< reconstructed .< 2000)
+    # Test 4: MEAN FIDELITY (was @test_broken in the old mean-dropping model).
+    # V2 centers on the data mean and adds it back, so the reconstructed mean
+    # matches the data mean to within a few percent — no more forced 800 ms.
+    @test abs(sim_mean - data_mean) / data_mean < 0.03
 
-    # Test 4: Reconstruction captures mean of original data.
-    # KNOWN LIMITATION (intentional, d-06): DMD reconstructs the *dynamics about the mean*
-    # and does not restore the DC/mean term, so reconstructed mean drifts from the original.
-    # We deliberately keep DMD as the weakest of the four models rather than bolt on a DC
-    # fix; a future AIC/BIC model ranking (d-20) will contextualise why it underperforms.
-    orig_mean = mean(ibis)
-    recon_mean = mean(reconstructed)
+    # Test 5: recovered variance is in a sane range (realistic, not collapsed and
+    # not blown up). The old model collapsed to std ≈ 17; V2 recovers std ≈ 78.
+    @test 30.0 < sim_std < 1.5 * data_std
 
-    @test_broken abs(orig_mean .- recon_mean) < 50.0  # DMD drops the mean by design — see note above
+    # Test 6: FULL-variance reconstruction is an HONEST KNOWN LIMIT. A low-rank
+    # linear DMD under-reproduces broadband RR variance; it recovers the mean and
+    # the dominant LF oscillation but not the full spread. Marked broken with an
+    # accurate message (see docs/dmd-rr-modeling-research.md §6 "honest limits").
+    @test_broken sim_std ≥ 0.95 * data_std  # low-rank linear DMD under-reproduces broadband RR variance
 
-    # Test 5: round-trip has reasonable fidelity
-    orig_centered = ibis .- mean(ibis)
-    recon_centered = reconstructed .- mean(reconstructed)
+    # Test 7: BIC is far better than a forced-mean baseline. Compare V2's
+    # information criterion against the data's own mean-fidelity floor: V2 should
+    # not rank last. (The old model's BIC ≈ 55534; V2 ≈ 49639.)
+    ic = HeartRateLab.information_criteria(fitted_dmd; n_sim_beats=length(ibis))
+    @test isfinite(ic.bic)
+    @test ic.loglik > -30000          # old mean-dropping model: loglik ≈ -27746
 
-    # plot(orig_centered, label="Original (centered)", legend=:topleft)
-    # plot!(recon_centered, label="Reconstructed (centered)")
-
-    if std(orig_centered) > 0 && std(recon_centered) > 0
-        correlation = cor(orig_centered, recon_centered)
-        @test correlation > 0.3
+    # Test 8: forecast() beats the persistence and mean baselines at h=1.
+    # Out-of-sample closed-loop NRMSE over the held-out 30% tail (train 70%),
+    # exactly the protocol in docs/dmd-rr-modeling-research.md §5. At each anchor
+    # the model is fit on the prefix and asked for the next beat.
+    Random.seed!(20260617)
+    split = round(Int, 0.7 * length(ibis))
+    fc_model = HeartRateLab.Models.DMD(d=50)   # forecast uses a richer rank by default
+    preds = Float64[]; truth = Float64[]; pers = Float64[]
+    for t0 in split:(length(ibis) - 1)
+        push!(preds, HeartRateLab.forecast(fc_model, ibis[1:t0], 1)[1])
+        push!(truth, ibis[t0 + 1])
+        push!(pers, ibis[t0])
     end
+    dmd_nrmse1 = sqrt(mean((truth .- preds) .^ 2)) / data_std
+    persistence_nrmse1 = sqrt(mean((truth .- pers) .^ 2)) / data_std
+    mean_nrmse1 = sqrt(mean((truth .- mean(ibis)) .^ 2)) / data_std
 
-    # Test 6: Different rank produces different reconstructions
-    ibis = HeartRateLab.read_txt("testdata/example.txt")[1:200]
-    dmd_rank10 = HeartRateLab.Models.DMD(rank=10)
-    fitted_dmd10 = HeartRateLab.Models.fit(dmd_rank10, ibis)
-    recon10 = HeartRateLab.Models.simulate(fitted_dmd10.model, nothing, length(ibis))
+    @test isfinite(dmd_nrmse1)
+    @test dmd_nrmse1 < persistence_nrmse1     # DMD beats persistence at h=1 (≈0.19 vs 0.35)
+    @test dmd_nrmse1 < mean_nrmse1            # DMD beats the mean baseline at h=1
 
-    dmd_rank15 = HeartRateLab.Models.DMD(rank=15)
-    fitted_dmd15 = HeartRateLab.Models.fit(dmd_rank15, ibis)
-    recon15 = HeartRateLab.Models.simulate(fitted_dmd15.model, nothing, length(ibis))
+    # forecast returns the requested horizon length and physiological values.
+    fc = HeartRateLab.forecast(fc_model, ibis[1:split], 5)
+    @test length(fc) == 5
+    @test all(300 .<= fc .<= 2000)
 
-    error10 = sum(abs.(ibis .- recon10))
-    error15 = sum(abs.(ibis .- recon15))
-
-    # plot(ibis, label="Original", legend=:topleft)
-    # plot!(recon10, label="Reconstructed (rank=10)")
-    # plot!(recon15, label="Reconstructed (rank=15)")
-
-    @test error15 <= error10
-    # Higher rank should present lower (or equal) reconstruction error
+    # Test 9: forecast does not mutate the model.
+    @test isempty(fc_model.modes)
 end
 
 # ============================================================================

@@ -58,7 +58,7 @@ import .Evaluation: information_criteria, rank_models, model_loglikelihood, mode
 import .Visualization: plot_ibi_series, plot_poincare, plot_spectrum, plot_comparison, plot_model_heatmap, plot_lorenz_3d, plot_radar, plot_correlations, plot_flagship
 import .Visualization: plot_normative_kde_comparison, plot_feature_correlogram, plot_normative_pairplot
 import .Visualization: plot_lif, plot_dmd, plot_dfa, plot_complexity, plot_time_frequency_3d, plot_poincare_3d
-import .Models: VanDerPol, Lorenz, LIF, DMD, AbstractHRVModel, ModelFitResult, simulate, parameter_space, fit, parameter_series
+import .Models: VanDerPol, Lorenz, LIF, DMD, AbstractHRVModel, ModelFitResult, simulate, parameter_space, fit, parameter_series, forecast
 
 # export Features
 # export lomb_scargle
@@ -79,5 +79,5 @@ export prior_registry, normative_prior, prior_call_string, load_normative_priors
 export plot_ibi_series, plot_poincare, plot_spectrum, plot_comparison, plot_model_heatmap, plot_lorenz_3d, plot_radar, plot_correlations, plot_flagship, fit
 export plot_normative_kde_comparison, plot_feature_correlogram, plot_normative_pairplot
 export plot_lif, plot_dmd, plot_dfa, plot_complexity, plot_time_frequency_3d, plot_poincare_3d
-export VanDerPol, Lorenz, LIF, DMD, AbstractHRVModel, ModelFitResult, simulate, parameter_space, parameter_series
+export VanDerPol, Lorenz, LIF, DMD, AbstractHRVModel, ModelFitResult, simulate, parameter_space, parameter_series, forecast
 end
