@@ -52,13 +52,33 @@
         };
         # Full test suite, headless-safe: visualization tests render via Xvfb +
         # software OpenGL inside the container, so no GPU/display is required.
+        #
+        # Two deliberate departures from the obvious `xvfb-run … Pkg.test()`:
+        #
+        # 1. Start Xvfb MANUALLY instead of via `xvfb-run`. `xvfb-run -a` dead-
+        #    locks in this container (podman-compat): it brings up Xvfb but never
+        #    exec's the wrapped command — the container sits forever with only an
+        #    Xvfb process and zero output. Launching Xvfb directly on a fixed
+        #    display and pointing julia at it is reliable.
+        # 2. Run test/runtests.jl DIRECTLY instead of `Pkg.test()`. Pkg.test()
+        #    spins up an isolated test environment and eagerly precompiles the
+        #    whole manifest — including GLMakie — into a fresh depot before
+        #    running any test; that GLMakie precompile hangs indefinitely here
+        #    (no GL driver, cold depot). runtests.jl against the dev project
+        #    reuses the image's already-precompiled deps and starts immediately.
+        #    The image instantiates every test dependency, so coverage is
+        #    identical. (CI still uses julia-actions/julia-runtest = Pkg.test(),
+        #    which is fine: headless CI has no display, so GLMakie is skipped.)
+        #
+        # GKSwstype=100 forces GR/Plots offscreen so the offline-plot tests render
+        # to memory rather than poking the X server.
         test = {
           type = "app";
           program = toString (pkgs.writeShellScript "test" ''
             #!${pkgs.runtimeShell}
             TTY=""; [ -t 0 ] && TTY="-it"
             exec docker run $TTY --rm --network=host -v "$(pwd):/workdir" hrlab:latest \
-              "cd /workdir && xvfb-run -a julia --project=. -e 'using Pkg; Pkg.test()'"
+              "Xvfb :99 -screen 0 1280x1024x24 >/dev/null 2>&1 & sleep 3; cd /workdir && DISPLAY=:99 GKSwstype=100 julia --project=. test/runtests.jl"
           '');
         };
         # Real-time LSL biofeedback visualization. Runs NATIVELY on the host (real GPU
