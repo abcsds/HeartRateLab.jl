@@ -11,7 +11,7 @@ module Evaluation
 using DataFrames, Random, Statistics
 using HypothesisTests
 using ..Features: extract_feature_set, valid_features
-using ..Models: AbstractHRVModel, simulate
+using ..Models: AbstractHRVModel, simulate, ModelFitResult, DMD
 
 """
     windowed_feature_set(data::Vector{Float64}; window_size::Int=300, overlap::Int=150) -> DataFrame
@@ -773,6 +773,174 @@ function eval_distance(
         metric=metric,
         feature_contributions=contributions
     )
+end
+
+# ─── Information-criterion model ranking (d-20) ───────────────────────────────
+#
+# Given a set of fitted HRV models, rank them on an RR series by an information
+# criterion (AIC/BIC). The purpose is to demonstrate *why* some models beat
+# others — in particular why DMD is weaker (its mean-normalised, decaying
+# reconstruction yields a too-narrow / mislocated IBI distribution, so it earns
+# a low likelihood and is penalised further by its rank-r parameter count).
+
+"""
+    model_n_params(model::AbstractHRVModel, params::NamedTuple) -> Int
+
+Effective number of free parameters of a fitted model, the `k` in AIC/BIC.
+
+For the mechanistic models the continuous fitted parameters live in `params`
+(LIF `I` ⇒ 1; VanDerPol `μ,heart_rate` ⇒ 2; Lorenz `σ,ρ,β,threshold` ⇒ 4), so
+the default counts the `NamedTuple` fields. DMD is special-cased: it stores no
+continuous parameters in `params` (it is data-driven) — its complexity is the
+number of retained dynamic modes (the truncation rank `r`), which is what must
+enter the criterion for an honest comparison.
+"""
+model_n_params(::AbstractHRVModel, params::NamedTuple) = length(params)
+model_n_params(model::DMD, ::NamedTuple) = max(length(model.evals), 1)
+
+"""
+    model_loglikelihood(model, params, data; n_sim_beats) -> Float64
+
+Gaussian log-likelihood of the observed IBI series `data` under a model. The
+model contributes the mean `μ_sim` and variance `σ²_sim` of a simulated series;
+the predictive variance is `σ² = max((1/n)·Σ(dataᵢ − μ_sim)², σ²_sim)` and
+
+    logL = −½·(n·log 2π + n·log σ² + Σ(dataᵢ − μ_sim)² / σ²).
+
+The `max(·)` combines two failure modes into one robust criterion:
+- If the model under-predicts spread (`σ²_sim` too small — the near-deterministic
+  mechanistic models), `σ²` falls back to the MLE residual variance
+  `Var(data) + (mean(data) − μ_sim)²`, which rewards matching the data's mean.
+- If the model over-predicts spread (`σ²_sim` larger than the residual variance),
+  `σ²` uses `σ²_sim` and the likelihood is penalised for being too wide.
+
+Why this rather than a beat-indexed-residual or a raw marginal `Normal(μ, σ)`
+likelihood:
+- Generative HRV models produce trajectories with their own phase, so
+  `dataᵢ − simᵢ` residuals are meaningless even for a well-fitted model.
+- A raw `Normal(μ_sim, σ_sim)` density is numerically ill-conditioned: the
+  mechanistic models are near-deterministic, so `σ_sim → 0` (dominated by solver
+  noise), which makes `logpdf` diverge for reasons unrelated to fit quality.
+This form is robust (`σ² ≥ Var(data) > 0` for real data) and surfaces DMD's
+documented weakness — its reconstruction forces the mean toward a fixed ~800 ms,
+away from a typical recording's mean.
+
+`n_sim_beats` controls the simulation length used to estimate `μ_sim`/`σ²_sim`;
+the default (500) gives stable moment estimates and is independent of the data
+length (some models — e.g. LIF's ODE solver — cannot cheaply produce tens of
+thousands of beats). If the model cannot simulate the given parameters at all,
+the likelihood is `-Inf` so that model ranks last rather than crashing a
+comparison.
+"""
+function model_loglikelihood(
+    model::AbstractHRVModel,
+    params::NamedTuple,
+    data::AbstractVector{<:Real};
+    n_sim_beats::Int=500
+)::Float64
+    sim = try
+        simulate(model, params, n_sim_beats)
+    catch
+        return -Inf
+    end
+    (isempty(sim) || !all(isfinite, sim)) && return -Inf
+
+    μ = mean(sim)
+    n = length(data)
+    residual_mse = sum(abs2, data .- μ) / n      # = Var(data) + (mean(data) − μ)²
+    var_sim = length(sim) > 1 ? var(sim) : 0.0
+    σ2 = max(residual_mse, var_sim, eps())
+    return -0.5 * (n * log(2π) + n * log(σ2) + residual_mse * n / σ2)
+end
+
+"""    aic(loglik, k) -> Float64
+
+Akaike Information Criterion: `2k - 2·loglik`. Lower is better."""
+aic(loglik::Real, k::Integer) = 2 * k - 2 * loglik
+
+"""    bic(loglik, k, n) -> Float64
+
+Bayesian (Schwarz) Information Criterion: `k·ln(n) - 2·loglik`, where `n` is the
+number of observations. Lower is better; penalises parameters more than AIC."""
+bic(loglik::Real, k::Integer, n::Integer) = k * log(n) - 2 * loglik
+
+"""
+    information_criteria(model, params, data; kwargs...) -> NamedTuple
+    information_criteria(result::ModelFitResult; kwargs...) -> NamedTuple
+
+Compute the information-criterion summary for a single fitted model on `data`.
+Returns `(model, n_params, n_obs, loglik, aic, bic)`. `kwargs` are forwarded to
+[`model_loglikelihood`](@ref) (e.g. `n_sim_beats`).
+"""
+function information_criteria(
+    model::AbstractHRVModel,
+    params::NamedTuple,
+    data::AbstractVector{<:Real};
+    kwargs...
+)
+    k = model_n_params(model, params)
+    n = length(data)
+    ll = model_loglikelihood(model, params, data; kwargs...)
+    return (
+        model = string(nameof(typeof(model))),
+        n_params = k,
+        n_obs = n,
+        loglik = ll,
+        aic = aic(ll, k),
+        bic = bic(ll, k, n),
+    )
+end
+
+information_criteria(result::ModelFitResult; kwargs...) =
+    information_criteria(result.model, result.params, result.data; kwargs...)
+
+"""
+    rank_models(results::AbstractVector{ModelFitResult}; criterion=:bic, kwargs...) -> DataFrame
+
+Rank a set of fitted models on their respective data by an information criterion.
+
+Each `ModelFitResult` carries the fitted model, its parameters, and the data it
+was fitted to. The returned `DataFrame` is sorted best-first (lowest `criterion`)
+with columns:
+
+- `model`     — model type name
+- `n_params`  — effective free-parameter count `k` ([`model_n_params`](@ref))
+- `n_obs`     — number of observed beats
+- `loglik`    — Gaussian-residual log-likelihood ([`model_loglikelihood`](@ref))
+- `aic`, `bic`— the two criteria
+- `delta`     — `criterion - min(criterion)` (0 for the best model)
+- `weight`    — Akaike/Schwarz weight `exp(-Δ/2) / Σ exp(-Δ/2)` (relative support)
+- `rank`      — 1 = best
+
+`criterion` must be `:aic` or `:bic` (default `:bic`). `kwargs` are forwarded to
+[`model_loglikelihood`](@ref).
+"""
+function rank_models(
+    results::AbstractVector{ModelFitResult};
+    criterion::Symbol=:bic,
+    kwargs...
+)::DataFrame
+    if !(criterion in (:aic, :bic))
+        throw(ArgumentError("criterion must be :aic or :bic, got :$criterion"))
+    end
+
+    cols = (model=String[], n_params=Int[], n_obs=Int[], loglik=Float64[],
+            aic=Float64[], bic=Float64[], delta=Float64[], weight=Float64[],
+            rank=Int[])
+    isempty(results) && return DataFrame(cols)
+
+    df = DataFrame([information_criteria(r; kwargs...) for r in results])
+
+    # Sort best-first by the chosen criterion (NaN, from models that failed to
+    # simulate, sorts last under Julia's default ordering).
+    sort!(df, criterion)
+
+    crit = df[!, criterion]
+    df.delta = crit .- minimum(crit)
+    rel = exp.(-0.5 .* df.delta)               # unnormalised relative likelihoods
+    df.weight = rel ./ sum(rel)
+    df.rank = collect(1:nrow(df))
+    return df
 end
 
 end  # Evaluation

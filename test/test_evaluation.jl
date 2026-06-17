@@ -604,3 +604,116 @@ end
         end
     end
 end
+
+# d-20: information-criterion model ranking. Two test-local models give us a
+# controlled comparison without depending on the (slower / occasionally fragile)
+# real fit methods: a tunable constant-mean model and one that fails to simulate.
+struct _ICStubModel <: HeartRateLab.AbstractHRVModel
+    m::Float64   # target mean IBI (ms)
+    s::Float64   # spread amplitude (ms)
+end
+# Deterministic series with controllable mean and (bounded) variance.
+HeartRateLab.Models.simulate(model::_ICStubModel, params, n::Int) =
+    model.m .+ model.s .* sin.(range(0.0, 6π; length=n))
+
+struct _ICFailModel <: HeartRateLab.AbstractHRVModel end
+HeartRateLab.Models.simulate(::_ICFailModel, params, n::Int) =
+    error("_ICFailModel cannot simulate")
+
+@testset "Evaluation — Information Criteria & Ranking (d-20)" begin
+    data = HeartRateLab.read_txt("testdata/example.txt")
+    μd = sum(data) / length(data)   # ≈ 957 ms
+
+    # `aic`/`bic`/`model_*` are intentionally unexported (aic/bic collide with
+    # StatsBase, which test_preprocessing.jl pulls into Main), so qualify them.
+    Ev = HeartRateLab.Evaluation
+
+    @testset "aic/bic formulas" begin
+        # AIC = 2k − 2·logL ; BIC = k·ln(n) − 2·logL
+        @test Ev.aic(-100.0, 2) == 2 * 2 - 2 * (-100.0)
+        @test Ev.bic(-100.0, 2, 500) == 2 * log(500) - 2 * (-100.0)
+        # BIC penalises parameters more than AIC once ln(n) > 2 (n > e² ≈ 7.4).
+        @test Ev.bic(-100.0, 3, 1000) > Ev.aic(-100.0, 3)
+        # More parameters ⇒ larger (worse) criterion at fixed likelihood.
+        @test Ev.aic(-100.0, 5) > Ev.aic(-100.0, 2)
+    end
+
+    @testset "model_n_params (effective k per model)" begin
+        @test Ev.model_n_params(LIF(), (I=1.0,)) == 1
+        @test Ev.model_n_params(VanDerPol(), (μ=1.0, heart_rate=60.0)) == 2
+        @test Ev.model_n_params(Lorenz(), (σ=10.0, ρ=28.0, β=2.6, threshold=0.0)) == 4
+        # DMD stores no continuous params; its complexity is the retained rank.
+        dmd = HeartRateLab.Models.fit(DMD(rank=5), data)
+        @test Ev.model_n_params(dmd.model, dmd.params) == length(dmd.model.evals)
+        @test Ev.model_n_params(dmd.model, dmd.params) >= 1
+    end
+
+    @testset "model_loglikelihood rewards mean-matching" begin
+        ll_match = Ev.model_loglikelihood(_ICStubModel(μd, 50.0), NamedTuple(), data)
+        ll_off   = Ev.model_loglikelihood(_ICStubModel(μd - 200, 50.0), NamedTuple(), data)
+        @test isfinite(ll_match) && isfinite(ll_off)
+        @test ll_match > ll_off          # closer predicted mean ⇒ higher likelihood
+
+        # Symmetric in the offset sign, and maximised at the data mean.
+        ll_off_hi = Ev.model_loglikelihood(_ICStubModel(μd + 200, 50.0), NamedTuple(), data)
+        @test ll_match > ll_off_hi
+    end
+
+    @testset "model_loglikelihood is robust" begin
+        # A model that cannot simulate ranks last, never crashes.
+        @test Ev.model_loglikelihood(_ICFailModel(), NamedTuple(), data) == -Inf
+        # Never diverges to +Inf even for a (near-)constant model (σ² floored).
+        ll = Ev.model_loglikelihood(_ICStubModel(μd, 0.0), NamedTuple(), data)
+        @test isfinite(ll)
+    end
+
+    @testset "information_criteria summary" begin
+        ic = information_criteria(_ICStubModel(μd, 50.0), NamedTuple(), data)
+        @test ic.model == "_ICStubModel"
+        @test ic.n_obs == length(data)
+        @test ic.n_params == 0
+        @test ic.aic == Ev.aic(ic.loglik, ic.n_params)
+        @test ic.bic == Ev.bic(ic.loglik, ic.n_params, ic.n_obs)
+        # ModelFitResult overload agrees with the explicit-args form.
+        res = HeartRateLab.Models.ModelFitResult(
+            _ICStubModel(μd, 50.0), :manual, NamedTuple(), nothing, Dict(), data
+        )
+        ic2 = information_criteria(res)
+        @test ic2.loglik == ic.loglik && ic2.aic == ic.aic
+    end
+
+    @testset "rank_models orders, weights, and exposes DMD's weakness" begin
+        sd = sqrt(sum(abs2, data .- μd) / length(data))   # data sd (≈ 90 ms)
+        good = HeartRateLab.Models.ModelFitResult(
+            _ICStubModel(μd, sd), :manual, NamedTuple(), nothing, Dict(), data
+        )
+        dmd = HeartRateLab.Models.fit(DMD(rank=5), data)
+
+        ranked = rank_models([good, dmd]; criterion=:bic)
+        @test ranked isa DataFrame
+        @test nrow(ranked) == 2
+        @test names(ranked) == ["model", "n_params", "n_obs", "loglik",
+                                "aic", "bic", "delta", "weight", "rank"]
+        # Sorted best-first; rank column is 1:n; best has Δ=0.
+        @test issorted(ranked.bic)
+        @test ranked.rank == [1, 2]
+        @test ranked.delta[1] == 0.0
+        @test all(ranked.delta .>= 0)
+        # Akaike/Schwarz weights are a normalised probability vector.
+        @test isapprox(sum(ranked.weight), 1.0; atol=1e-12)
+        @test all(0.0 .<= ranked.weight .<= 1.0)
+        # The model that matches the data mean beats DMD (whose reconstruction
+        # forces the mean toward ~800 ms, away from this record's ~957 ms).
+        @test ranked.model[1] == "_ICStubModel"
+        @test "DMD" in ranked.model
+
+        # :aic gives the same ordering here and is independent of :bic plumbing.
+        ranked_aic = rank_models([good, dmd]; criterion=:aic)
+        @test issorted(ranked_aic.aic)
+        @test ranked_aic.model[1] == "_ICStubModel"
+
+        # Guard rails.
+        @test_throws ArgumentError rank_models([dmd]; criterion=:foo)
+        @test nrow(rank_models(HeartRateLab.Models.ModelFitResult[])) == 0
+    end
+end

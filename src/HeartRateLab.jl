@@ -54,6 +54,7 @@ import .Features: FAST_FEATURES, ALL_FEATURES, NONLINEAR_FEATURES, DEFAULT_FEATU
 import .Features: HRFeature, feature_registry, DISTRIBUTION_MAP
 import .Features: prior_registry, normative_prior, prior_call_string, load_normative_priors!
 import .Evaluation: simulate_ensemble, extract_ensemble_features, eval_distributional, eval_scalar, eval_distance
+import .Evaluation: information_criteria, rank_models, model_loglikelihood, model_n_params, aic, bic
 import .Visualization: plot_ibi_series, plot_poincare, plot_spectrum, plot_comparison, plot_model_heatmap, plot_lorenz_3d, plot_radar, plot_correlations, plot_flagship
 import .Visualization: plot_normative_kde_comparison, plot_feature_correlogram, plot_normative_pairplot
 import .Visualization: plot_lif, plot_dmd, plot_dfa, plot_complexity, plot_time_frequency_3d, plot_poincare_3d
@@ -65,6 +66,11 @@ import .Models: VanDerPol, Lorenz, LIF, DMD, AbstractHRVModel, ModelFitResult, s
 # export get_power
 # export get_peaks
 export extract_feature_set, windowed_feature_set, valid_features, simulate_ensemble, extract_ensemble_features, eval_distributional, eval_scalar, eval_distance
+# Only the high-level ranking API is exported. The building blocks
+# (model_loglikelihood/model_n_params/aic/bic) are reachable as
+# HeartRateLab.Evaluation.* — `aic`/`bic` deliberately stay unexported because
+# they collide with StatsBase's `aic`/`bic` (a transitive dependency).
+export information_criteria, rank_models
 export FAST_FEATURES, ALL_FEATURES, NONLINEAR_FEATURES, DEFAULT_FEATURES
 export HRFeature, feature_registry, DISTRIBUTION_MAP
 export prior_registry, normative_prior, prior_call_string, load_normative_priors!
