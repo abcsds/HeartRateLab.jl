@@ -29,6 +29,39 @@ import Distributions
 # config = Dict{String,Any}("freq_method" => :lomb_scargle, "fs" => 10)
 config = Dict{String,Any}("freq_method" => :welch, "fs" => 10)
 
+# ─── DFA (detrended fluctuation analysis) configuration ──────────────────────
+# The DFA algorithm is identical across every validated HRV tool (neurokit2,
+# Kubios, PhysioNet CST, Francis, Peng, nolds, RHRV); they differ only in the
+# α1/α2 box-size (n) ranges and how densely n is sampled. These keys make those
+# choices configurable without editing source. See docs/dfa-parameters-research.md
+# and docs/dfa.md for the full survey and citations.
+#
+#   config["dfa_alpha1_range"]  (nmin, nmax) box sizes for the short-term α1 fit.
+#   config["dfa_alpha2_range"]  (nmin, nmax) box sizes for the long-term  α2 fit.
+#   config["dfa_grid"]          :integer  → every integer n in the range (dense,
+#                                           Francis/Kubios; statistically sound,
+#                                           DEFAULT); the slope is OLS on log10 F(n)
+#                                           with each n fitted via DFA.jl's single-box
+#                                           method (order-1 detrend, non-overlapping).
+#                               :geometric→ geometric grid via DFA.jl's dispatcher
+#                                           with boxratio = config["dfa_boxratio"]
+#                                           (the legacy 3-point [4,8,16]/[16,32,64]
+#                                           behaviour when boxratio = 2).
+#   config["dfa_boxratio"]      geometric grid ratio used only when dfa_grid==:geometric.
+#
+# DEFAULT = Peng/Francis 4–16 / 16–64 on a dense all-integer grid.
+#   Peng CK et al. Chaos 1995;5(1):82–87. doi:10.1063/1.166141
+#   Francis DP et al. J Physiol 2002;542:619–629. doi:10.1113/jphysiol.2001.013389
+# To follow the neurokit2 / Iyengar convention instead (clinical, sub-respiratory
+# α1; agreement with neurokit2 hrv), set, for a series of length N:
+#   HeartRateLab.Features.config["dfa_alpha1_range"] = (4, 11)
+#   HeartRateLab.Features.config["dfa_alpha2_range"] = (12, N ÷ 10)
+# (Iyengar N et al. Am J Physiol 1996;271:R1078–R1084. doi:10.1152/ajpregu.1996.271.4.R1078)
+config["dfa_alpha1_range"] = (4, 16)
+config["dfa_alpha2_range"] = (16, 64)
+config["dfa_grid"] = :integer
+config["dfa_boxratio"] = 2
+
 # ─── Distribution family lookup ────────────────────────────────────────────────
 # Maps docstring names → Distributions.jl types, used by @register to store
 # the analytical distribution family for each scalar feature.
@@ -1269,48 +1302,84 @@ end
     _, CI = EntropyHub.MSEn(n.data, Mobj, Scales=scales)
     return CI
 end
+# ─── DFA scaling-exponent helper ─────────────────────────────────────────────
+# Fit a single DFA scaling exponent α = slope of log10 F(n) vs log10 n over the
+# box-size range (nmin, nmax). The DFA *algorithm* is identical across all
+# validated HRV tools — integrate the mean-removed series, split into boxes of
+# size n, per-box order-1 (linear) detrend, RMS the residuals → F(n), OLS-regress
+# log F(n) on log n. Tools differ only in (a) the α1/α2 n-ranges and (b) grid
+# density. See docs/dfa-parameters-research.md and docs/dfa.md.
+#
+# `grid`:
+#   :integer   — every integer n in nmin:nmax (Francis/Kubios dense grid; 13 boxes
+#                for 4–16, 49 for 16–64). DFA.jl's geometric dispatcher cannot
+#                express an all-integer grid, so we loop its single-box method
+#                `DFA.dfa(x, n; order=1, overlap=0.0)` over each n and OLS-fit the
+#                slope. Statistically sound; this is the DEFAULT.
+#   :geometric — DFA.jl's dispatcher with the given boxratio; boxratio=2 reproduces
+#                the legacy 3-point grid ([4,8,16] / [16,32,64], PhysioNet CST style).
+function _dfa_alpha(x, nmin::Integer, nmax::Integer; grid::Symbol=:integer, boxratio::Real=2)
+    if grid === :integer
+        ns = collect(nmin:nmax)
+        length(ns) < 2 && error("DFA needs at least 2 box sizes; got range ($nmin, $nmax)")
+        fluc = [DFA.dfa(x, k; order=1, overlap=0.0) for k in ns]
+        return DFA.polyfit(log10.(Float64.(ns)), log10.(fluc))[2]
+    elseif grid === :geometric
+        scales, fluc = DFA.dfa(x; boxmax=Int(nmax), boxmin=Int(nmin), boxratio=boxratio, overlap=0.0)
+        return DFA.polyfit(log10.(Float64.(scales)), log10.(fluc))[2]
+    else
+        throw(ArgumentError("Unsupported config[\"dfa_grid\"]: $grid (use :integer or :geometric)"))
+    end
+end
+
 @register function dfa(n::HRMeasurement)
     """
         dfa(n::HRMeasurement)
-    Calculate the detrended fluctuation analysis of the Inter-Beat-Intervals (IBIs).
+    Calculate the detrended fluctuation analysis (DFA) scaling exponents (α1, α2)
+    of the Inter-Beat-Intervals (IBIs).
     Arguments:
         - `n`: An array of Inter-Beat-Intervals in milliseconds.
     Returns:
-        The detrended fluctuation analysis of the IBIs.
+        A tuple `(α1, α2)`: the short- and long-term DFA scaling exponents.
     Domains: nonlinear
     Aliases: detrended_fluctuation_analysis, dfa
     Representation: true
-    
+
+    The α1/α2 box-size ranges and the grid are configurable via
+    `HeartRateLab.Features.config` (keys `dfa_alpha1_range`, `dfa_alpha2_range`,
+    `dfa_grid`, `dfa_boxratio`); see docs/dfa.md.
+
     Minimum length: 100
     """
-    # DFA scaling windows follow the Peng/Francis convention: α1 over 4≤n≤16, α2 over
-    # 16≤n≤64, with the short/long crossover fixed at n=16. The two ranges do NOT overlap
-    # (α2's boxmin is 16, not 4) so α2 is a genuine long-term exponent.
+    # DFA scaling windows default to the Peng/Francis convention: α1 over 4≤n≤16,
+    # α2 over 16≤n≤64, with the short/long crossover fixed at n=16. The two ranges
+    # do NOT overlap (α2's nmin is 16, not 4) so α2 is a genuine long-term exponent.
+    # The default grid is :integer — every integer n in each range (Francis/Kubios:
+    # 13 boxes for α1, 49 for α2), which is statistically sound and removes the old
+    # "slope from 3 points" criticism of the legacy geometric grid.
     # Refs:
     #   Peng CK, Havlin S, Stanley HE, Goldberger AL. Chaos 1995;5(1):82–87.
     #     doi:10.1063/1.166141  — origin of the n=16 crossover and α1/α2 decomposition.
     #   Francis DP et al. J Physiol 2002;542:619–629. doi:10.1113/jphysiol.2001.013389
-    #     — verbatim "α1 over n=4 to 16 and α2 between n=16 and 64".
+    #     — verbatim "α1 over n=4 to 16 and α2 between n=16 and 64"; all-integer grid.
     #   Vest AN et al. Physiol Meas 2018;39:105004. doi:10.1088/1361-6579/aae021
     #     — PhysioNet Cardiovascular Signal Toolbox: minBox=4, midBox=16, α2 16≤n≤N/4(=64).
-    # NB a competing clinical convention uses α1=4–11, α2=>11 (Iyengar 1996; Kubios 4–12/13–64;
-    # neurokit2 4–11/12–None). HeartRateLab implements the Peng/Francis 4–16 / 16–64 split.
-    # With boxratio=2 the geometric box sizes are α1→[4,8,16], α2→[16,32,64].
-    scales, fluc = DFA.dfa(n.data, boxmax=16, boxmin=4, boxratio=2, overlap=0.0)
-    log_scales = log10.(scales)
-    log_fluc = log10.(fluc)
-    intercept, α1 = DFA.polyfit(log_scales, log_fluc)
-
-    scales, fluc = DFA.dfa(n.data, boxmax=64, boxmin=16, boxratio=2, overlap=0.0)
-    log_scales = log10.(scales)
-    log_fluc = log10.(fluc)
-    intercept, α2 = DFA.polyfit(log_scales, log_fluc)
+    # NB a competing clinical convention uses α1=4–11, α2=12–N/10 (Iyengar 1996;
+    # neurokit2). Set config["dfa_alpha1_range"]/["dfa_alpha2_range"] to switch.
+    grid = config["dfa_grid"]
+    boxratio = config["dfa_boxratio"]
+    n1min, n1max = config["dfa_alpha1_range"]
+    n2min, n2max = config["dfa_alpha2_range"]
+    α1 = _dfa_alpha(n.data, n1min, n1max; grid=grid, boxratio=boxratio)
+    α2 = _dfa_alpha(n.data, n2min, n2max; grid=grid, boxratio=boxratio)
     return α1, α2
 end
 @register function dfa1(n::HRMeasurement)
     """
         dfa1(n::HRMeasurement)
-    Calculate the first exponent of the detrended fluctuation analysis: α1.
+    Calculate the short-term detrended-fluctuation-analysis exponent α1
+    (default Peng/Francis box sizes n=4–16; configurable via
+    `config["dfa_alpha1_range"]`/`config["dfa_grid"]` — see docs/dfa.md).
     Arguments:
         - `n`: An array of Inter-Beat-Intervals in milliseconds.
     Returns:
@@ -1326,7 +1395,11 @@ end
 @register function dfa2(n::HRMeasurement)
     """
         dfa2(n::HRMeasurement)
-    Calculate the second exponent of the detrended fluctuation analysis: α2.
+    Calculate the long-term detrended-fluctuation-analysis exponent α2
+    (default Peng/Francis box sizes n=16–64; configurable via
+    `config["dfa_alpha2_range"]`/`config["dfa_grid"]` — see docs/dfa.md).
+    α2 is physiologically meaningful only on long records (≥ several hours);
+    on short ~5-min segments it is degenerate.
     Arguments:
         - `n`: An array of Inter-Beat-Intervals in milliseconds.
     Returns:

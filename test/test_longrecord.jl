@@ -1,5 +1,6 @@
 using HeartRateLab: HeartRateLab
 using Test
+import Memoization
 
 # Set working directory to test directory for relative paths
 cd(@__DIR__)
@@ -35,29 +36,76 @@ cd(@__DIR__)
         α2 = fr["dfa2"](n)
         @test isfinite(α1) && isfinite(α2)
         # Healthy long-term scaling sits near 1 (1/f-like). Loose physiological
-        # bounds, not point values. On 16265: α1 ≈ 1.25, α2 ≈ 0.99.
+        # bounds, not point values. On 16265 (default Peng/Francis 4–16 / 16–64,
+        # dense all-integer grid): α1 ≈ 1.24, α2 ≈ 0.99.
         @test 0.7 <= α1 <= 1.5
         @test 0.7 <= α2 <= 1.3
 
         # The meaningfulness contrast: α2 over the 16–64 beat scales is a real
         # long-term exponent on a 24 h record (≈ 1) but degenerate on the ~1 h
-        # example.txt (≈ 0.47). This is exactly why d-24 adds the long record.
+        # example.txt (≈ 0.37 on the dense grid). This is exactly why d-24 adds
+        # the long record.
         short = HeartRateLab.Features.HRMeasurement(
             HeartRateLab.read_txt("testdata/example.txt")
         )
         α2_short = fr["dfa2"](short)
         @test α2_short < 0.7          # not meaningful on the short record
         @test α2 > α2_short + 0.2     # genuinely larger on the long record
+
+        # NOTE: 16265 is already a single >24 h record (≈ 99 819 beats). A future
+        # extension could use the nsr2db multi-day records (2–7 day Holter) to
+        # probe ultra-low-frequency / very-long-scale DFA, but we do NOT add a
+        # network fetch here — 16265 already exercises a physiologically
+        # meaningful long horizon for α2.
     end
 
-    @testset "DFA box density (d-06)" begin
-        # The Peng/Francis split: α1 over geometric scales [4,8,16], α2 over
-        # [16,32,64], crossover fixed at 16, no overlap. Verify the box density
-        # the production dfa() relies on holds on the long record too.
+    @testset "DFA box grid + configurability (d-06)" begin
+        cfg = HeartRateLab.Features.config
+        # Production dfa() now uses the DEFAULT dense all-integer Francis/Kubios
+        # grid (every integer n in each range), not the legacy 3-point geometric
+        # grid. Confirm the configured defaults are the Peng/Francis ranges.
+        @test cfg["dfa_grid"] == :integer
+        @test cfg["dfa_alpha1_range"] == (4, 16)   # 13 box sizes
+        @test cfg["dfa_alpha2_range"] == (16, 64)  # 49 box sizes
+
+        # DFA.jl's single-box method (the engine the integer grid loops over)
+        # returns a finite, positive fluctuation F(n) for representative box sizes.
+        for k in (4, 16, 64)
+            Fn = HeartRateLab.Features.DFA.dfa(n.data, k; order=1, overlap=0.0)
+            @test isfinite(Fn) && Fn > 0
+        end
+        # The legacy geometric dispatcher still yields the Peng powers-of-two grid.
         s1, _ = HeartRateLab.Features.DFA.dfa(n.data, boxmax=16, boxmin=4, boxratio=2, overlap=0.0)
         s2, _ = HeartRateLab.Features.DFA.dfa(n.data, boxmax=64, boxmin=16, boxratio=2, overlap=0.0)
         @test s1 == [4, 8, 16]
         @test s2 == [16, 32, 64]
+
+        # Configurability: switch to the neurokit2 / Iyengar ranges
+        # (α1 4–11, α2 12–N/10) and assert finite, physiologically sane exponents
+        # on the long record. Restore the defaults afterwards via try/finally so
+        # this testset cannot leak config into the rest of the suite.
+        N = length(n.data)
+        a1_default = fr["dfa1"](n)
+        a2_default = fr["dfa2"](n)
+        try
+            cfg["dfa_alpha1_range"] = (4, 11)
+            cfg["dfa_alpha2_range"] = (12, N ÷ 10)
+            Memoization.empty_all_caches!()
+            a1_iy = fr["dfa1"](n)
+            a2_iy = fr["dfa2"](n)
+            @test isfinite(a1_iy) && isfinite(a2_iy)
+            @test 0.7 <= a1_iy <= 1.6      # on 16265: α1 ≈ 1.31
+            @test 0.7 <= a2_iy <= 1.3      # on 16265: α2 ≈ 1.00
+        finally
+            cfg["dfa_alpha1_range"] = (4, 16)
+            cfg["dfa_alpha2_range"] = (16, 64)
+            cfg["dfa_grid"] = :integer
+            cfg["dfa_boxratio"] = 2
+            Memoization.empty_all_caches!()
+        end
+        # Defaults restored: dfa1/dfa2 recover their Peng/Francis values.
+        @test fr["dfa1"](n) ≈ a1_default
+        @test fr["dfa2"](n) ≈ a2_default
     end
 
     @testset "Hurst exponent" begin
