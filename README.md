@@ -29,13 +29,26 @@ result = fit(model, ibis; method=:gradient)
 synthetic = simulate(result.model, result.params, 1000)   # n_beats is positional
 ```
 
-Visualize HRV analysis results:
+Visualize HRV analysis results. The offline plots work out of the box — no extra
+imports needed (Plots.jl ships as a dependency):
 
 ```julia
-using GLMakie
-fig = plot_ibi_series(ibis)
-fig_compare = plot_comparison(ibis, synthetic; model_name="LIF")
+using HeartRateLab
+fig = plot_ibi_series(ibis)      # static Plots.jl figure, renders headless to PNG
+plot_poincare(ibis)
+plot_spectrum(ibis)
+```
+
+Add `using GLMakie` and the *same* function names upgrade to interactive figures:
+
+```julia
+using GLMakie                    # flips the backend to interactive GLMakie
+fig = plot_ibi_series(ibis)      # now an interactive GLMakie Figure
+fig_compare = plot_comparison(ibis, synthetic; model_name="LIF")  # GLMakie 2×2 panel
 display(fig)
+
+# Force the static Plots figure even with GLMakie loaded:
+plot_ibi_series(ibis; backend=:plots)
 ```
 
 ## Installation
@@ -220,22 +233,26 @@ synthetic = simulate(result.model, result.params, 1000)   # n_beats is positiona
 
 ### Visualization
 
-Create publication-quality HRV analysis plots:
+Create publication-quality HRV analysis plots. Everything below works with just
+`using HeartRateLab` (static Plots.jl figures). Add `using GLMakie` and the same
+calls return interactive GLMakie figures instead — the function names don't change.
 
 ```julia
-# Core analysis
+# Core analysis (static Plots.jl by default; interactive once `using GLMakie`)
 plot_ibi_series(ibis)                    # Time series with statistics
 plot_poincare(ibis)                      # Beat-to-beat scatter plot
 plot_spectrum(ibis)                      # Frequency domain with HRV bands
 plot_flagship(ibis, fit_result)          # Combined flagship visualization
 
 # Model comparison
-plot_comparison(real, synthetic)         # Real vs synthetic comparison
-plot_model_heatmap(results)             # Model × feature reproduction heatmap
-plot_lorenz_3d(ibis)                    # Interactive 3D dynamics visualization
-plot_radar(datasets)                    # Radar/spider chart for feature comparison
-plot_correlations(feature_sets)         # Cross-dataset feature correlations
-plot_feature_violins(real, ensembles)   # Violin plots of feature distributions
+plot_comparison(real, models)            # Plots overlay (Dict of model series)
+plot_comparison(real, synthetic)         # GLMakie 2×2 panel (needs `using GLMakie`)
+plot_model_heatmap(results)              # Model × feature reproduction heatmap
+plot_lorenz_3d(fit_result)               # 3D dynamics from a fitted result
+plot_lorenz_3d(ibis)                     # GLMakie 3D embedding (needs `using GLMakie`)
+plot_radar(datasets)                     # Radar/spider chart for feature comparison
+plot_correlations(feature_sets)          # Cross-dataset feature correlations
+plot_feature_violins(real, ensembles)    # Violin plots (needs `using GLMakie`)
 
 # Normative analysis
 plot_normative_kde_comparison(datasets, features)  # KDE overlay with σ-bands

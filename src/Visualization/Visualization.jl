@@ -5,6 +5,66 @@ using DataFrames
 using DataFrames: DataFrame
 import Random
 
+# Plotting backends. `Plots` (with `StatsPlots` for `density!`) are hard `[deps]`
+# of the package, so the offline plotting API works out of the box with no
+# user-side `using Plots`. We `import` them here and call `Plots.plot` / etc.
+# directly rather than looking functions up in `Main` at call time.
+import Plots
+import StatsPlots
+# Render the GR backend headless to PNG (no display needed).
+function __init__()
+    get!(ENV, "GKSwstype", "100")
+    try
+        Plots.gr()
+    catch
+        # GR backend selection can fail in unusual environments; the default
+        # backend will still produce a `Plots.Plot` object for the tests.
+    end
+end
+
+# ── Backend dispatch (Plots ↔ GLMakie) ───────────────────────────────────────
+#
+# The public `plot_*` functions are single generics that render with **Plots.jl
+# by default** (works with no extra packages). When the user additionally runs
+# `using GLMakie`, the `HeartRateLabVisualizationExt` extension loads and
+# registers GLMakie implementations of the *same* public names; from then on the
+# default backend flips to `:glmakie`, so `plot_ibi_series(x)` returns an
+# interactive GLMakie `Figure` through the identical function name.
+#
+# Mechanism: each public function accepts a `backend` keyword whose default is
+# `default_backend()` — `:glmakie` if the extension is loaded, else `:plots`.
+# The GLMakie code lives in the extension as methods of the internal
+# `_glmakie_*` generics defined (empty) here; the extension adds methods to them.
+# This keeps both paths in one place behind one public name and never breaks the
+# Plots default. Pass `backend=:plots` to force the static Plots figure even when
+# GLMakie is loaded.
+const _GLMAKIE_LOADED = Ref(false)
+
+"""
+    default_backend() -> Symbol
+
+Return the active plotting backend: `:glmakie` when the GLMakie extension is
+loaded (via `using GLMakie`), otherwise `:plots`. Used as the default for the
+`backend` keyword of every public `plot_*` function.
+"""
+default_backend() = _GLMAKIE_LOADED[] ? :glmakie : :plots
+
+# Internal GLMakie generics. The extension adds concrete methods. The catch-all
+# fallbacks below raise an informative error when GLMakie is not loaded.
+_glmakie_unavailable(name) =
+    error("$name requires GLMakie. Please run: using GLMakie")
+
+_glmakie_plot_ibi_series(args...; kwargs...)    = _glmakie_unavailable("plot_ibi_series(backend=:glmakie)")
+_glmakie_plot_poincare(args...; kwargs...)      = _glmakie_unavailable("plot_poincare(backend=:glmakie)")
+_glmakie_plot_spectrum(args...; kwargs...)      = _glmakie_unavailable("plot_spectrum(backend=:glmakie)")
+_glmakie_plot_comparison(args...; kwargs...)    = _glmakie_unavailable("plot_comparison")
+_glmakie_plot_model_heatmap(args...; kwargs...) = _glmakie_unavailable("plot_model_heatmap")
+_glmakie_plot_lorenz_3d(args...; kwargs...)     = _glmakie_unavailable("plot_lorenz_3d(::Vector)")
+_glmakie_plot_radar(args...; kwargs...)         = _glmakie_unavailable("plot_radar(backend=:glmakie)")
+_glmakie_plot_correlations(args...; kwargs...)  = _glmakie_unavailable("plot_correlations(backend=:glmakie)")
+_glmakie_plot_flagship(args...; kwargs...)      = _glmakie_unavailable("plot_flagship(backend=:glmakie)")
+_glmakie_plot_feature_violins(args...; kwargs...) = _glmakie_unavailable("plot_feature_violins")
+
 # Import Models module for accessing simulate_lorenz_trajectory and types
 # This is safe because Models is included in the parent module before Visualization
 import ..Models
@@ -64,40 +124,34 @@ function vdp_field()
 end
 
 """
-    plot_flagship(data::Vector, fit_result; title::String="Flagship Visualization")
+    plot_flagship(data::Vector, fit_result; backend=default_backend(), title="Flagship Visualization")
 
 Create a comprehensive visualization of HRV analysis results.
-Requires Plots.jl to be loaded in the calling environment.
-"""
-function plot_flagship(data::Vector, fit_result; title::String="Flagship Visualization")
-    # Check if Plots is available
-    if !isdefined(Main, :plot)
-        println("Visualization requires Plots.jl. Please run: using Plots")
-        return nothing
-    end
 
-    # Access Plots functions through Main
-    plot = Main.plot
-    plot! = Main.plot!
-    scatter! = Main.scatter!
-    histogram! = Main.histogram!
+Renders with Plots.jl by default (no extra packages needed). With `using GLMakie`
+loaded the same call returns an interactive GLMakie figure (`backend=:glmakie`);
+pass `backend=:plots` to force the static figure.
+"""
+function plot_flagship(data::Vector, fit_result; backend=default_backend(),
+                       title::String="Flagship Visualization")
+    backend === :glmakie && return _glmakie_plot_flagship(data, fit_result; title=title)
 
     # Create 2x2 subplot layout
-    fig = plot(layout=(2, 2), size=(1000, 800), plot_title=title)
+    fig = Plots.plot(layout=(2, 2), size=(1000, 800), plot_title=title)
 
     # Panel 1: IBI time series
-    plot!(fig[1], data, label="IBI", xlabel="Beat", ylabel="Interval (ms)", title="Inter-Beat Intervals")
+    Plots.plot!(fig[1], data, label="IBI", xlabel="Beat", ylabel="Interval (ms)", title="Inter-Beat Intervals")
 
     # Panel 2: IBI histogram
-    histogram!(fig[2], data, label="IBI Distribution", xlabel="Interval (ms)", ylabel="Count", title="Distribution")
+    Plots.histogram!(fig[2], data, label="IBI Distribution", xlabel="Interval (ms)", ylabel="Count", title="Distribution")
 
     # Panel 3: Poincaré plot
     if length(data) > 1
-        scatter!(fig[3], data[1:end-1], data[2:end], label="Poincaré", xlabel="IBIₙ (ms)", ylabel="IBIₙ₊₁ (ms)", title="Poincaré Plot", markersize=3, alpha=0.6)
+        Plots.scatter!(fig[3], data[1:end-1], data[2:end], label="Poincaré", xlabel="IBIₙ (ms)", ylabel="IBIₙ₊₁ (ms)", title="Poincaré Plot", markersize=3, alpha=0.6)
     end
 
     # Panel 4: Cumulative time
-    plot!(fig[4], cumsum(data), label="Cumulative Time", xlabel="Beat", ylabel="Cumulative Time (ms)", title="Cumulative Duration")
+    Plots.plot!(fig[4], cumsum(data), label="Cumulative Time", xlabel="Beat", ylabel="Cumulative Time (ms)", title="Cumulative Duration")
 
     return fig
 end
@@ -116,23 +170,17 @@ Create a simple line plot of inter-beat-interval values over beat index.
 - Figure with X-axis=beat index, Y-axis=IBI (ms)
 - Physiological bounds marked as horizontal lines (300-2000 ms typical range)
 
-# Requirements
-Requires Plots.jl to be loaded in the calling environment.
+# Backend
+Renders with Plots.jl by default; with `using GLMakie` loaded the same call
+returns an interactive GLMakie figure (`backend=:glmakie`). Pass `backend=:plots`
+to force the static figure.
 """
-function plot_ibi_series(data::Vector{Float64}; title="IBI Time Series", show_grid=true)
-    # Check if Plots is available
-    if !isdefined(Main, :plot)
-        println("Visualization requires Plots.jl. Please run: using Plots")
-        return nothing
-    end
-
-    # Access Plots functions through Main
-    plot = Main.plot
-    plot! = Main.plot!
-    hline! = Main.hline!
+function plot_ibi_series(data::Vector{Float64}; backend=default_backend(),
+                         title="IBI Time Series", show_grid=true)
+    backend === :glmakie && return _glmakie_plot_ibi_series(data; title=title)
 
     # Create the plot
-    fig = plot(data,
+    fig = Plots.plot(data,
                label="IBI",
                xlabel="Beat Index",
                ylabel="IBI (ms)",
@@ -141,12 +189,12 @@ function plot_ibi_series(data::Vector{Float64}; title="IBI Time Series", show_gr
                size=(900, 500))
 
     # Add physiological bounds as horizontal lines
-    hline!(fig, [300], label="Min bound (300 ms)", line=:dash, color=:red, alpha=0.5)
-    hline!(fig, [2000], label="Max bound (2000 ms)", line=:dash, color=:red, alpha=0.5)
+    Plots.hline!(fig, [300], label="Min bound (300 ms)", line=:dash, color=:red, alpha=0.5)
+    Plots.hline!(fig, [2000], label="Max bound (2000 ms)", line=:dash, color=:red, alpha=0.5)
 
     # Control grid visibility
     if show_grid
-        plot!(grid=true)
+        Plots.plot!(grid=true)
     end
 
     return fig
@@ -172,20 +220,13 @@ Create a Poincaré plot of inter-beat-interval variability with SD1/SD2 ellipse 
 The Poincaré plot visualizes HRV by plotting each IBI against the next IBI.
 SD1 measures short-term variability, SD2 measures long-term variability.
 
-# Requirements
-Requires Plots.jl to be loaded in the calling environment.
+# Backend
+Renders with Plots.jl by default; with `using GLMakie` loaded the same call
+returns an interactive GLMakie figure (`backend=:glmakie`). Pass `backend=:plots`
+to force the static figure.
 """
-function plot_poincare(data::Vector; title="Poincaré Plot")
-    # Check if Plots is available
-    if !isdefined(Main, :plot)
-        println("Visualization requires Plots.jl. Please run: using Plots")
-        return nothing
-    end
-
-    # Access Plots functions through Main
-    plot = Main.plot
-    scatter! = Main.scatter!
-    plot! = Main.plot!
+function plot_poincare(data::Vector; backend=default_backend(), title="Poincaré Plot")
+    backend === :glmakie && return _glmakie_plot_poincare(Float64.(data); title=title)
 
     # Handle edge case: need at least 2 data points
     if length(data) < 2
@@ -211,17 +252,17 @@ function plot_poincare(data::Vector; title="Poincaré Plot")
     ex, ey = getellipsepoints(cx, cy, sd2, sd1, π/4)
 
     # Create the plot
-    fig = plot(legend=:topleft, size=(700, 600), title=title)
+    fig = Plots.plot(legend=:topleft, size=(700, 600), title=title)
 
     # Add scatter plot of Poincaré points in purple
-    scatter!(fig, pp_x, pp_y,
+    Plots.scatter!(fig, pp_x, pp_y,
              color=:purple,
              markersize=4,
              alpha=0.6,
              label="IBI Pairs")
 
     # Add SD1/SD2 ellipse in limegreen
-    plot!(fig, ex, ey,
+    Plots.plot!(fig, ex, ey,
           color=:limegreen,
           linewidth=2,
           label="SD1/SD2 Ellipse")
@@ -229,14 +270,14 @@ function plot_poincare(data::Vector; title="Poincaré Plot")
     # Add diagonal reference line (y = x)
     min_val = min(minimum(pp_x), minimum(pp_y))
     max_val = max(maximum(pp_x), maximum(pp_y))
-    plot!(fig, [min_val, max_val], [min_val, max_val],
+    Plots.plot!(fig, [min_val, max_val], [min_val, max_val],
           color=:gray,
           linestyle=:dash,
           alpha=0.5,
           label="")
 
     # Add axis labels and SD values to legend label
-    plot!(fig,
+    Plots.plot!(fig,
           xlabel="RR[n-1] (ms)",
           ylabel="RR[n] (ms)",
           grid=true,
@@ -249,8 +290,6 @@ function plot_poincare(data::Vector; title="Poincaré Plot")
     return fig
 end
 
-# Placeholder stubs for extension-provided functions
-# These will be overridden when GLMakie is loaded
 
 """
     plot_spectrum(ibis::Vector{Float64}; method=:lomb, title="HRV Power Spectrum") -> Figure
@@ -259,34 +298,32 @@ Power spectrum of an IBI series with the HRV frequency bands shaded by colour
 (ULF gray, VLF blueviolet, LF teal, HF coral) and the spectral peak marked.
 
 `method` selects the estimator: `:lomb` (Lomb-Scargle, default; handles the uneven IBI
-sampling) or `:welch`. Renders headless via Plots.jl (no display/GLMakie required).
+sampling) or `:welch`. Renders headless via Plots.jl by default; with `using GLMakie`
+loaded the same call returns an interactive GLMakie figure (`backend=:glmakie`).
 """
-function plot_spectrum(ibis::Vector{Float64}; method=:lomb, title="HRV Power Spectrum")
-    if !isdefined(Main, :plot)
-        println("Visualization requires Plots.jl. Please run: using Plots")
-        return nothing
-    end
-    plot = Main.plot; plot! = Main.plot!; vspan! = Main.vspan!; scatter! = Main.scatter!
+function plot_spectrum(ibis::Vector{Float64}; backend=default_backend(),
+                       method=:lomb, title="HRV Power Spectrum")
+    backend === :glmakie && return _glmakie_plot_spectrum(ibis; method=method, title=title)
 
     pgram = method === :welch ? welch(ibis) : lomb_scargle(ibis)
     freq = collect(pgram.freq)
     power = collect(pgram.power)
 
-    fig = plot(; size=(800, 500), title=title, xlabel="Frequency (Hz)",
+    fig = Plots.plot(; size=(800, 500), title=title, xlabel="Frequency (Hz)",
                ylabel="Power (ms²/Hz)", legend=:topright, xlims=(0.0, 0.4))
 
     # HRV frequency bands as colour-shaded regions (drawn first, behind the spectrum).
-    vspan!(fig, [0.0, 0.0033];   color=:gray,       alpha=0.15, label="ULF")
-    vspan!(fig, [0.0033, 0.04];  color=:blueviolet, alpha=0.16, label="VLF")
-    vspan!(fig, [0.04, 0.15];    color=:teal,       alpha=0.18, label="LF")
-    vspan!(fig, [0.15, 0.4];     color=:coral,      alpha=0.20, label="HF")
+    Plots.vspan!(fig, [0.0, 0.0033];   color=:gray,       alpha=0.15, label="ULF")
+    Plots.vspan!(fig, [0.0033, 0.04];  color=:blueviolet, alpha=0.16, label="VLF")
+    Plots.vspan!(fig, [0.04, 0.15];    color=:teal,       alpha=0.18, label="LF")
+    Plots.vspan!(fig, [0.15, 0.4];     color=:coral,      alpha=0.20, label="HF")
 
-    plot!(fig, freq, power; color=:black, linewidth=1.5, label="Spectrum")
+    Plots.plot!(fig, freq, power; color=:black, linewidth=1.5, label="Spectrum")
 
     # Mark the spectral peak.
     if !isempty(power)
         pk = argmax(power)
-        scatter!(fig, [freq[pk]], [power[pk]]; marker=:x, markersize=7,
+        Plots.scatter!(fig, [freq[pk]], [power[pk]]; marker=:x, markersize=7,
                  color=:red, label="Peak")
     end
     return fig
@@ -302,12 +339,6 @@ potentials marked. Integrates the LIF ODE `τ dV/dt = -(V - V_rest) + R·I` (Eul
 """
 function plot_lif(model::Models.LIF; n_beats::Int=6, dt::Float64=0.5,
                   title="LIF Membrane Dynamics")
-    if !isdefined(Main, :plot)
-        println("Visualization requires Plots.jl. Please run: using Plots")
-        return nothing
-    end
-    plot = Main.plot; plot! = Main.plot!; hline! = Main.hline!
-
     τ, Vr, Vreset, Vth, R, I = model.τ, model.V_rest, model.V_reset,
                                model.V_threshold, model.R, model.I
     ts = Float64[]; Vs = Float64[]
@@ -328,11 +359,11 @@ function plot_lif(model::Models.LIF; n_beats::Int=6, dt::Float64=0.5,
         end
     end
 
-    fig = plot(ts, Vs; color=:teal, linewidth=1.6, label="V(t)", size=(800, 450),
+    fig = Plots.plot(ts, Vs; color=:teal, linewidth=1.6, label="V(t)", size=(800, 450),
                title=title, xlabel="Time (ms)", ylabel="Membrane potential (mV)",
                legend=:bottomright)
-    hline!(fig, [Vth]; color=:red, linestyle=:dash, label="V_threshold")
-    hline!(fig, [Vr]; color=:gray, linestyle=:dot, label="V_rest")
+    Plots.hline!(fig, [Vth]; color=:red, linestyle=:dash, label="V_threshold")
+    Plots.hline!(fig, [Vr]; color=:gray, linestyle=:dot, label="V_rest")
     return fig
 end
 
@@ -345,12 +376,6 @@ scaled by amplitude; (bottom) the original IBI series overlaid with the DMD
 reconstruction. Renders headless via Plots.jl.
 """
 function plot_dmd(dmd_result::ModelFitResult; title="DMD Modes & Reconstruction")
-    if !isdefined(Main, :plot)
-        println("Visualization requires Plots.jl. Please run: using Plots")
-        return nothing
-    end
-    plot = Main.plot; plot! = Main.plot!
-
     dmd = dmd_result.model
     data = dmd_result.data
     evals = dmd.evals
@@ -361,7 +386,7 @@ function plot_dmd(dmd_result::ModelFitResult; title="DMD Modes & Reconstruction"
     amps = abs.(b)
     ampsz = isempty(amps) ? Float64[] : 4 .+ 16 .* (amps ./ maximum(amps))
 
-    p1 = Main.scatter(freqs, amps; markersize=ampsz, color=:purple, alpha=0.7,
+    p1 = Plots.scatter(freqs, amps; markersize=ampsz, color=:purple, alpha=0.7,
                       legend=false, xlabel="Mode frequency (cycles/beat)",
                       ylabel="Amplitude |b|", title="Mode spectrum")
 
@@ -370,15 +395,15 @@ function plot_dmd(dmd_result::ModelFitResult; title="DMD Modes & Reconstruction"
     catch
         Float64[]
     end
-    p2 = plot(1:length(data), data; color=:black, linewidth=1.2, label="Original",
+    p2 = Plots.plot(1:length(data), data; color=:black, linewidth=1.2, label="Original",
               xlabel="Beat", ylabel="IBI (ms)", title="Reconstruction")
     if !isempty(recon)
         m = min(length(recon), length(data))
-        plot!(p2, 1:m, recon[1:m]; color=:coral, linewidth=1.4, linestyle=:dash,
+        Plots.plot!(p2, 1:m, recon[1:m]; color=:coral, linewidth=1.4, linestyle=:dash,
               label="DMD reconstruction")
     end
 
-    return Main.plot(p1, p2; layout=(2, 1), size=(800, 700), plot_title=title)
+    return Plots.plot(p1, p2; layout=(2, 1), size=(800, 700), plot_title=title)
 end
 
 """
@@ -390,12 +415,6 @@ long-term window 16≤n≤64 (Peng/Francis convention; see Features `dfa`). The 
 slopes (α1, α2) are shown in the legend. Renders headless via Plots.jl.
 """
 function plot_dfa(ibis::Vector{Float64}; title="Detrended Fluctuation Analysis")
-    if !isdefined(Main, :plot)
-        println("Visualization requires Plots.jl. Please run: using Plots")
-        return nothing
-    end
-    plot = Main.plot; plot! = Main.plot!; scatter! = Main.scatter!
-
     scales, fluc = DFA.dfa(ibis; boxmax=64, boxmin=4, boxratio=2, overlap=0.0)
     ls = log10.(Float64.(scales)); lf = log10.(Float64.(fluc))
     m1 = scales .<= 16
@@ -403,16 +422,16 @@ function plot_dfa(ibis::Vector{Float64}; title="Detrended Fluctuation Analysis")
     b1, α1 = DFA.polyfit(ls[m1], lf[m1])
     b2, α2 = DFA.polyfit(ls[m2], lf[m2])
 
-    fig = plot(; size=(750, 550), title=title, xlabel="log₁₀ n (box size, beats)",
+    fig = Plots.plot(; size=(750, 550), title=title, xlabel="log₁₀ n (box size, beats)",
                ylabel="log₁₀ F(n)", legend=:topleft)
-    scatter!(fig, ls, lf; color=:black, markersize=5, label="F(n)")
+    Plots.scatter!(fig, ls, lf; color=:black, markersize=5, label="F(n)")
     # α1 fit line over the short-term window
     x1 = ls[m1]
-    plot!(fig, x1, b1 .+ α1 .* x1; color=:teal, linewidth=2,
+    Plots.plot!(fig, x1, b1 .+ α1 .* x1; color=:teal, linewidth=2,
           label="α1 = $(round(α1, digits=3)) (n 4–16)")
     # α2 fit line over the long-term window
     x2 = ls[m2]
-    plot!(fig, x2, b2 .+ α2 .* x2; color=:coral, linewidth=2,
+    Plots.plot!(fig, x2, b2 .+ α2 .* x2; color=:coral, linewidth=2,
           label="α2 = $(round(α2, digits=3)) (n 16–64)")
     return fig
 end
@@ -428,17 +447,11 @@ index (area under the curve) is shown in the title. Renders headless via Plots.j
 """
 function plot_complexity(ibis::Vector{Float64}; m::Int=2, r::Number=6, scales::Int=10,
                          title="Multiscale Entropy")
-    if !isdefined(Main, :plot)
-        println("Visualization requires Plots.jl. Please run: using Plots")
-        return nothing
-    end
-    plot = Main.plot; scatter! = Main.scatter!
-
     Mobj = EntropyHub.MSobject(EntropyHub.SampEn; m=m, r=r)
     MSx, CI = EntropyHub.MSEn(ibis, Mobj; Scales=scales)
     sc = collect(1:length(MSx))
 
-    fig = plot(sc, MSx; color=:purple, linewidth=2, marker=:circle, markersize=4,
+    fig = Plots.plot(sc, MSx; color=:purple, linewidth=2, marker=:circle, markersize=4,
                label="SampEn", size=(750, 500),
                title="$title (CI = $(round(CI, digits=2)))",
                xlabel="Scale factor τ", ylabel="Sample entropy", legend=:topright)
@@ -457,10 +470,6 @@ recording. Renders headless via Plots.jl (GR 3D).
 function plot_time_frequency_3d(ibis::Vector{Float64}; window_size::Int=120,
                                 stride::Int=30, method=:lomb,
                                 title="Time–Frequency Spectrum")
-    if !isdefined(Main, :surface)
-        println("Visualization requires Plots.jl. Please run: using Plots")
-        return nothing
-    end
     n = length(ibis)
     n < window_size && (window_size = n)
     starts = collect(1:stride:max(1, n - window_size + 1))
@@ -480,7 +489,7 @@ function plot_time_frequency_3d(ibis::Vector{Float64}; window_size::Int=120,
     end
     Z = permutedims(reduce(hcat, rows))           # (num_windows × num_freq)
     ytimes = collect(1:length(rows)) .* stride    # window position (beats)
-    return Main.surface(freqgrid, ytimes, Z; size=(850, 600), title=title,
+    return Plots.surface(freqgrid, ytimes, Z; size=(850, 600), title=title,
                         xlabel="Frequency (Hz)", ylabel="Beat", zlabel="Power",
                         colormap=:viridis, xlims=(0.0, 0.4))
 end
@@ -494,19 +503,14 @@ steady sinus rhythm it reads as an elliptical spiral (SD1/SD2 diameters) whose r
 changes with the HRV state. Coloured by time. Renders headless via Plots.jl (GR 3D).
 """
 function plot_poincare_3d(ibis::Vector{Float64}; title="Time-Evolving Poincaré")
-    if !isdefined(Main, :plot)
-        println("Visualization requires Plots.jl. Please run: using Plots")
-        return nothing
-    end
     length(ibis) < 3 && (println("plot_poincare_3d needs ≥ 3 IBIs"); return nothing)
-    plot = Main.plot; scatter! = Main.scatter!
     px = ibis[1:end-1]
     py = ibis[2:end]
     z = collect(1:length(px))
-    fig = plot(px, py, z; line_z=z, color=:viridis, linewidth=2, label="trajectory",
+    fig = Plots.plot(px, py, z; line_z=z, color=:viridis, linewidth=2, label="trajectory",
                size=(820, 640), title=title, xlabel="RR[n-1] (ms)",
                ylabel="RR[n] (ms)", zlabel="Beat", legend=false, colorbar=true)
-    scatter!(fig, px, py, z; marker_z=z, color=:viridis, markersize=2, label="")
+    Plots.scatter!(fig, px, py, z; marker_z=z, color=:viridis, markersize=2, label="")
     return fig
 end
 
@@ -552,20 +556,14 @@ Overlay multiple model-generated IBI series against real data for visual inspect
 - X-axis: beat index, Y-axis: IBI (ms)
 - Physiological bounds marked (300-2000 ms)
 
-# Requirements
-Requires Plots.jl to be loaded in the calling environment.
+# Backend
+Renders with Plots.jl by default. The GLMakie 2×2 comparison is reachable via the
+`plot_comparison(real, synthetic)` (two-vector) method when `using GLMakie`.
 """
 function plot_comparison(real::Vector{Float64}, models::Dict{String, Vector{Float64}}; title="Time Series Comparison")
-    # Check if Plots is available
-    if !isdefined(Main, :plot)
-        println("Visualization requires Plots.jl. Please run: using Plots")
-        return nothing
-    end
-
-    # Access Plots functions through Main
-    plot = Main.plot
-    plot! = Main.plot!
-    hline! = Main.hline!
+    plot = Plots.plot
+    plot! = Plots.plot!
+    hline! = Plots.hline!
 
     # Handle empty models dict
     if isempty(models)
@@ -637,11 +635,12 @@ end
 """
     plot_comparison(real_ibis::Vector{Float64}, synthetic_ibis::Vector{Float64}; model_name="Model") -> Figure
 
-Create side-by-side comparison plots of real vs synthetic IBI data.
-This function is provided by the HeartRateLabVisualizationExt extension when GLMakie is loaded.
+Create a side-by-side 2×2 comparison (time series, Poincaré, histogram, Q-Q) of
+real vs synthetic IBI data. This GLMakie figure is provided by the
+`HeartRateLabVisualizationExt` extension; run `using GLMakie` to enable it.
 """
 function plot_comparison(real_ibis::Vector{Float64}, synthetic_ibis::Vector{Float64}; model_name="Model")
-    error("plot_comparison requires GLMakie. Please run: using GLMakie")
+    _glmakie_plot_comparison(real_ibis, synthetic_ibis; model_name=model_name)
 end
 
 """
@@ -664,26 +663,12 @@ Create a matrix visualization showing which (model, feature) pairs reproduce wel
   - Values displayed in cells
   - Row/column labels visible
 
-# Requirements
-Requires Plots.jl to be loaded in the calling environment.
+# Backend
+Renders with Plots.jl by default. The GLMakie variant is reachable via the
+`plot_model_heatmap(errors::Dict, features::Vector)` method when `using GLMakie`.
 """
 function plot_model_heatmap(results::DataFrame; title="Model × Feature Reproduction")
-    # Check if Plots is available
-    if !isdefined(Main, :plot)
-        println("Visualization requires Plots.jl. Please run: using Plots")
-        return nothing
-    end
-
-    # Try to access heatmap, handling ambiguity from multiple backends (GLMakie, etc.)
-    heatmap = try
-        Main.heatmap
-    catch err
-        if isdefined(Main, :Plots)
-            Main.Plots.heatmap
-        else
-            error("heatmap function not found. Please ensure Plots.jl is imported.")
-        end
-    end
+    heatmap = Plots.heatmap
 
     # Extract unique models and features, preserving order
     models = unique(results.model)
@@ -725,11 +710,11 @@ end
 """
     plot_model_heatmap(errors::Dict{String, Vector{Float64}}, features::Vector{String}) -> Figure
 
-Create a heatmap showing model reproduction quality across features.
-This function is provided by the HeartRateLabVisualizationExt extension when GLMakie is loaded.
+Create a GLMakie heatmap showing model reproduction quality across features.
+Provided by the `HeartRateLabVisualizationExt` extension; run `using GLMakie`.
 """
 function plot_model_heatmap(errors::Dict{String, Vector{Float64}}, features::Vector{String})
-    error("plot_model_heatmap requires GLMakie. Please run: using GLMakie")
+    _glmakie_plot_model_heatmap(errors, features)
 end
 
 """
@@ -754,20 +739,14 @@ Solves the Lorenz ODE system using the fitted parameters (σ, ρ, β) and plots 
 (x, y, z) trajectory in 3D space. This shows the characteristic butterfly-shaped
 strange attractor behavior of the Lorenz system.
 
-# Requirements
-Requires Plots.jl to be loaded in the calling environment.
+# Backend
+Renders with Plots.jl by default. The GLMakie 3D embedding is reachable via the
+`plot_lorenz_3d(ibis::Vector)` method when `using GLMakie`.
 Requires DifferentialEquations.jl (included in dependency chain).
 """
 function plot_lorenz_3d(lorenz_result::ModelFitResult; title="Lorenz Phase Space")
-    # Check if Plots is available
-    if !isdefined(Main, :plot)
-        println("Visualization requires Plots.jl. Please run: using Plots")
-        return nothing
-    end
-
-    # Access Plots functions through Main
-    plot = Main.plot
-    scatter! = Main.scatter!
+    plot = Plots.plot
+    scatter! = Plots.scatter!
 
     # Extract parameters from ModelFitResult
     params = lorenz_result.params
@@ -813,11 +792,11 @@ end
 """
     plot_lorenz_3d(ibis::Vector{Float64}; title="IBI 3D Phase Space") -> Figure
 
-Create an interactive 3D scatter plot showing IBI[n] vs IBI[n+1] vs IBI[n+2].
-This function is provided by the HeartRateLabVisualizationExt extension when GLMakie is loaded.
+Create an interactive GLMakie 3D scatter plot showing IBI[n] vs IBI[n+1] vs IBI[n+2].
+Provided by the `HeartRateLabVisualizationExt` extension; run `using GLMakie`.
 """
 function plot_lorenz_3d(ibis::Vector{Float64}; title="IBI 3D Phase Space")
-    error("plot_lorenz_3d(::Vector) requires GLMakie. Please run: using GLMakie")
+    _glmakie_plot_lorenz_3d(ibis; title=title)
 end
 
 """
@@ -842,16 +821,11 @@ Create a spider/radar chart of normalized feature values for multi-dataset compa
 # Requirements
 Requires Plots.jl to be loaded in the calling environment.
 """
-function plot_radar(datasets::Dict{String, Vector{Float64}}; features=nothing, title="Feature Comparison")
-    # Check if Plots is available
-    if !isdefined(Main, :plot)
-        println("Visualization requires Plots.jl. Please run: using Plots")
-        return nothing
-    end
-
-    # Access Plots functions through Main
-    plot = Main.plot
-    plot! = Main.plot!
+function plot_radar(datasets::Dict{String, Vector{Float64}}; backend=default_backend(),
+                    features=nothing, title="Feature Comparison")
+    backend === :glmakie && return _glmakie_plot_radar(datasets; features=features, title=title)
+    plot = Plots.plot
+    plot! = Plots.plot!
 
     # Handle empty datasets
     if isempty(datasets)
@@ -960,13 +934,9 @@ to show how feature relationships vary across data sources.
 # Requirements
 Requires Plots.jl to be loaded in the calling environment.
 """
-function plot_correlations(feature_sets::Dict{String, DataFrame}; features=nothing, title="Feature Correlations")
-    # Check if Plots is available
-    if !isdefined(Main, :plot)
-        println("Visualization requires Plots.jl. Please run: using Plots")
-        return nothing
-    end
-
+function plot_correlations(feature_sets::Dict{String, DataFrame}; backend=default_backend(),
+                           features=nothing, title="Feature Correlations")
+    backend === :glmakie && return _glmakie_plot_correlations(feature_sets; features=features, title=title)
     # Handle empty feature_sets
     if isempty(feature_sets)
         println("No feature sets provided for correlation plot")
@@ -984,18 +954,17 @@ function plot_correlations(feature_sets::Dict{String, DataFrame}; features=nothi
         return nothing
     end
 
-    # Access Plots functions through Main
-    plot = Main.plot
-    scatter! = Main.scatter!
-    histogram! = Main.histogram!
-    plot! = Main.plot!
+    plot = Plots.plot
+    scatter! = Plots.scatter!
+    histogram! = Plots.histogram!
+    plot! = Plots.plot!
 
     n_features = length(features)
     colors = [:blue, :red, :green, :purple, :orange, :brown, :pink, :cyan]
 
     # Create grid layout with dynamic size
     subplot_size = 100 * n_features
-    fig = plot(layout=Main.grid(n_features, n_features),
+    fig = plot(layout=Plots.grid(n_features, n_features),
                size=(subplot_size, subplot_size),
                plot_title=title)
 
@@ -1066,11 +1035,11 @@ end
 """
     plot_feature_violins(real::DataFrame, ensembles::Dict{String, DataFrame}; features=nothing) -> Figure
 
-Create violin plots comparing real vs synthetic feature distributions.
-This function is provided by the HeartRateLabVisualizationExt extension when GLMakie is loaded.
+Create GLMakie violin plots comparing real vs synthetic feature distributions.
+Provided by the `HeartRateLabVisualizationExt` extension; run `using GLMakie`.
 """
 function plot_feature_violins(real, ensembles; features=nothing)
-    error("plot_feature_violins requires GLMakie. Please run: using GLMakie")
+    _glmakie_plot_feature_violins(real, ensembles; features=features)
 end
 
 # ── Normative distribution comparison ──────────────────────────────────────

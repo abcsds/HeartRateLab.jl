@@ -1,9 +1,17 @@
 """
     HeartRateLabVisualizationExt
 
-Extension providing offline visualization functions for HRV analysis using GLMakie.
+Extension providing interactive GLMakie renderings of the HRV visualization API.
 
-This extension is loaded automatically when GLMakie is imported alongside HeartRateLab.
+Loaded automatically when GLMakie is imported alongside HeartRateLab. Rather than
+defining new functions, it adds **methods** to the package's internal
+`HeartRateLab.Visualization._glmakie_plot_*` generics and flips the default
+backend to `:glmakie` in `__init__`. The public names (`plot_ibi_series`,
+`plot_poincare`, `plot_spectrum`, `plot_comparison`, `plot_model_heatmap`,
+`plot_lorenz_3d`, `plot_radar`, `plot_correlations`, `plot_flagship`,
+`plot_feature_violins`) therefore return GLMakie figures once GLMakie is loaded,
+without the caller changing anything. Pass `backend=:plots` to force the static
+Plots.jl figure even with GLMakie loaded.
 
 # Visualization Functions Provided (implemented in Phase 4)
 
@@ -55,6 +63,12 @@ import HeartRateLab
 using HeartRateLab.Models
 using HeartRateLab: ModelFitResult
 
+# The Visualization submodule owns the public `plot_*` generics. This extension
+# adds GLMakie *methods* to its internal `_glmakie_plot_*` generics, so the
+# public names (`plot_ibi_series`, …) reach the GLMakie figures when GLMakie is
+# loaded. See the dispatch docstring in src/Visualization/Visualization.jl.
+const Viz = HeartRateLab.Visualization
+
 # Conditional imports based on Julia version
 if !isdefined(Base, :get_extension)
     error("Package extensions require Julia >= 1.9")
@@ -85,7 +99,7 @@ Create a line plot of inter-beat-intervals over time.
 - ±1 standard deviation envelope
 - Clear axis labels and legend
 """
-function plot_ibi_series(ibis::Vector{Float64}; title="IBI Time Series")
+function Viz._glmakie_plot_ibi_series(ibis::Vector{Float64}; title="IBI Time Series")
     n = length(ibis)
     t = 1:n
 
@@ -105,8 +119,8 @@ function plot_ibi_series(ibis::Vector{Float64}; title="IBI Time Series")
     # Plot mean line
     lines!(ax, t, fill(mean_ibi, n); label="Mean", color=:red, linestyle=:dash, linewidth=1.5)
 
-    # Plot ±1 std envelope
-    band!(ax, t, mean_ibi .- std_ibi, mean_ibi .+ std_ibi;
+    # Plot ±1 std envelope. Makie's band! wants per-x vectors for the bounds.
+    band!(ax, collect(t), fill(mean_ibi - std_ibi, n), fill(mean_ibi + std_ibi, n);
         label="±1 SD", color=(:gray, 0.3))
 
     axislegend(ax)
@@ -130,7 +144,7 @@ Create a Poincaré plot showing IBI[n] vs IBI[n+1] correlation.
 - Mean point marked with ⊕
 - Confidence ellipse based on SD1/SD2 (Poincaré descriptors)
 """
-function plot_poincare(ibis::Vector{Float64}; title="Poincaré Plot")
+function Viz._glmakie_plot_poincare(ibis::Vector{Float64}; title="Poincaré Plot")
     # Create pairs: (IBI[n], IBI[n+1])
     x = ibis[1:end-1]
     y = ibis[2:end]
@@ -161,9 +175,11 @@ function plot_poincare(ibis::Vector{Float64}; title="Poincaré Plot")
     # Plot mean point
     scatter!(ax, [mean_x], [mean_y]; label="Mean", color=:red, markersize=10, marker='⊕')
 
-    # Plot identity line (reference)
+    # Plot identity line (reference). Makie's lines! needs coordinate vectors,
+    # not a tuple of endpoints.
     xlim_data = (minimum(x) - 50, maximum(x) + 50)
-    lines!(ax, xlim_data, xlim_data; label="Identity", color=:black, linestyle=:dash, linewidth=1)
+    lines!(ax, [xlim_data[1], xlim_data[2]], [xlim_data[1], xlim_data[2]];
+        label="Identity", color=:black, linestyle=:dash, linewidth=1)
 
     # Plot ellipse (simplified - just show SD1/SD2 ranges)
     # Note: For full ellipse, would need to rotate based on angle
@@ -197,7 +213,7 @@ Create a power spectrum plot of inter-beat-interval series with frequency bands.
 - Peak frequency marked with coral cross
 - Band power values displayed in title
 """
-function plot_spectrum(ibis::Vector{Float64}; method=:lomb, title="HRV Power Spectrum")
+function Viz._glmakie_plot_spectrum(ibis::Vector{Float64}; method=:lomb, title="HRV Power Spectrum")
     # Validate method
     method in [:lomb, :welch, :periodogram] ||
         throw(ArgumentError("method must be :lomb, :welch, or :periodogram"))
@@ -289,7 +305,7 @@ Create side-by-side comparison plots of real vs synthetic IBI data.
 - Bottom-left: IBI distribution histograms
 - Bottom-right: Q-Q plot for normality assessment
 """
-function plot_comparison(real_ibis::Vector{Float64}, synthetic_ibis::Vector{Float64};
+function Viz._glmakie_plot_comparison(real_ibis::Vector{Float64}, synthetic_ibis::Vector{Float64};
                          model_name="Model")
     fig = Figure(size=(1200, 900))
 
@@ -310,10 +326,10 @@ function plot_comparison(real_ibis::Vector{Float64}, synthetic_ibis::Vector{Floa
     scatter!(ax_poincare, synthetic_ibis[1:end-1], synthetic_ibis[2:end];
         label="Synthetic", color=:red, markersize=4, alpha=0.6)
 
-    # Add identity line
-    xlim_data = (minimum([real_ibis; synthetic_ibis]) - 50,
-                 maximum([real_ibis; synthetic_ibis]) + 50)
-    lines!(ax_poincare, xlim_data, xlim_data; color=:black, linestyle=:dash, alpha=0.5)
+    # Add identity line (lines! needs coordinate vectors, not an endpoint tuple).
+    lo = minimum([real_ibis; synthetic_ibis]) - 50
+    hi = maximum([real_ibis; synthetic_ibis]) + 50
+    lines!(ax_poincare, [lo, hi], [lo, hi]; color=:black, linestyle=:dash, alpha=0.5)
     axislegend(ax_poincare)
 
     # Bottom-left: Distribution histograms
@@ -328,7 +344,9 @@ function plot_comparison(real_ibis::Vector{Float64}, synthetic_ibis::Vector{Floa
 
     real_sorted = sort((real_ibis .- mean(real_ibis)) ./ std(real_ibis))
     n = length(real_sorted)
-    quantiles = (1:n ./ n) .- 0.5 ./ n
+    # Plotting positions (i - 0.5)/n, one per sorted value. Parenthesised so the
+    # range divides elementwise — `1:n ./ n` would parse as `1:(n/n)` = `1:1.0`.
+    quantiles = ((1:n) ./ n) .- 0.5 / n
     scatter!(ax_qq, quantiles, real_sorted; markersize=4, alpha=0.6)
     # Add y=x reference line
     lines!(ax_qq, quantiles, quantiles; color=:black, linestyle=:dash, alpha=0.5)
@@ -351,7 +369,7 @@ Create a heatmap showing model reproduction quality across features.
 # Details
 Error values are normalized to [0,1] quality scale (0=poor, 1=perfect reproduction)
 """
-function plot_model_heatmap(errors::Dict{String, Vector{Float64}}, features::Vector{String})
+function Viz._glmakie_plot_model_heatmap(errors::Dict{String, Vector{Float64}}, features::Vector{String})
     # Prepare data: models × features matrix
     models = sort(collect(keys(errors)))
     n_models = length(models)
@@ -411,7 +429,7 @@ Create an interactive 3D scatter plot showing IBI[n] vs IBI[n+1] vs IBI[n+2].
 Points are colored by time progression (earlier → blue, later → red)
 useful for visualizing patterns in cardiac dynamics.
 """
-function plot_lorenz_3d(ibis::Vector{Float64}; title="Lorenz Plot 3D")
+function Viz._glmakie_plot_lorenz_3d(ibis::Vector{Float64}; title="Lorenz Plot 3D")
     # Construct 3D points: (IBI[n], IBI[n+1], IBI[n+2])
     n = length(ibis) - 2
     x = ibis[1:n]
@@ -437,92 +455,81 @@ function plot_lorenz_3d(ibis::Vector{Float64}; title="Lorenz Plot 3D")
 end
 
 """
-    plot_radar(data::Dict{String, Vector{Float64}}; names::Vector{String}) -> Figure
+    _glmakie_plot_radar(datasets::Dict{String, Vector{Float64}};
+                        features=nothing, title="Feature Comparison") -> Figure
 
-Create a radar/spider chart comparing multiple datasets across dimensions.
-
-# Arguments
-- `data::Dict{String, Vector{Float64}}`: Dict mapping labels to data vectors
-- `names::Vector{String}`: Dimension names for axes
-
-# Returns
-- `Figure`: GLMakie figure with radar chart
-
-# Details
-Values are normalized to [0, 1] using min-max scaling for fair comparison.
-Each dataset is plotted as a separate polygon.
+GLMakie radar/spider chart of per-dataset HRV features. Signature mirrors the
+public `plot_radar`; reached via `plot_radar(datasets; ...)` when GLMakie is
+loaded. Features are z-scored across datasets and drawn on a `PolarAxis`.
 """
-function plot_radar(data::Dict{String, Vector{Float64}}; names::Vector{String})
-    # Prepare data
-    keys_list = sort(collect(keys(data)))
-    n_dims = length(names)
+function Viz._glmakie_plot_radar(datasets::Dict{String, Vector{Float64}};
+                                 features=nothing, title="Feature Comparison")
+    isempty(datasets) && error("plot_radar: no datasets provided")
 
-    # Normalize data to [0, 1]
-    all_vals = vcat(collect.(values(data))...)
-    val_min = minimum(all_vals)
-    val_max = maximum(all_vals)
-
-    normalized_data = Dict()
-    for (key, vec) in data
-        normalized_data[key] = (vec .- val_min) ./ (val_max - val_min + 1e-8)
+    # Determine feature names exactly like the Plots version.
+    if features === nothing
+        features = HeartRateLab.Features.valid_features(length(first(values(datasets))))
+        isempty(features) && error("plot_radar: no valid features for this dataset length")
     end
 
-    # Create polar coordinates for radar plot
-    angles = range(0, 2π, length=n_dims+1)
+    # Extract feature values per dataset.
+    feature_matrix = Dict{String, Vector{Float64}}()
+    for (name, data) in datasets
+        row = HeartRateLab.Features.extract_feature_set(data)
+        feature_matrix[name] = Float64[
+            hasproperty(row, Symbol(f)) ? getproperty(row, Symbol(f))[1] : 0.0
+            for f in features
+        ]
+    end
+
+    # z-score across all datasets/features.
+    all_vals = vcat(values(feature_matrix)...)
+    μ = mean(all_vals); σ = std(all_vals); σ = σ > 1e-10 ? σ : 1e-10
+    normalized = Dict(k => (v .- μ) ./ σ for (k, v) in feature_matrix)
+
+    keys_list = sort(collect(keys(datasets)))
+    n_dims = length(features)
+    angles = collect(range(0, 2π, length=n_dims + 1))
 
     fig = Figure(size=(800, 800))
-    ax = PolarAxis(fig[1, 1]; title="Radar Chart", rticklabelsize=12)
-
-    # Plot each dataset
-    colors_map = Dict(k => HSL(i*360/length(keys_list), 0.7, 0.5)
+    ax = PolarAxis(fig[1, 1]; title=title, rticklabelsize=12)
+    colors_map = Dict(k => HSL(i * 360 / length(keys_list), 0.7, 0.5)
                       for (i, k) in enumerate(keys_list))
 
-    for (i, key) in enumerate(keys_list)
-        vals = normalized_data[key]
-        # Close the polygon
-        vals_closed = vcat(vals, vals[1])
-        angles_closed = angles
-
-        lines!(ax, angles_closed, vals_closed;
+    for key in keys_list
+        vals = normalized[key]
+        lines!(ax, angles, vcat(vals, vals[1]);
             label=key, color=colors_map[key], linewidth=3)
-        scatter!(ax, angles_closed[1:end-1], vals;
-            color=colors_map[key], markersize=8)
+        scatter!(ax, angles[1:end-1], vals; color=colors_map[key], markersize=8)
     end
-
-    # Set radial ticks and labels
-    ax.rticklabels = string.(0:0.25:1)
-    ax.thetaticklabels = names
-
+    ax.thetaticklabels = features
     axislegend(ax; position=:right)
-
     fig
 end
 
 """
-    plot_correlations(features_df::DataFrame; title="Feature Correlations") -> Figure
+    _glmakie_plot_correlations(feature_sets::Dict{String, DataFrame};
+                               features=nothing, title="Feature Correlations") -> Figure
 
-Create a correlation heatmap showing relationships between features.
-
-# Arguments
-- `features_df::DataFrame`: DataFrame with features as columns
-- `title::String`: Figure title
-
-# Returns
-- `Figure`: GLMakie figure with correlation heatmap
-
-# Details
-Computes Pearson correlation between all pairs of features.
-Displays correlation matrix as a symmetric heatmap.
-Diagonal shows perfect correlation (1.0).
+GLMakie Pearson-correlation heatmap. Signature mirrors the public
+`plot_correlations`; reached via `plot_correlations(feature_sets; ...)` when
+GLMakie is loaded. Rows from every dataset are pooled before correlating.
 """
-function plot_correlations(features_df::DataFrame; title="Feature Correlations")
-    # Convert to matrix if needed
-    data_matrix = Matrix(features_df)
+function Viz._glmakie_plot_correlations(feature_sets::Dict{String, DataFrame};
+                                        features=nothing, title="Feature Correlations")
+    isempty(feature_sets) && error("plot_correlations: no feature sets provided")
 
-    # Compute correlation matrix
+    if features === nothing
+        features = String.(names(first(values(feature_sets))))
+    end
+    features = String.(features)
+
+    # Pool rows across datasets into one matrix (columns = features).
+    cols = [vcat([Float64.(df[!, Symbol(f)]) for df in values(feature_sets)]...) for f in features]
+    data_matrix = reduce(hcat, cols)
+
     corr_matrix = Statistics.cor(data_matrix)
-
-    feature_names = names(features_df)
+    feature_names = features
     n_features = size(corr_matrix, 1)
 
     fig = Figure(size=(900, 900))
@@ -594,7 +601,7 @@ ensemble_df = extract_ensemble_features(ensemble)  # n_sim rows
 fig = plot_feature_violins(real_df, Dict("LIF" => ensemble_df))
 ```
 """
-function plot_feature_violins(real::DataFrame, ensembles::Dict{String, DataFrame}; features=nothing)
+function Viz._glmakie_plot_feature_violins(real::DataFrame, ensembles::Dict{String, DataFrame}; features=nothing)
     # Determine which features to use
     if isnothing(features)
         # Use all common columns
@@ -721,7 +728,7 @@ This is the flagship visualization showing:
 
 Works with any model supporting both simulation and Bayesian fitting (LIF, VanDerPol, Lorenz).
 """
-function plot_flagship(real_data::Vector{Float64}, fit_result::ModelFitResult; title="HeartRateLab Pipeline Demo")
+function Viz._glmakie_plot_flagship(real_data::Vector{Float64}, fit_result::ModelFitResult; title="HeartRateLab Pipeline Demo")
     # Validate inputs
     if isnothing(fit_result.posterior)
         @warn "fit_result has no posterior - using point estimates only"
@@ -941,10 +948,12 @@ end
 """
     __init__()
 
-Initialize the visualization extension. Called automatically when GLMakie is loaded.
+Initialize the visualization extension. Called automatically when GLMakie is
+loaded. Flips the package's default plotting backend to `:glmakie` so the public
+`plot_*` names dispatch to the interactive GLMakie methods added above.
 """
 function __init__()
-    # This function is called automatically when the extension is loaded
+    Viz._GLMAKIE_LOADED[] = true
 end
 
 end  # HeartRateLabVisualizationExt

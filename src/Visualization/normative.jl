@@ -2,9 +2,10 @@
 # normative.jl — Distribution comparison visualisations for normative analysis
 #
 # These functions compare windowed-feature distributions across datasets,
-# supporting the normative reference framework.  All functions follow the same
-# pattern used elsewhere in Visualization.jl: Plots.jl is accessed through
-# Main.xxx so the module does not hard-depend on any backend.
+# supporting the normative reference framework.  Like the rest of
+# Visualization.jl they render with Plots.jl (StatsPlots for `density!`), both
+# hard `[deps]` of the package, called directly as `Plots.xxx`/`StatsPlots.xxx`
+# — no user-side `using Plots` required.
 #
 # Public API:
 #   plot_normative_kde_comparison  — KDE grid with optional σ-band overlay
@@ -13,17 +14,6 @@
 # =============================================================================
 
 import Random
-
-# ─── helpers ─────────────────────────────────────────────────────────────────
-
-"""Return the value of `name` from `Main` if it is defined, otherwise `nothing`."""
-_main(name::Symbol) = isdefined(Main, name) ? getfield(Main, name) : nothing
-
-"""Raise an informative error when Plots.jl is not loaded."""
-function _require_plots(fname::String)
-    _main(:plot) === nothing &&
-        error("$fname requires Plots.jl. Please run: using Plots")
-end
 
 # ─── Palette ─────────────────────────────────────────────────────────────────
 
@@ -126,14 +116,12 @@ function plot_normative_kde_comparison(
     ncols::Int = 3,
     title::String = "Feature KDE Comparison",
 )
-    _require_plots("plot_normative_kde_comparison")
-
-    plot     = _main(:plot)
-    plot!    = _main(:plot!)
-    density! = _main(:density!)
-    vspan!   = _main(:vspan!)
-    xlims!   = _main(:xlims!)
-    plot_fn! = _main(:plot!)   # for overlaying fitted PDF
+    plot     = Plots.plot
+    plot!    = Plots.plot!
+    density! = StatsPlots.density!
+    vspan!   = Plots.vspan!
+    xlims!   = Plots.xlims!
+    plot_fn! = Plots.plot!   # for overlaying fitted PDF
 
     n     = length(features)
     ncols = max(1, min(ncols, n))
@@ -272,12 +260,10 @@ function plot_feature_correlogram(
     features::Vector{String};
     title::String = "Feature Correlation Matrix",
 )
-    _require_plots("plot_feature_correlogram")
-
-    heatmap_fn = _main(:heatmap)
-    annotate!  = _main(:annotate!)
-    plot_fn    = _main(:plot!)
-    cgrad_fn   = _main(:cgrad)
+    heatmap_fn = Plots.heatmap
+    annotate!  = Plots.annotate!
+    plot_fn    = Plots.plot!
+    cgrad_fn   = Plots.cgrad
 
     n   = length(features)
     mat = fill(NaN, n, n)
@@ -305,7 +291,7 @@ function plot_feature_correlogram(
     rev_mat      = mat[end:-1:1, :]
 
     # Reverse :RdBu so red = positive correlation, blue = negative.
-    cmap = cgrad_fn !== nothing ? cgrad_fn(:RdBu, rev=true) : :RdBu
+    cmap = cgrad_fn(:RdBu, rev=true)
 
     fig = heatmap_fn(
         1:n, 1:n, rev_mat;
@@ -321,14 +307,12 @@ function plot_feature_correlogram(
 
     # Annotate cells at exact integer cell centers.
     # mat[i,j] → stored in rev_mat row (n+1-i) → data-space y = (n+1-i), x = j.
-    text_fn = _main(:text)
-    if text_fn !== nothing
-        for i in 1:n, j in 1:n
-            isnan(mat[i, j]) && continue
-            txt = string(round(mat[i, j]; digits=2))
-            col = abs(mat[i, j]) > 0.5 ? :white : :black
-            annotate!(fig, j, n + 1 - i, text_fn(txt, 7, col, :hcenter, :vcenter))
-        end
+    text_fn = Plots.text
+    for i in 1:n, j in 1:n
+        isnan(mat[i, j]) && continue
+        txt = string(round(mat[i, j]; digits=2))
+        col = abs(mat[i, j]) > 0.5 ? :white : :black
+        annotate!(fig, j, n + 1 - i, text_fn(txt, 7, col, :hcenter, :vcenter))
     end
 
     return fig
@@ -370,17 +354,14 @@ function plot_normative_pairplot(
     title::String = "HRV Feature Pairplot",
     max_pts::Int  = 2_000,
 )
-    _require_plots("plot_normative_pairplot")
-
-    plot      = _main(:plot)
-    plot!     = _main(:plot!)
-    scatter!  = _main(:scatter!)
-    density!  = _main(:density!)
+    plot      = Plots.plot
+    plot!     = Plots.plot!
+    scatter!  = Plots.scatter!
+    density!  = StatsPlots.density!
 
     n         = length(features)
     cell_px   = 130
-    grid_fn   = _main(:grid)
-    layout    = grid_fn !== nothing ? grid_fn(n, n) : (n, n)
+    layout    = Plots.grid(n, n)
     fig       = plot(layout     = layout,
                      size       = (cell_px * n, cell_px * n),
                      plot_title = title)
