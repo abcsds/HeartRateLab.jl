@@ -31,13 +31,10 @@ Turing = "fce5fe82-541a-59a6-adf8-730c64b5f9a0"
 XDF = "31bc19ec-0089-417f-990e-a2b5e7515868"
 
 [weakdeps]
-DiffEqFlux = "aae7a2af-3d4f-5e19-a356-7da93b79d9d0"
-Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
 GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
 LSL = "57c3d5b1-721f-43a0-b20c-e9152d812276"
 
 [extensions]
-HeartRateLabDeepExt = ["Flux", "DiffEqFlux"]
 HeartRateLabLSLExt = ["LSL"]
 HeartRateLabVisualizationExt = ["GLMakie"]
 
@@ -47,12 +44,10 @@ DFA = "1.0.0"
 DSP = "0.6"
 DataFrames = "1"
 DataInterpolations = "4"
-DiffEqFlux = "2"
 DifferentialEquations = "7.10.0"
 Distributed = "1.11"
 Distributions = "0.25"
 EntropyHub = "2"
-Flux = "0.14"
 GLMakie = "0.11"
 Hurst = "0.1"
 HypothesisTests = "0.11"

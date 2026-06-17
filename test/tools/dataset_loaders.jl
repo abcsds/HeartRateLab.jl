@@ -4,8 +4,9 @@
 # (which never loaded: its BlackBoxOptim trigger weakdep was never imported).
 #
 # Status: NOT package API. These are a development/baseline-generation utility only.
-# See backlog d-18 for the planned cleanup into a real, tested, offline-first tool:
-#   - the `fill(800.0, 100)` fake-data fallbacks below must be replaced with honest errors
+# Fake-data fallbacks (`fill(800.0, 100)`) have been removed — failures now `rethrow`
+# honestly rather than fabricating flat data. See backlog d-18 for the remaining
+# planned cleanup into a real, tested, offline-first tool:
 #   - resolve a record ID to a bundled `test/testdata/` fixture before hitting the network
 #
 # Usage (dev only):
@@ -37,21 +38,21 @@ function load_physionet(url::String; annotator::String="atr", preprocessed::Bool
             Downloads.download(hea_url, record_file * ".hea")
         catch e
             @warn "Failed to download header file from $hea_url: $e"
-            return fill(800.0, 100)  # FIXME(d-18): honest error, not fake data
+            rethrow(e)  # honest failure — never fabricate data
         end
 
         try
             Downloads.download(dat_url, record_file * ".dat")
         catch e
             @warn "Failed to download data file from $dat_url: $e"
-            return fill(800.0, 100)  # FIXME(d-18)
+            rethrow(e)  # honest failure — never fabricate data
         end
 
         try
             Downloads.download(ann_url, record_file * "." * annotator)
         catch e
             @warn "Failed to download annotation file from $ann_url: $e"
-            return fill(800.0, 100)  # FIXME(d-18)
+            rethrow(e)  # honest failure — never fabricate data
         end
 
         try
@@ -64,7 +65,7 @@ function load_physionet(url::String; annotator::String="atr", preprocessed::Bool
             return ibis
         catch e
             @warn "Failed to read WFDB record: $e"
-            return fill(800.0, 100)  # FIXME(d-18)
+            rethrow(e)  # honest failure — never fabricate data
         end
     finally
         try

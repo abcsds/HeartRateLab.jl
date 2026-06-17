@@ -936,9 +936,18 @@ function rank_models(
     sort!(df, criterion)
 
     crit = df[!, criterion]
-    df.delta = crit .- minimum(crit)
-    rel = exp.(-0.5 .* df.delta)               # unnormalised relative likelihoods
-    df.weight = rel ./ sum(rel)
+    best = minimum(crit)
+    if isfinite(best)
+        df.delta = crit .- best
+        rel = exp.(-0.5 .* df.delta)           # unnormalised relative likelihoods
+        df.weight = rel ./ sum(rel)
+    else
+        # Every model failed to produce a finite criterion (e.g. none could
+        # simulate ⇒ loglik -Inf ⇒ criterion +Inf). There is no basis to weight
+        # them; `best - best = Inf - Inf = NaN` would otherwise poison delta/weight.
+        df.delta = fill(NaN, nrow(df))
+        df.weight = fill(NaN, nrow(df))
+    end
     df.rank = collect(1:nrow(df))
     return df
 end
