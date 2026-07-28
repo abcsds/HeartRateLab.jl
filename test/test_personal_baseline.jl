@@ -93,4 +93,33 @@ const VB = HeartRateLab.Visualization
         rm(tmp; force = true)
     end
 
+    @testset "generator core on a temp fixture" begin
+        # Build a tiny export dir: 2 recordings of 250 beats each
+        dir = mktempdir()
+        Random.seed!(7)
+        for k in 1:2
+            vals = round.(Int, 800.0 .+ 25.0 .* randn(250))
+            open(joinpath(dir, "rec$k.txt"), "w") do io
+                for v in vals
+                    println(io, v)
+                end
+            end
+        end
+
+        # Reproduce the generator's load+compute using the public helpers
+        recs = [Float64.(HeartRateLab.read_txt(joinpath(dir, f)))
+                for f in readdir(dir) if endswith(f, ".txt")]
+        grids = VB.compute_baseline_grids(recs; window_size = 100, stride = 25)
+
+        out = joinpath(dir, "baseline.csv")
+        VB.write_baseline_csv(out, grids, Dict("window_size" => "100"))
+        bl = VB.load_personal_baseline(out)
+
+        @test Set(keys(bl.grids)) == Set(VB.BASELINE_QUANTITIES)
+        @test all(length(bl.grids[q]) == 101 for q in VB.BASELINE_QUANTITIES)
+        # meanrr median should sit near the 800 ms generating mean
+        @test VB.baseline_quantile(bl, "meanrr", 50) ≈ 800.0 atol = 25.0
+        rm(dir; recursive = true, force = true)
+    end
+
 end
