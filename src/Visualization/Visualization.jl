@@ -128,7 +128,12 @@ function default_normative(; low = 10, high = 90, baseline = _NORMATIVE_BASELINE
     _NORMATIVE_LOW[]  = float(low)
     _NORMATIVE_HIGH[] = float(high)
     _NORMATIVE_BASELINE_PATH[] = String(baseline)
-    include(joinpath(@__DIR__, "default_normative.jl"))
+    # Evaluate the live script in `Main`, not this module: it does `using GLMakie`
+    # / `using LSL`, which are *weakdeps* of HeartRateLab (a bare `using` from the
+    # package module fails to resolve them). In `Main` the caller's
+    # `using HeartRateLab, GLMakie, LSL` has already made them available, and the
+    # script reaches back via `HeartRateLab.Visualization.…` for its overlay helpers.
+    Base.include(Main, joinpath(@__DIR__, "default_normative.jl"))
 end
 
 function bpm()
