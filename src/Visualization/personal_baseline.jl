@@ -130,3 +130,103 @@ function baseline_z(bl::PersonalBaseline, key::AbstractString, value::Real)
     return Distributions.quantile(Distributions.Normal(),
                                   clamp(p / 100, 1e-6, 1 - 1e-6))
 end
+
+# ── Grid computation + CSV IO ────────────────────────────────────────────────
+
+"""
+    compute_baseline_grids(recordings; window_size=100, stride=25) -> Dict
+
+Pool beat-level `drr` and per-window `meanrr`/`sdnn`/`rmssd`/`sd1`/`sd2`/
+`lf_peak`/`hf_peak` over `window_size`-beat windows (step `stride`) across
+`recordings`, then reduce each quantity to a 101-point integer-percentile grid.
+`meanrr` is the per-window mean RR (spec §9.2 — NOT pooled beat-level RR, which
+would be uninformatively wide). Recordings shorter than `window_size` still
+contribute their beat-level `drr`. Non-finite per-window values (e.g. `lf_peak`
+= NaN when a band has no peak — a documented survivorship note, spec §9.7) are
+dropped before the quantile reduction.
+"""
+function compute_baseline_grids(recordings::AbstractVector;
+                                window_size::Int = 100, stride::Int = 25)
+    pools = Dict(q => Float64[] for q in BASELINE_QUANTITIES)
+    for rec in recordings
+        w0 = Float64.(rec)
+        length(w0) < 2 && continue
+        append!(pools["drr"], diff(w0))
+        length(w0) < window_size && continue
+        for s in 1:stride:(length(w0) - window_size + 1)
+            w = @view w0[s:(s + window_size - 1)]
+            push!(pools["meanrr"],  Statistics.mean(w))
+            push!(pools["sdnn"],    _win_sdnn(w))
+            push!(pools["rmssd"],   _win_rmssd(w))
+            push!(pools["sd1"],     _win_sd1(w))
+            push!(pools["sd2"],     _win_sd2(w))
+            push!(pools["lf_peak"], _win_lf_peak(w))
+            push!(pools["hf_peak"], _win_hf_peak(w))
+        end
+    end
+    grids = Dict{String, Vector{Float64}}()
+    for q in BASELINE_QUANTITIES
+        vals = filter(isfinite, pools[q])
+        grids[q] = isempty(vals) ? fill(NaN, 101) :
+                   [Statistics.quantile(vals, i / 100) for i in 0:100]
+    end
+    return grids
+end
+
+"""
+    write_baseline_csv(path, grids, meta=Dict()) -> path
+
+Write the wide artifact: an optional `# k=v …` metadata line, then a `quantity`
+column plus `q0`…`q100`.
+"""
+function write_baseline_csv(path::AbstractString, grids::Dict,
+                            meta::AbstractDict = Dict{String,String}())
+    qs = [q for q in BASELINE_QUANTITIES if haskey(grids, q)]
+    df = DataFrames.DataFrame(quantity = qs)
+    for i in 0:100
+        df[!, "q$i"] = [grids[q][i + 1] for q in qs]
+    end
+    open(path, "w") do io
+        isempty(meta) ||
+            println(io, "# " * join(["$k=$v" for (k, v) in meta], " "))
+        # NOTE: CSV.write(io, df) with default `append=false` calls
+        # `_seekstart(io)` internally, which would rewind past the meta
+        # comment line just written and clobber it. `append=true` (with
+        # `header=true`, since CSV.jl otherwise sets `header = !append`)
+        # writes forward from the current position instead.
+        CSV.write(io, df; append = true, header = true)
+    end
+    return path
+end
+
+"""
+    load_personal_baseline(path) -> PersonalBaseline
+
+Read an artifact written by [`write_baseline_csv`](@ref). Parses the leading
+`# k=v …` comment (if any) into `.meta` and the `q0`…`q100` columns into `.grids`.
+Throws an actionable error if `path` is missing (spec §9.7); coerces any
+`missing` (CSV `NaN` round-trip) to `NaN`.
+"""
+function load_personal_baseline(path::AbstractString)
+    isfile(path) || error(
+        "Personal-baseline artifact not found: $(path)\n" *
+        "Generate it first:  julia --project=. test/tools/generate_personal_baseline.jl")
+    meta = Dict{String, String}()
+    open(path) do io
+        line = readline(io)
+        if startswith(line, "#")
+            for tok in split(strip(line[2:end]))
+                kv = split(tok, "=")
+                length(kv) == 2 && (meta[kv[1]] = kv[2])
+            end
+        end
+    end
+    df   = CSV.read(path, DataFrames.DataFrame; comment = "#")
+    qcol = ["q$i" for i in 0:100]
+    _f(v) = ismissing(v) ? NaN : Float64(v)   # CSV may read "NaN" back as missing
+    grids = Dict{String, Vector{Float64}}()
+    for row in eachrow(df)
+        grids[String(row.quantity)] = Float64[_f(row[c]) for c in qcol]
+    end
+    return PersonalBaseline(grids, meta)
+end

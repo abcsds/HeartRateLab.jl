@@ -67,4 +67,30 @@ const VB = HeartRateLab.Visualization
         @test VB.baseline_z(bl, "sdnn", 16.0) ≈ -0.9945 atol = 1e-3
     end
 
+    @testset "compute + write + load round-trip" begin
+        # Three synthetic 300-beat recordings around 800 ms
+        mkrec(seed) = (Random.seed!(seed);
+                       800.0 .+ 30.0 .* randn(300))
+        recs = [mkrec(1), mkrec(2), mkrec(3)]
+
+        grids = VB.compute_baseline_grids(recs; window_size = 100, stride = 25)
+        @test Set(keys(grids)) == Set(VB.BASELINE_QUANTITIES)
+        for q in VB.BASELINE_QUANTITIES
+            @test length(grids[q]) == 101
+            g = filter(isfinite, grids[q])
+            @test issorted(g)                       # quantile grid is monotone
+        end
+
+        tmp = tempname() * ".csv"
+        VB.write_baseline_csv(tmp, grids, Dict("window_size" => "100", "stride" => "25"))
+        @test isfile(tmp)
+
+        bl = VB.load_personal_baseline(tmp)
+        @test bl.meta["window_size"] == "100"
+        for q in VB.BASELINE_QUANTITIES
+            @test bl.grids[q] ≈ grids[q] nans = true
+        end
+        rm(tmp; force = true)
+    end
+
 end
