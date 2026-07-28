@@ -10,6 +10,7 @@ import Random
 # user-side `using Plots`. We `import` them here and call `Plots.plot` / etc.
 # directly rather than looking functions up in `Main` at call time.
 import Plots
+import CSV
 import StatsPlots
 # Render the GR backend headless to PNG (no display needed).
 function __init__()
@@ -1044,5 +1045,6 @@ end
 
 # ── Normative distribution comparison ──────────────────────────────────────
 include("normative.jl")
+include("personal_baseline.jl")
 
 end

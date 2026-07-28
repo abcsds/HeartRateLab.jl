@@ -14,4 +14,5 @@ cd(@__DIR__)
     include("test_models.jl")
     include("test_evaluation.jl")
     include("test_visualization.jl")
+    include("test_personal_baseline.jl")
 end
