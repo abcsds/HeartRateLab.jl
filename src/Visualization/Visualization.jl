@@ -101,6 +101,36 @@ function default()
     include(joinpath(@__DIR__, "default.jl"))
 end
 
+# ── default_normative: live viz with personal-baseline percentile overlays ──
+const _NORMATIVE_LOW  = Ref{Float64}(10.0)
+const _NORMATIVE_HIGH = Ref{Float64}(90.0)
+const _NORMATIVE_BASELINE_PATH =
+    Ref{String}(joinpath(@__DIR__, "..", "..", "docs", "personal_baseline_w100.csv"))
+
+"""
+    default_normative(; low=10, high=90, baseline=<docs/personal_baseline_w100.csv>)
+
+Live online HRV visualization — identical panels to [`default`](@ref) — with the
+user's **personal-baseline** percentile bands overlaid on every panel: shaded
+`low`–`high` band + median line on RR (window-mean)/SDNN/RMSSD, band edges on
+ΔRR, a live-centred median + dashed `low`/`high` marginal SD1/SD2 envelope on the
+Poincaré, and a full-height dashed line at the median LF/HF peak frequency on the
+spectrum. Each panel title also shows the current value's **personal** percentile
+and z-equivalent (spec §9.1). `low`/`high` are percentiles in 0–100; the baseline
+artifact is built by `test/tools/generate_personal_baseline.jl`. Requires GLMakie
++ an LSL RR stream.
+"""
+function default_normative(; low = 10, high = 90, baseline = _NORMATIVE_BASELINE_PATH[])
+    isfile(baseline) || error(
+        "Personal-baseline artifact not found: $(baseline)\n" *
+        "Generate it first:  julia --project=. test/tools/generate_personal_baseline.jl\n" *
+        "(or call default() for the plain viz without normative overlays)")
+    _NORMATIVE_LOW[]  = float(low)
+    _NORMATIVE_HIGH[] = float(high)
+    _NORMATIVE_BASELINE_PATH[] = String(baseline)
+    include(joinpath(@__DIR__, "default_normative.jl"))
+end
+
 function bpm()
     include(joinpath(@__DIR__, "heart_rate.jl"))
 end

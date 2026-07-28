@@ -122,4 +122,22 @@ const VB = HeartRateLab.Visualization
         rm(dir; recursive = true, force = true)
     end
 
+    @testset "default_normative launcher wiring" begin
+        # The live loop needs GLMakie + an LSL stream + a display, so it cannot
+        # run headless — assert the launcher exists and that its percentile
+        # config Refs are settable (the script reads exactly these).
+        @test isdefined(VB, :default_normative)
+        @test hasmethod(VB.default_normative, Tuple{})
+        VB._NORMATIVE_LOW[]  = 5.0
+        VB._NORMATIVE_HIGH[] = 95.0
+        @test VB._NORMATIVE_LOW[]  == 5.0
+        @test VB._NORMATIVE_HIGH[] == 95.0
+        VB._NORMATIVE_LOW[]  = 10.0   # restore defaults
+        VB._NORMATIVE_HIGH[] = 90.0
+        @test isfile(joinpath(pkgdir(HeartRateLab), "src", "Visualization",
+                              "default_normative.jl"))
+        # Live LSL loop is verified manually (stream + display required).
+        @test_skip "default_normative live loop — run manually with an LSL RR stream"
+    end
+
 end
