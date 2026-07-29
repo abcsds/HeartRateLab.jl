@@ -1,0 +1,98 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:JMB;src:url('fonts/JuliaMono-Bold.ttf')}
+body{margin:0;background:#fff;font-family:DejaVu Sans,Arial,sans-serif;color:#1a1a1e}
+h1{font-size:20px;margin:18px 24px 4px}.sub{margin:0 24px 8px;color:#666;font-size:14px}
+#vis{width:100%;display:block}
+table{border-collapse:collapse;margin:14px 24px 30px;font-size:15px}
+td,th{border:1px solid #ddd;padding:6px 12px;text-align:right}th{background:#f3f3f5;text-align:left}
+td:first-child{text-align:left}
+.pu{color:#9558B2}.rd{color:#CB3C33}.gn{color:#389826}
+details{margin:0 24px 30px;color:#888}
+</style></head><body>
+<h1>HeartRateLab — JuliaMono Bold — glyph geometry (em = 1000 units)</h1>
+<p class="sub" id="sub">measuring…</p>
+<div id="vis"></div>
+<div id="tblwrap"></div>
+<details><summary>raw values (json)</summary><pre id="out">PENDING</pre></details>
+<script>
+const FS=1000, WORD="HeartRateLab";
+const PU="#9558B2",RD="#CB3C33",GN="#389826",INK="#1a1a1e",GRID="#b8bcc4",DIM="#444";
+const cv=document.createElement('canvas'),ctx=cv.getContext('2d');
+const R=x=>Math.round(x);
+(async()=>{
+ await document.fonts.load(`${FS}px JMB`); await document.fonts.ready;
+ ctx.font=`${FS}px JMB`; ctx.textBaseline='alphabetic';
+ const penX=i=>ctx.measureText(WORD.substring(0,i)).width;
+ const box=(ch,i)=>{const px=penX(i),m=ctx.measureText(ch);
+   const inkL=px-m.actualBoundingBoxLeft, inkR=px+m.actualBoundingBoxRight;
+   return{ch,px:R(px),inkL:R(inkL),inkR:R(inkR),center:R((inkL+inkR)/2),inkW:R(inkR-inkL),adv:R(m.width)};};
+ const H=box('H',0),Rr=box('R',5),L=box('L',9);
+ const last=box('b',11);
+ const cap=R(ctx.measureText('H').actualBoundingBoxAscent);
+ const xh=R(ctx.measureText('x').actualBoundingBoxAscent);
+ const asc=R(ctx.measureText('b').actualBoundingBoxAscent);
+ const desc=R(ctx.measureText('p').actualBoundingBoxDescent);
+ const advChar=R(ctx.measureText('H').width);
+ const advWidth=R(ctx.measureText(WORD).width);
+ const wL=H.inkL, wR=last.inkR;
+ const gHR=Rr.center-H.center, gRL=L.center-Rr.center, ratio=gHR/gRL;
+ const dWord=2*(H.center-wL), r=dWord/2;          // largest circle centred on H that stays inside word-left
+ const gap=R(0.18*cap);
+ const cyc=-(cap+gap+r);                            // circle centre y (above cap line)
+
+ // ---- annotated SVG ----
+ const minX=-380, w=advWidth+760, minY=cyc-r-230, maxY=desc+430, h=maxY-minY;
+ const S=[]; const A=(...s)=>S.push(...s);
+ const line=(x1,y1,x2,y2,c,sw,d="")=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="${sw}"${d?` stroke-dasharray="${d}"`:''}/>`;
+ const tx=(x,y,s,sz,c,a="start",wt=400)=>`<text x="${x}" y="${y}" font-family="DejaVu Sans,Arial" font-size="${sz}" font-weight="${wt}" fill="${c}" text-anchor="${a}">${s}</text>`;
+ A(`<rect x="${minX}" y="${minY}" width="${w}" height="${h}" fill="#f7f7f9"/>`);
+ // horizontal reference lines
+ A(line(minX,0,advWidth+300,0,INK,4));                          // baseline
+ A(line(minX,-cap,advWidth+300,-cap,"#c0392b",3,"16 10"));       // cap
+ A(line(minX,-xh,advWidth+300,-xh,GRID,2,"5 12"));               // x-height
+ A(tx(minX+14,-6,"baseline 0",52,"#555"));
+ A(tx(minX+14,-cap-14,`cap-height ${cap}`,52,"#c0392b"));
+ A(tx(minX+14,-xh-14,`x-height ${xh}`,48,"#8a8f98"));
+ // word ink edges
+ A(line(wL,-cap-150,0,-cap-150,"#888",0)); // spacer noop
+ [[wL,`word ink L ${wL}`],[wR,`word ink R ${wR}`]].forEach(([x,t])=>{
+   A(line(x,-cap-120,x,desc+60,"#9aa0aa",2,"10 8")); A(tx(x,-cap-140,t,44,"#777","middle"));});
+ // the word
+ A(`<text x="0" y="0" font-family="JMB" font-size="${FS}" fill="${INK}">HeartRateLab</text>`);
+ // per-letter: ink box, centre line, circle, labels
+ [[H,PU,'H'],[Rr,RD,'R'],[L,GN,'L']].forEach(([b,c,nm])=>{
+   A(`<rect x="${b.inkL}" y="${-cap}" width="${b.inkW}" height="${cap}" fill="none" stroke="${c}" stroke-width="2.5" stroke-dasharray="5 7" opacity="0.65"/>`);
+   A(line(b.center,cyc,b.center,desc+120,c,2.5,"3 9"));
+   A(`<circle cx="${b.center}" cy="${cyc}" r="${r}" fill="${c}" stroke="#fff" stroke-width="6"/>`);
+   A(tx(b.center,desc+200,`${nm}  center x=${b.center}`,50,c,"middle",700));
+   A(tx(b.center,desc+264,`ink ${b.inkL}–${b.inkR} (w=${b.inkW})`,42,c,"middle"));
+ });
+ // circle spec + gap
+ A(tx(Rr.center,cyc-r-70,`circle Ø=${R(dWord)} (${(dWord/cap).toFixed(2)}·cap) · gap ${gap} (0.18·cap)`,54,INK,"middle",700));
+ A(line(H.center,-cap,H.center,cyc+r,"#aaa",0)); // (kept minimal)
+ // hop dimensions under the word
+ const dy=desc+340, dim=(x1,x2,y,t,c)=>`${line(x1,y,x2,y,c,3)}${line(x1,y-28,x1,y+28,c,3)}${line(x2,y-28,x2,y+28,c,3)}${tx((x1+x2)/2,y-16,t,50,c,"middle",700)}`;
+ A(dim(H.center,Rr.center,dy,`H→R ${gHR}  ·  Heart (5)`,INK));
+ A(dim(Rr.center,L.center,dy,`R→L ${gRL}  ·  Rate (4)`,INK));
+ A(tx((H.center+L.center)/2,dy+70,`hop ratio  H→R : R→L = ${ratio.toFixed(2)} : 1`,56,INK,"middle",700));
+ document.getElementById('vis').innerHTML=
+   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${minY} ${w} ${h}" style="max-width:100%;height:auto;background:#f7f7f9">${S.join('')}</svg>`;
+
+ // ---- plain table ----
+ const rows=[
+   ['cap-height',cap],['x-height',xh],['ascender',asc],['descender',desc],
+   ['advance / char (monospace)',advChar],['word advance width',advWidth],
+   ['word ink left / right',`${wL} / ${wR}`],
+   ['H optical centre',H.center],['R optical centre',Rr.center],['L optical centre',L.center],
+   ['H / R / L ink width',`${H.inkW} / ${Rr.inkW} / ${L.inkW}`],
+   ['hop H→R (Heart, 5)',gHR],['hop R→L (Rate, 4)',gRL],['hop ratio',ratio.toFixed(3)+' : 1'],
+   ['circle Ø (word-bounded)',`${R(dWord)}  = ${(dWord/cap).toFixed(2)}·cap`],
+   ['circle gap above cap',`${gap}  = 0.18·cap`],
+ ];
+ document.getElementById('tblwrap').innerHTML='<table><tr><th>metric</th><th>value (em=1000)</th></tr>'+
+   rows.map(([a,b])=>`<tr><td>${a}</td><td>${b}</td></tr>`).join('')+'</table>';
+ document.getElementById('sub').textContent='JuliaMono Bold · monospace · baseline y=0, up is −y · all values in em units (font-size 1000)';
+ document.getElementById('out').textContent=JSON.stringify({cap,xh,asc,desc,advChar,advWidth,wL,wR,H,R:Rr,L,gHR,gRL,ratio,dWord:R(dWord),gap});
+ document.title='DONE';
+})();
+</script></body></html>
