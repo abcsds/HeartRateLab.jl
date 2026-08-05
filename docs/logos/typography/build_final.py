@@ -128,7 +128,10 @@ function render(t){let hi=n-1;for(let i=0;i<hops.length;i++){if(t<hops[i].t0+hop
  const since=t-h.t0,bs=since<SQ?Math.exp(-4.5*since/SQ):0,R=c.ball.r;let rx,ry,cy;
  if(c.ring){rx=R*(1+0.16*bs);ry=R*(1-0.16*bs);cy=y;}else{rx=R*(1+0.26*bs);ry=R*(1-0.32*bs);cy=y+(R-ry);}
  ball.setAttribute('cx',x.toFixed(1));ball.setAttribute('cy',cy.toFixed(1));ball.setAttribute('rx',rx.toFixed(1));ball.setAttribute('ry',ry.toFixed(1));ball.setAttribute('fill',h.col);ball.setAttribute('opacity','1');
- T.forEach((tg,j)=>{const q=el.querySelector('#'+tg.circ);if(!q)return;let o=(t>=arrive[j])?1:0;if(t>=wrapStart)o*=Math.max(0,1-(t-wrapStart)/wrapDur);q.setAttribute('opacity',o.toFixed(3));});}
+ T.forEach((tg,j)=>{const q=el.querySelector('#'+tg.circ);if(!q)return;let o;
+  if(c.depositMode==='single'){o=(hi===j)?1:0;}                       // one beat at a time, continuous handoff
+  else{o=(t>=arrive[j])?1:0;if(t>=wrapStart)o*=Math.max(0,1-(t-wrapStart)/wrapDur);}
+  q.setAttribute('opacity',o.toFixed(3));});}
 const HM=location.hash.match(/[#&]t=(\d+)/);
 if(HM){render((+HM[1])%cycle);}else{let t0=null;function fr(ts){if(t0===null)t0=ts;render((ts-t0)%cycle);requestAnimationFrame(fr);}requestAnimationFrame(fr);}
 })();
@@ -177,7 +180,7 @@ for x1,y1,x2,y2 in RING_TICKS:
 for j,(x,y,col) in enumerate(RING_DOTS):
     ring_body.append(f'<circle id="d{j}" cx="{x:.0f}" cy="{y:.0f}" r="{RDOT:.0f}" fill="{col}" opacity="0"/>')
 r_static="".join(ring_body)+f'<g>{hrl_ink()}</g>'
-r_cfg={"ring":True,"ringR":RINGR,"timeUnit":0.42,"ball":{"r":RDOT},
+r_cfg={"ring":True,"ringR":RINGR,"timeUnit":0.42,"ball":{"r":RDOT},"depositMode":"single",
        "targets":[{"x":RING_DOTS[j][0],"y":RING_DOTS[j][1],"col":RING_DOTS[j][2],"ang":round(RANG[j],5),"circ":f"d{j}"} for j in range(3)]}
 rw,rh=anim_page('ring',RING_AVB,r_static,RDOT,(0,-760),r_cfg)
 manifest['ring'].update(anim_w=rw,anim_h=rh,cycle=cycle_ring(0.42))

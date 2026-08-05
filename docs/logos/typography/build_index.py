@@ -1,4 +1,102 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8">
+#!/usr/bin/env python3
+"""Build index.html — the design-process report. The HEADER is the interactive
+comb-under logo (logo 1) with every guideline parameter drawn on the mark and
+lit on hover of its card. Below: the three final lockups, the report gallery, and
+the parameter table. Geometry from metrics_900.json (JuliaMono Black, em=1000)."""
+import json, pathlib
+H = pathlib.Path(__file__).resolve().parent
+M = json.loads((H/"metrics_900.json").read_text())
+A=M['advChar']; cap=M['cap']; advW=M['advWidth']; wL=M['wL']; wR=M['wR']
+Hc,Rc,Lc = M['H'],M['R'],M['L']
+PU,GN,RD,BL,INK,GRAY,GOLD = "#9558B2","#389826","#CB3C33","#4063D8","#1b1b1f","#8A8F98","#b8860b"
+# comb-under geometry
+m=132.0; Rr=300.0; cCy=m+Rr; cTop=cCy-Rr; cBot=cCy+Rr; combNear=2*m+2*Rr; combFar=combNear+280; tW=84.0
+gHR=Rc-Hc; gRL=Lc-Rc
+CELL=[i*A+A/2 for i in range(12)]
+
+def ln(x1,y1,x2,y2,c,w,d="",o=1,cap_="round"):
+    da=f' stroke-dasharray="{d}"' if d else ""
+    return f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="{c}" stroke-width="{w:.1f}"{da} stroke-linecap="{cap_}" opacity="{o}"/>'
+def tx(x,y,s,sz,c,a="start",w=700,ha=False):
+    halo=' paint-order="stroke" stroke="#fff" stroke-width="7"' if ha else ''
+    return f'<text x="{x:.0f}" y="{y:.0f}" font-family="JMB,monospace" font-size="{sz:.0f}" font-weight="{w}" fill="{c}" text-anchor="{a}"{halo}>{s}</text>'
+def vcal(x,y1,y2,label,c):
+    y1,y2=sorted((y1,y2))
+    return (ln(x,y1,x,y2,c,7,cap_="butt")+ln(x-44,y1,x+44,y1,c,7,cap_="butt")+ln(x-44,y2,x+44,y2,c,7,cap_="butt")
+            +tx(x-58,(y1+y2)/2+24,label,74,c,"end",700,True))
+def hcal(y,x1,x2,label,c):
+    return (ln(x1,y,x2,y,c,7,cap_="butt")+ln(x1,y-40,x1,y+40,c,7,cap_="butt")+ln(x2,y-40,x2,y+40,c,7,cap_="butt")
+            +tx((x1+x2)/2,y-30,label,74,c,"middle",700,True))
+def dim(x1,x2,y,label,c):
+    return (ln(x1,y,x2,y,c,6)+ln(x1,y-30,x1,y+30,c,6)+ln(x2,y-30,x2,y+30,c,6)+tx((x1+x2)/2,y-22,label,70,c,"middle",700,True))
+def wordC():
+    return ('<text x="0" y="0" font-family="JMB,monospace" font-size="1000" fill="'+INK+'">'
+            f'<tspan fill="{PU}">H</tspan>eart<tspan fill="{RD}">R</tspan>ate<tspan fill="{GN}">L</tspan>ab</text>')
+
+def hero():
+    vbX=-620; vbY=-cap-260; vbW=advW+900; vbH=(combFar+240)-vbY
+    S=[f'<svg id="hero" class="hero-svg anno-svg" viewBox="{vbX:.0f} {vbY:.0f} {vbW:.0f} {vbH:.0f}">']
+    # base logo
+    S.append('<g class="base">')
+    S.append(f'<line x1="{wL-40:.0f}" y1="{combFar}" x2="{wR+40:.0f}" y2="{combFar}" stroke="{GRAY}" stroke-width="{tW}" stroke-linecap="round"/>')
+    for i in range(12):
+        if i==0: x,col=Hc,PU
+        elif i==5: x,col=Rc,RD
+        elif i==9: x,col=Lc,GN
+        else: x,col=CELL[i],GRAY
+        S.append(ln(x,combFar,x,combNear,col,(tW if i in(0,5,9) else tW*0.72)))
+    for x,col in [(Hc,PU),(Rc,RD),(Lc,GN)]:
+        S.append(f'<circle cx="{x:.0f}" cy="{cCy:.0f}" r="{Rr:.0f}" fill="{col}"/>')
+    S.append(f'<g>{wordC()}</g></g>')
+    def An(k,b): S.append(f'<g class="anno" data-k="{k}">{b}</g>')
+    # diameter
+    An("dia", f'<rect x="0" y="{-cap:.0f}" width="{A}" height="{cap:.0f}" fill="{GOLD}" opacity="0.13"/>'
+        + "".join(f'<circle cx="{c:.0f}" cy="{cCy:.0f}" r="{Rr:.0f}" fill="none" stroke="{GOLD}" stroke-width="7"/>' for c in (Hc,Rc,Lc))
+        + hcal(cCy, Hc-Rr, Hc+Rr, "Ø 600", GOLD)
+        + tx(Hc, cBot+120, "ball = one letter wide", 70, GOLD,"middle",700,True))
+    # equal margins
+    mx=-210
+    guides="".join(ln(mx-10,yy,wL,yy,"#c7ccd4",2,"10 10") for yy in (0,cTop,cBot,combNear))
+    An("margin", guides + vcal(mx, 0, cTop, "m 132", GOLD) + vcal(mx, cBot, combNear, "m 132", GOLD)
+        + tx(mx-70, cCy, "equal", 66, GOLD,"end",700,True))
+    # optical centres
+    ce=[]
+    for c,col,nm in [(Hc,PU,"H"),(Rc,RD,"R"),(Lc,GN,"L")]:
+        ce.append(ln(c,-cap,c,combFar,col,4,"3 10"))
+        ce.append(f'<circle cx="{c:.0f}" cy="{cCy:.0f}" r="{Rr:.0f}" fill="none" stroke="{col}" stroke-width="7"/>')
+        ce.append(tx(c,-cap-46,f"{nm} {c:.0f}",66,col,"middle",700,True))
+    An("centres","".join(ce))
+    # comb
+    An("comb", ln(wL-40,combFar,wR+40,combFar,BL,tW+14,o=0.32)
+        + "".join(ln((Hc if i==0 else Rc if i==5 else Lc if i==9 else CELL[i]),combFar,(Hc if i==0 else Rc if i==5 else Lc if i==9 else CELL[i]),combNear,BL,tW+8,o=0.28) for i in range(12))
+        + hcal(1004, CELL[1], CELL[2], "600", BL)
+        + tx((wL+wR)/2, combFar+150, "comb line · 12 IBI ticks, one per letter", 70, BL,"middle",700,True))
+    # colours
+    co=[]
+    for c,col,hx in [(Hc,PU,"#9558B2"),(Rc,RD,"#CB3C33"),(Lc,GN,"#389826")]:
+        co.append(f'<circle cx="{c:.0f}" cy="{cCy:.0f}" r="{Rr:.0f}" fill="{col}"/>')
+        co.append(tx(c,cCy+22,hx,58,"#fff","middle",700))
+    An("colours","".join(co))
+    # rhythm
+    ry=combFar+140
+    An("rhythm", dim(Hc,Rc,ry,f"H→R {gHR:.0f}",INK)+dim(Rc,Lc,ry,f"R→L {gRL:.0f}",INK)
+        + tx((Hc+Lc)/2, ry+90, "5 : 4  (cells 3000:2400 · optical ~1.26)", 62, INK,"middle",700,True))
+    S.append('</svg>')
+    return "".join(S)
+
+CARDS=[
+ ("dia","Ball Ø","600","Each ball is <b>one letter wide</b> — the 600 monospace advance (0.82·cap) — floating below its capital."),
+ ("margin","Equal margins","m = 132","The gap <b>letter→ball</b> equals <b>ball→comb line</b> — both 132 (0.18·cap). The ball floats centred in the band."),
+ ("centres","Optical centres","305·3313·5705","Ball, tick and capital share <b>one vertical axis</b> — each capital's ink centre, not its 600-cell centre."),
+ ("comb","The comb","12 × 600","A gray IBI-tick rail under the word — one tick per letter, 600 apart; the three at H·R·L are tinted."),
+ ("colours","Julia palette","purple·red·green","H <b>#9558B2</b>, R <b>#CB3C33</b>, L <b>#389826</b> — three of the four brand hues; blue stays reserved."),
+ ("rhythm","Rhythm","5 : 4","Cell-centre hops <b>3000 : 2400</b> = exactly 5:4 (optical ≈1.26) — a swung triplet, the cadence the package measures."),
+]
+def cards():
+    return "\n".join(f'<div class="mcard" data-hl="{k}"><div class="mtop"><span class="mtitle">{t}</span>'
+        f'<span class="mval mono">{v}</span></div><p>{d}</p></div>' for k,t,v,d in CARDS)
+
+TPL=r"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HeartRateLab · Logo design process &amp; final marks</title>
 <style>
@@ -67,14 +165,9 @@ footer{padding:28px 0 64px;color:var(--mut);font-size:13px;border-top:1px solid 
   <p class="lead"><b>HeartRateLab</b> in <b>JuliaMono&nbsp;Black&nbsp;(900)</b>, the three capitals tinted in the Julia
   palette. Below is the primary lockup — <b>comb-under</b> — with every guideline drawn on it: <b>hover a parameter
   card</b> to light it up on the mark.</p>
-  <div class="herobox"><svg id="hero" class="hero-svg anno-svg" viewBox="-620 -994 8100 2378"><g class="base"><line x1="7" y1="1144.0" x2="7203" y2="1144.0" stroke="#8A8F98" stroke-width="84.0" stroke-linecap="round"/><line x1="304.7" y1="1144.0" x2="304.7" y2="864.0" stroke="#9558B2" stroke-width="84.0" stroke-linecap="round" opacity="1"/><line x1="900.0" y1="1144.0" x2="900.0" y2="864.0" stroke="#8A8F98" stroke-width="60.5" stroke-linecap="round" opacity="1"/><line x1="1500.0" y1="1144.0" x2="1500.0" y2="864.0" stroke="#8A8F98" stroke-width="60.5" stroke-linecap="round" opacity="1"/><line x1="2100.0" y1="1144.0" x2="2100.0" y2="864.0" stroke="#8A8F98" stroke-width="60.5" stroke-linecap="round" opacity="1"/><line x1="2700.0" y1="1144.0" x2="2700.0" y2="864.0" stroke="#8A8F98" stroke-width="60.5" stroke-linecap="round" opacity="1"/><line x1="3312.5" y1="1144.0" x2="3312.5" y2="864.0" stroke="#CB3C33" stroke-width="84.0" stroke-linecap="round" opacity="1"/><line x1="3900.0" y1="1144.0" x2="3900.0" y2="864.0" stroke="#8A8F98" stroke-width="60.5" stroke-linecap="round" opacity="1"/><line x1="4500.0" y1="1144.0" x2="4500.0" y2="864.0" stroke="#8A8F98" stroke-width="60.5" stroke-linecap="round" opacity="1"/><line x1="5100.0" y1="1144.0" x2="5100.0" y2="864.0" stroke="#8A8F98" stroke-width="60.5" stroke-linecap="round" opacity="1"/><line x1="5704.7" y1="1144.0" x2="5704.7" y2="864.0" stroke="#389826" stroke-width="84.0" stroke-linecap="round" opacity="1"/><line x1="6300.0" y1="1144.0" x2="6300.0" y2="864.0" stroke="#8A8F98" stroke-width="60.5" stroke-linecap="round" opacity="1"/><line x1="6900.0" y1="1144.0" x2="6900.0" y2="864.0" stroke="#8A8F98" stroke-width="60.5" stroke-linecap="round" opacity="1"/><circle cx="305" cy="432" r="300" fill="#9558B2"/><circle cx="3313" cy="432" r="300" fill="#CB3C33"/><circle cx="5705" cy="432" r="300" fill="#389826"/><g><text x="0" y="0" font-family="JMB,monospace" font-size="1000" fill="#1b1b1f"><tspan fill="#9558B2">H</tspan>eart<tspan fill="#CB3C33">R</tspan>ate<tspan fill="#389826">L</tspan>ab</text></g></g><g class="anno" data-k="dia"><rect x="0" y="-734" width="600" height="734" fill="#b8860b" opacity="0.13"/><circle cx="305" cy="432" r="300" fill="none" stroke="#b8860b" stroke-width="7"/><circle cx="3313" cy="432" r="300" fill="none" stroke="#b8860b" stroke-width="7"/><circle cx="5705" cy="432" r="300" fill="none" stroke="#b8860b" stroke-width="7"/><line x1="4.7" y1="432.0" x2="604.7" y2="432.0" stroke="#b8860b" stroke-width="7.0" stroke-linecap="butt" opacity="1"/><line x1="4.7" y1="392.0" x2="4.7" y2="472.0" stroke="#b8860b" stroke-width="7.0" stroke-linecap="butt" opacity="1"/><line x1="604.7" y1="392.0" x2="604.7" y2="472.0" stroke="#b8860b" stroke-width="7.0" stroke-linecap="butt" opacity="1"/><text x="305" y="402" font-family="JMB,monospace" font-size="74" font-weight="700" fill="#b8860b" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="7">Ø 600</text><text x="305" y="852" font-family="JMB,monospace" font-size="70" font-weight="700" fill="#b8860b" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="7">ball = one letter wide</text></g><g class="anno" data-k="margin"><line x1="-220.0" y1="0.0" x2="46.9" y2="0.0" stroke="#c7ccd4" stroke-width="2.0" stroke-dasharray="10 10" stroke-linecap="round" opacity="1"/><line x1="-220.0" y1="132.0" x2="46.9" y2="132.0" stroke="#c7ccd4" stroke-width="2.0" stroke-dasharray="10 10" stroke-linecap="round" opacity="1"/><line x1="-220.0" y1="732.0" x2="46.9" y2="732.0" stroke="#c7ccd4" stroke-width="2.0" stroke-dasharray="10 10" stroke-linecap="round" opacity="1"/><line x1="-220.0" y1="864.0" x2="46.9" y2="864.0" stroke="#c7ccd4" stroke-width="2.0" stroke-dasharray="10 10" stroke-linecap="round" opacity="1"/><line x1="-210.0" y1="0.0" x2="-210.0" y2="132.0" stroke="#b8860b" stroke-width="7.0" stroke-linecap="butt" opacity="1"/><line x1="-254.0" y1="0.0" x2="-166.0" y2="0.0" stroke="#b8860b" stroke-width="7.0" stroke-linecap="butt" opacity="1"/><line x1="-254.0" y1="132.0" x2="-166.0" y2="132.0" stroke="#b8860b" stroke-width="7.0" stroke-linecap="butt" opacity="1"/><text x="-268" y="90" font-family="JMB,monospace" font-size="74" font-weight="700" fill="#b8860b" text-anchor="end" paint-order="stroke" stroke="#fff" stroke-width="7">m 132</text><line x1="-210.0" y1="732.0" x2="-210.0" y2="864.0" stroke="#b8860b" stroke-width="7.0" stroke-linecap="butt" opacity="1"/><line x1="-254.0" y1="732.0" x2="-166.0" y2="732.0" stroke="#b8860b" stroke-width="7.0" stroke-linecap="butt" opacity="1"/><line x1="-254.0" y1="864.0" x2="-166.0" y2="864.0" stroke="#b8860b" stroke-width="7.0" stroke-linecap="butt" opacity="1"/><text x="-268" y="822" font-family="JMB,monospace" font-size="74" font-weight="700" fill="#b8860b" text-anchor="end" paint-order="stroke" stroke="#fff" stroke-width="7">m 132</text><text x="-280" y="432" font-family="JMB,monospace" font-size="66" font-weight="700" fill="#b8860b" text-anchor="end" paint-order="stroke" stroke="#fff" stroke-width="7">equal</text></g><g class="anno" data-k="centres"><line x1="304.7" y1="-734.4" x2="304.7" y2="1144.0" stroke="#9558B2" stroke-width="4.0" stroke-dasharray="3 10" stroke-linecap="round" opacity="1"/><circle cx="305" cy="432" r="300" fill="none" stroke="#9558B2" stroke-width="7"/><text x="305" y="-780" font-family="JMB,monospace" font-size="66" font-weight="700" fill="#9558B2" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="7">H 305</text><line x1="3312.5" y1="-734.4" x2="3312.5" y2="1144.0" stroke="#CB3C33" stroke-width="4.0" stroke-dasharray="3 10" stroke-linecap="round" opacity="1"/><circle cx="3313" cy="432" r="300" fill="none" stroke="#CB3C33" stroke-width="7"/><text x="3313" y="-780" font-family="JMB,monospace" font-size="66" font-weight="700" fill="#CB3C33" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="7">R 3313</text><line x1="5704.7" y1="-734.4" x2="5704.7" y2="1144.0" stroke="#389826" stroke-width="4.0" stroke-dasharray="3 10" stroke-linecap="round" opacity="1"/><circle cx="5705" cy="432" r="300" fill="none" stroke="#389826" stroke-width="7"/><text x="5705" y="-780" font-family="JMB,monospace" font-size="66" font-weight="700" fill="#389826" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="7">L 5705</text></g><g class="anno" data-k="comb"><line x1="6.9" y1="1144.0" x2="7202.5" y2="1144.0" stroke="#4063D8" stroke-width="98.0" stroke-linecap="round" opacity="0.32"/><line x1="304.7" y1="1144.0" x2="304.7" y2="864.0" stroke="#4063D8" stroke-width="92.0" stroke-linecap="round" opacity="0.28"/><line x1="900.0" y1="1144.0" x2="900.0" y2="864.0" stroke="#4063D8" stroke-width="92.0" stroke-linecap="round" opacity="0.28"/><line x1="1500.0" y1="1144.0" x2="1500.0" y2="864.0" stroke="#4063D8" stroke-width="92.0" stroke-linecap="round" opacity="0.28"/><line x1="2100.0" y1="1144.0" x2="2100.0" y2="864.0" stroke="#4063D8" stroke-width="92.0" stroke-linecap="round" opacity="0.28"/><line x1="2700.0" y1="1144.0" x2="2700.0" y2="864.0" stroke="#4063D8" stroke-width="92.0" stroke-linecap="round" opacity="0.28"/><line x1="3312.5" y1="1144.0" x2="3312.5" y2="864.0" stroke="#4063D8" stroke-width="92.0" stroke-linecap="round" opacity="0.28"/><line x1="3900.0" y1="1144.0" x2="3900.0" y2="864.0" stroke="#4063D8" stroke-width="92.0" stroke-linecap="round" opacity="0.28"/><line x1="4500.0" y1="1144.0" x2="4500.0" y2="864.0" stroke="#4063D8" stroke-width="92.0" stroke-linecap="round" opacity="0.28"/><line x1="5100.0" y1="1144.0" x2="5100.0" y2="864.0" stroke="#4063D8" stroke-width="92.0" stroke-linecap="round" opacity="0.28"/><line x1="5704.7" y1="1144.0" x2="5704.7" y2="864.0" stroke="#4063D8" stroke-width="92.0" stroke-linecap="round" opacity="0.28"/><line x1="6300.0" y1="1144.0" x2="6300.0" y2="864.0" stroke="#4063D8" stroke-width="92.0" stroke-linecap="round" opacity="0.28"/><line x1="6900.0" y1="1144.0" x2="6900.0" y2="864.0" stroke="#4063D8" stroke-width="92.0" stroke-linecap="round" opacity="0.28"/><line x1="900.0" y1="1004.0" x2="1500.0" y2="1004.0" stroke="#4063D8" stroke-width="7.0" stroke-linecap="butt" opacity="1"/><line x1="900.0" y1="964.0" x2="900.0" y2="1044.0" stroke="#4063D8" stroke-width="7.0" stroke-linecap="butt" opacity="1"/><line x1="1500.0" y1="964.0" x2="1500.0" y2="1044.0" stroke="#4063D8" stroke-width="7.0" stroke-linecap="butt" opacity="1"/><text x="1200" y="974" font-family="JMB,monospace" font-size="74" font-weight="700" fill="#4063D8" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="7">600</text><text x="3605" y="1294" font-family="JMB,monospace" font-size="70" font-weight="700" fill="#4063D8" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="7">comb line · 12 IBI ticks, one per letter</text></g><g class="anno" data-k="colours"><circle cx="305" cy="432" r="300" fill="#9558B2"/><text x="305" y="454" font-family="JMB,monospace" font-size="58" font-weight="700" fill="#fff" text-anchor="middle">#9558B2</text><circle cx="3313" cy="432" r="300" fill="#CB3C33"/><text x="3313" y="454" font-family="JMB,monospace" font-size="58" font-weight="700" fill="#fff" text-anchor="middle">#CB3C33</text><circle cx="5705" cy="432" r="300" fill="#389826"/><text x="5705" y="454" font-family="JMB,monospace" font-size="58" font-weight="700" fill="#fff" text-anchor="middle">#389826</text></g><g class="anno" data-k="rhythm"><line x1="304.7" y1="1284.0" x2="3312.5" y2="1284.0" stroke="#1b1b1f" stroke-width="6.0" stroke-linecap="round" opacity="1"/><line x1="304.7" y1="1254.0" x2="304.7" y2="1314.0" stroke="#1b1b1f" stroke-width="6.0" stroke-linecap="round" opacity="1"/><line x1="3312.5" y1="1254.0" x2="3312.5" y2="1314.0" stroke="#1b1b1f" stroke-width="6.0" stroke-linecap="round" opacity="1"/><text x="1809" y="1262" font-family="JMB,monospace" font-size="70" font-weight="700" fill="#1b1b1f" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="7">H→R 3008</text><line x1="3312.5" y1="1284.0" x2="5704.7" y2="1284.0" stroke="#1b1b1f" stroke-width="6.0" stroke-linecap="round" opacity="1"/><line x1="3312.5" y1="1254.0" x2="3312.5" y2="1314.0" stroke="#1b1b1f" stroke-width="6.0" stroke-linecap="round" opacity="1"/><line x1="5704.7" y1="1254.0" x2="5704.7" y2="1314.0" stroke="#1b1b1f" stroke-width="6.0" stroke-linecap="round" opacity="1"/><text x="4509" y="1262" font-family="JMB,monospace" font-size="70" font-weight="700" fill="#1b1b1f" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="7">R→L 2392</text><text x="3005" y="1374" font-family="JMB,monospace" font-size="62" font-weight="700" fill="#1b1b1f" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="7">5 : 4  (cells 3000:2400 · optical ~1.26)</text></g></svg></div>
+  <div class="herobox">@HERO@</div>
   <p class="hint">Hover a card → the matching guide is highlighted on the logo (everything else dims). All values in em units (font-size 1000).</p>
-  <div class="hcards"><div class="mcard" data-hl="dia"><div class="mtop"><span class="mtitle">Ball Ø</span><span class="mval mono">600</span></div><p>Each ball is <b>one letter wide</b> — the 600 monospace advance (0.82·cap) — floating below its capital.</p></div>
-<div class="mcard" data-hl="margin"><div class="mtop"><span class="mtitle">Equal margins</span><span class="mval mono">m = 132</span></div><p>The gap <b>letter→ball</b> equals <b>ball→comb line</b> — both 132 (0.18·cap). The ball floats centred in the band.</p></div>
-<div class="mcard" data-hl="centres"><div class="mtop"><span class="mtitle">Optical centres</span><span class="mval mono">305·3313·5705</span></div><p>Ball, tick and capital share <b>one vertical axis</b> — each capital's ink centre, not its 600-cell centre.</p></div>
-<div class="mcard" data-hl="comb"><div class="mtop"><span class="mtitle">The comb</span><span class="mval mono">12 × 600</span></div><p>A gray IBI-tick rail under the word — one tick per letter, 600 apart; the three at H·R·L are tinted.</p></div>
-<div class="mcard" data-hl="colours"><div class="mtop"><span class="mtitle">Julia palette</span><span class="mval mono">purple·red·green</span></div><p>H <b>#9558B2</b>, R <b>#CB3C33</b>, L <b>#389826</b> — three of the four brand hues; blue stays reserved.</p></div>
-<div class="mcard" data-hl="rhythm"><div class="mtop"><span class="mtitle">Rhythm</span><span class="mval mono">5 : 4</span></div><p>Cell-centre hops <b>3000 : 2400</b> = exactly 5:4 (optical ≈1.26) — a swung triplet, the cadence the package measures.</p></div></div>
+  <div class="hcards">@CARDS@</div>
   <div class="chips">
     <span class="chip"><b>Type</b> JuliaMono Black · weight 900</span>
     <span class="chip"><b>Palette</b> #9558B2 · #CB3C33 · #389826</span>
@@ -175,4 +268,8 @@ footer{padding:28px 0 64px;color:var(--mut);font-size:13px;border-top:1px solid 
     svg.querySelectorAll('.anno').forEach(a=>a.classList.toggle('on',a.dataset.k===k));}
 })();
 </script>
-</body></html>
+</body></html>"""
+
+html=TPL.replace("@HERO@",hero()).replace("@CARDS@",cards())
+(H/"index.html").write_text(html)
+print("wrote index.html (unreplaced tokens:", html.count("@HERO@")+html.count("@CARDS@"), ")")
