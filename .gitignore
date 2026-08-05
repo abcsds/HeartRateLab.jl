@@ -9,6 +9,8 @@ LOG.md
 VizHRV
 examples*.quarto_ipynb
 docs/*_files/
+# Nested Quarto/Documenter render output (e.g. docs/slides/<deck>_files/)
+**/*_files/
 
 # Agent context docs (local only, not part of the package)
 /AGENTS.md
@@ -24,3 +26,14 @@ docs/*_files/
 
 # Dedicated real-time viz env built by `nix run .#viz` (git-LSL + GLMakie)
 /.viz-env/
+
+# Personal/participant XDF datasets pulled in for pre-v1.0.0 testing (not part
+# of the published package or test suite — human-subject research data, never
+# commit this). See data/README.md.
+/data/
+
+# Local scratch, drafts, and regenerable run logs (not part of the package)
+/scratchpad_pilot/
+/Slides.email.txt
+/docs/slides/computational-graph copy.svg
+test/tools/forecasting/out/*.log
