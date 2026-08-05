@@ -116,4 +116,44 @@ end
         @test isfinite(ratio)
         @test ratio > 0
     end
+
+    @testset "ULF vs VLF regression (true 0-0.003 Hz ULF band)" begin
+        # Regression for the Features.jl:655 fix: `ulf` must integrate the true
+        # 0-0.003 Hz band (get_power(pgram, 0.0, 0.003)), not silently collapse
+        # onto (part of) the VLF band. Lomb-Scargle's plan starts at 0.003 Hz (see
+        # ULF/VLF constants above), so this only resolves under Welch — which is
+        # exactly the path `ulf`/`vlf` take by default (config["freq_method"] ==
+        # :welch, src/Features.jl:30).
+        @test HeartRateLab.Features.config["freq_method"] == :welch
+
+        # Inject a slow oscillation strictly below 0.003 Hz (period ≈ 2000 s ≈
+        # 33 min) into a long enough series (~5.6 h) that Welch's frequency
+        # resolution actually resolves sub-ULF content.
+        f_sub_ulf = 0.0005
+        ibis = synthetic_ibis(f_sub_ulf; n=20000, base_ms=1000.0, amp_ms=80.0, seed=7)
+
+        pgram = Freq.welch(ibis; method=:linear, fs=4)
+        # Unlike the Lomb-Scargle plan (minimum_frequency=0.003), Welch resolves
+        # frequencies down to (and below) the ULF/VLF boundary.
+        @test minimum(pgram.freq) < ULF[2]
+
+        ulf_power = Freq.get_power(pgram, ULF...)
+        vlf_power = Freq.get_power(pgram, VLF...)
+        @test isfinite(ulf_power)
+        @test isfinite(vlf_power)
+        # The core regression: ULF must not equal VLF.
+        @test ulf_power != vlf_power
+        # The injected sub-0.003 Hz content should dominate the true ULF band,
+        # which carries essentially none of it.
+        @test ulf_power > vlf_power
+
+        # End-to-end via the public Features API (what users actually call).
+        ds = HeartRateLab.Features.extract_feature_set(ibis; features=["ulf", "vlf"])
+        ulf_feat = ds.ulf[1]
+        vlf_feat = ds.vlf[1]
+        @test isfinite(ulf_feat)
+        @test isfinite(vlf_feat)
+        @test ulf_feat != vlf_feat
+        @test ulf_feat > vlf_feat
+    end
 end

@@ -652,7 +652,7 @@ end
         return NaN # No ultra low frequency in Lomb-Scargle # TODO: why?
     elseif config["freq_method"] == :welch
         function_registry["max_t"](n) < 86000 && @warn "Recording duration is less than 24 hours. ULF power may not be reliable."
-        return get_power(function_registry["pgram"](n), 0.003, 0.04)
+        return get_power(function_registry["pgram"](n), 0.0, 0.003)
     else
         @warn "Unsupported frequency method: $(config["freq_method"]). Returning NaN."
         return NaN
