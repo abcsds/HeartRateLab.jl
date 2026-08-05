@@ -19,43 +19,45 @@ the poster (indigo bubble background, Julia-logo accent colors, bold sans).
 |------|------|
 | `juliacon2026.scss` | The reveal.js theme — drop into any deck's `theme:` list |
 | `juliacon2026-template.qmd` / `.html` | Reference deck: one slide per pattern |
-| `img/juliacon-bubble-bg.jpg` | The **official** JuliaCon bead/sphere texture (see *Background provenance*), cropped to 16:9 — the faithful source |
-| `img/juliacon-bubble-bg-dim.jpg` | Same texture darkened + highlight-clamped + indigo-tinted for white-text legibility — **this is the one the slides use** |
+| `img/logos-hrl.png` | The three institutional logos on a white pill (full-res source; see *Institutional logos*) |
+| `img/logos-hrl-opt.png` | Palette-optimised copy that is base64-inlined into the theme |
+| `img/MedUniGraz.svg` / `.png` | Med Uni Graz logo (from Wikimedia Commons `Med_Uni_Graz_Logo.svg`) |
 | `img/qr-repo.png` | Transparent-background QR (generated via LaTeX `qrcode` + Ghostscript, same pipeline as the poster) |
+| `img/juliacon-bubble-bg*.jpg` | Unused — leftover from an abandoned bead-texture experiment (safe to delete) |
 
-## Background provenance
+## Background
 
-The indigo slide background is the **official JuliaCon bead-texture background**,
-not a hand-made gradient — taken from JuliaCon's official announcement-card
-template `_assets/2025/img/talks_template.svg` in
-`github.com/JuliaCon/www.juliacon.org` (franklin branch).
+The title / section-divider slides use a **violet linear gradient**
+(`linear-gradient(160deg, #2b0836 0%, #1a0526 52%, #120118 100%)`), painted
+edge-to-edge by reveal's native background layer (`data-background-gradient` via
+`title-slide-attributes` and `{background-gradient="…"}` on the headings). The
+palette is sampled from the official JuliaCon 2026 Mainz banner. (An earlier
+attempt used a photographic bead texture extracted from the 2025 announcement-card
+SVG — abandoned as too busy/off-brand for 2026; the leftover `juliacon-bubble-bg*.jpg`
+are unused.)
 
-**Important subtlety:** the raw image embedded in that SVG (a ~8 MB
-`data:image/jpeg` bead photo) is **bright blue** — that is the *source before the
-template tints it*. The template darkens it to the deep **purple/indigo** you see
-on the cards via an `opacity:0.8` group plus a 50 %-black scrim
-(`rect98642`) painted on top. Extracting the raw JPEG alone gives the wrong (too
-bright, too blue) texture. The faithful background is the template **as rendered**,
-with the tint applied — obtained by stripping the content and rendering:
+## Institutional logos
 
-```bash
-# 1. pull the official card template
-curl -sL https://raw.githubusercontent.com/JuliaCon/www.juliacon.org/franklin/_assets/2025/img/talks_template.svg -o talks_template.svg
-# 2. SVG surgery: remove every <text>, <circle>, and the headshot <image id="image101188">,
-#    keeping the background image + the opacity:0.8 group + the 50%-black scrim → bg_only.svg
-# 3. render the tinted background at high res, then crop the clean bead region ABOVE the
-#    footer strip (the bottom ~18% carries baked-in logos)
-inkscape bg_only.svg --export-type=png --export-filename=bg_only.png -w 2400
-magick bg_only.png -crop 2400x1350+0+300 +repage -resize 1920x1080^ -gravity center \
-       -extent 1920x1080 -quality 86 img/juliacon-bubble-bg.jpg          # authentic (mean ≈ 42)
-# 4. mild darken for white-body-text legibility on text-heavy slides (still matches the card)
-magick img/juliacon-bubble-bg.jpg +level 0%,72% -modulate 86,100 -quality 84 img/juliacon-bubble-bg-dim.jpg  # mean ≈ 26
-```
+The **title slide** carries the three HRL affiliation logos — **TU Graz · Med Uni
+Graz · Universidad La Salle Bajío (Centro de Neurociencias)** — on a white pill so
+they read on the dark violet. (Last year's ICCM/MathPsych deck had only the first
+and third; Med Uni Graz is added here.) Logo-lockup guidelines applied: equal
+height, consistent clear space, aspect preserved, full-colour on white.
 
-`juliacon-bubble-bg.jpg` is the authentic rendered background; `…-dim.jpg` is the
-slightly-darkened variant the slides actually use so small body text stays legible.
-(A Python `xml.etree` pass does the element stripping in step 2 — see the session
-notes; the point is to render the *tinted* composite, never the raw blue JPEG.)
+- Combined bar: `img/logos-hrl.png` (built from `../../img/TU_Graz.png`,
+  `img/MedUniGraz.png`, `../../img/Neurociencias_Color.png` — equal-height row on a
+  rounded white pill). Rebuild with ImageMagick, then re-inline (below).
+- The bar is **base64-inlined** into `juliacon2026.scss` as the background of
+  `.reveal:has(section#title-slide.present)::after`. It's inlined because Quarto
+  compiles the theme SCSS to a hashed CSS deep under `_files/`, where a relative
+  `url()` would not resolve. To change the logos: rebuild `logos-hrl.png`, run
+  `magick logos-hrl.png -resize 1300x PNG8:logos-hrl-opt.png`, then replace the
+  `data:image/png;base64,…` string in the `::after` rule with
+  `base64 -w0 img/logos-hrl-opt.png`.
+- It is anchored to `.reveal` (the viewport container) via `:has()` so it sits at
+  the slide bottom **independent of the title's height** and shows **only on the
+  title slide**. A reduced-motion-safe fade-up (`@keyframes jc-logo-fade`, gated by
+  `prefers-reduced-motion`) brings it in with the title.
 
 Render the reference deck yourself: `quarto render juliacon2026-template.qmd`
 (pure HTML/CSS — no Julia kernel needed, renders on any machine with Quarto).
