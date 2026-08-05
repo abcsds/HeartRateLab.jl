@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Wordmark lockup: compact orbit-triad icon over a bold HRL monogram -->
+  <ellipse cx="160" cy="118" rx="66" ry="56" fill="none" stroke="#1A1A1A" stroke-width="4" opacity="0.5"/>
+  <circle cx="160" cy="62" r="26" fill="#9558B2"/>
+  <circle cx="217" cy="146" r="26" fill="#389826"/>
+  <circle cx="103" cy="146" r="26" fill="#CB3C33"/>
+  <text x="160" y="258" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="72" fill="#1A1A1A">HRL</text>
+</svg>

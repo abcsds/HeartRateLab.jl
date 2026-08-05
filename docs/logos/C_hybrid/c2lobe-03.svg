@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- c2lobe-03: Trefoil Pulse — three rotationally-symmetric dot-petals meeting at a beating core -->
+  <g>
+    <path d="M160,160 C128,138 116,84 160,50 C204,84 192,138 160,160 Z" fill="#9558B2"/>
+    <path d="M160,160 C128,138 116,84 160,50 C204,84 192,138 160,160 Z" fill="#389826" transform="rotate(120 160 160)"/>
+    <path d="M160,160 C128,138 116,84 160,50 C204,84 192,138 160,160 Z" fill="#CB3C33" transform="rotate(240 160 160)"/>
+  </g>
+  <circle cx="160" cy="160" r="16" fill="#4063D8"/>
+</svg>

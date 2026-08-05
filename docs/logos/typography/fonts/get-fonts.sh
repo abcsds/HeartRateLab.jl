@@ -9,7 +9,7 @@ cd "$(dirname "$0")"
 if command -v fc-list >/dev/null 2>&1; then
   store="$(dirname "$(fc-list | grep -i 'JuliaMono-Bold.ttf' | head -1 | cut -d: -f1)")"
   if [ -n "${store:-}" ] && [ -d "$store" ]; then
-    for w in Light Regular Medium SemiBold Bold ExtraBold; do
+    for w in Light Regular Medium SemiBold Bold ExtraBold Black; do
       [ -f "$store/JuliaMono-$w.ttf" ] && cp -f "$store/JuliaMono-$w.ttf" "./JuliaMono-$w.ttf" && echo "copied $w"
     done
     echo "done (from system: $store)"; exit 0
@@ -18,7 +18,7 @@ fi
 
 # 2) Fallback: download from the JuliaMono release (OFL-licensed, redistributable)
 base="https://github.com/cormullion/juliamono/raw/master"
-for w in Light Regular Medium SemiBold Bold ExtraBold; do
+for w in Light Regular Medium SemiBold Bold ExtraBold Black; do
   curl -sSL -o "JuliaMono-$w.ttf" "$base/JuliaMono-$w.ttf" && echo "downloaded $w"
 done
 echo "done (downloaded)"

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <text x="125" y="110" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="70" textLength="390" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+
+  <!-- accent balls sitting just above H (Heart), R (Rate), L (Lab) like diacritic dots -->
+  <circle cx="130" cy="44" r="13" fill="#9558B2"/>
+  <circle cx="291" cy="44" r="13" fill="#CB3C33"/>
+  <circle cx="421" cy="44" r="13" fill="#389826"/>
+
+  <!-- plain grey comb baseline beneath the whole word -->
+  <line x1="115" y1="165" x2="525" y2="165" stroke="#1A1A1A" stroke-width="2" opacity="0.3" stroke-linecap="round"/>
+  <line x1="140" y1="165" x2="140" y2="145" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="175" y1="165" x2="175" y2="137" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="210" y1="165" x2="210" y2="147" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="250" y1="165" x2="250" y2="143" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="300" y1="165" x2="300" y2="145" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="340" y1="165" x2="340" y2="137" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="380" y1="165" x2="380" y2="147" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="430" y1="165" x2="430" y2="145" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="470" y1="165" x2="470" y2="137" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="500" y1="165" x2="500" y2="147" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Lorenz Wings: stylized two-lobe attractor traced as one continuous path, crossing at the saddle -->
+  <defs>
+    <linearGradient id="lz04" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#9558B2"/>
+      <stop offset="1" stop-color="#389826"/>
+    </linearGradient>
+  </defs>
+  <path d="M160,160
+           C130,108 68,108 68,160
+           C68,212 130,212 160,160
+           C190,108 252,108 252,160
+           C252,212 190,212 160,160 Z"
+        fill="none" stroke="url(#lz04)" stroke-width="13"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="160" cy="160" r="11" fill="#CB3C33"/>
+</svg>

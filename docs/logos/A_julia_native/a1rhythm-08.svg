@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Tachogram Capsules: beat-height bars/dots encode a run of inter-beat intervals -->
+  <line x1="34" y1="250" x2="286" y2="250" stroke="#1A1A1A" stroke-width="3" opacity="0.3"/>
+  <rect x="46"  y="180" width="26" height="70"  rx="13" fill="#C7CAD1"/>
+  <rect x="87"  y="130" width="30" height="120" rx="15" fill="#9558B2"/>
+  <rect x="132" y="90"  width="30" height="160" rx="15" fill="#CB3C33"/>
+  <rect x="177" y="140" width="30" height="110" rx="15" fill="#389826"/>
+  <rect x="222" y="196" width="26" height="54"  rx="13" fill="#C7CAD1"/>
+</svg>

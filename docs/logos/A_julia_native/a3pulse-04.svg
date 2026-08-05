@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Heart Cut: canonical Julia triad, a heart shape masked out where the three dots meet -->
+  <defs>
+    <mask id="heartcut4" maskUnits="userSpaceOnUse" x="0" y="0" width="320" height="320">
+      <rect x="0" y="0" width="320" height="320" fill="#ffffff"/>
+      <path d="M160,196 C142,182 130,170 130,158 C130,148 138,140 148,140
+               C154,140 158,144 160,150 C162,144 166,140 172,140
+               C182,140 190,148 190,158 C190,170 178,182 160,196 Z" fill="#000000"/>
+    </mask>
+  </defs>
+  <g mask="url(#heartcut4)">
+    <circle cx="160" cy="118" r="62" fill="#9558B2"/>
+    <circle cx="118" cy="204" r="62" fill="#CB3C33"/>
+    <circle cx="202" cy="204" r="62" fill="#389826"/>
+  </g>
+</svg>

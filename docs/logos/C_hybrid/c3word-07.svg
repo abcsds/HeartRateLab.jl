@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <!-- R-Peak Letter lockup: a Van der Pol limit-cycle loop (closed orbit in
+       phase space) as icon; the wordmark's "R" (of "Rate") is crowned by a
+       small ECG spike -- an R-peak literally sitting on the stroke of a letter. -->
+  <path d="M110,40 C150,40 178,72 172,108 C168,132 148,150 118,152
+           C90,154 68,138 66,112 C64,86 82,54 110,40 Z"
+        fill="none" stroke="#4063D8" stroke-width="9" stroke-linejoin="round"/>
+  <circle cx="172" cy="108" r="9" fill="#389826"/>
+  <text x="220" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700"
+        font-size="70" textLength="175" lengthAdjust="spacingAndGlyphs"
+        fill="#1A1A1A">Heart</text>
+  <text x="395" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700"
+        font-size="70" textLength="45" lengthAdjust="spacingAndGlyphs"
+        fill="#CB3C33">R</text>
+  <text x="440" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700"
+        font-size="70" textLength="170" lengthAdjust="spacingAndGlyphs"
+        fill="#1A1A1A">ateLab</text>
+  <path d="M396,92 L417,54 L439,92"
+        fill="none" stroke="#CB3C33" stroke-width="8"
+        stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

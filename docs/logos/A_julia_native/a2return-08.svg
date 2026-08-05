@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Pulse propagating as concentric orbits: ripples radiate outward, the triad rides the outermost ring -->
+  <circle cx="160" cy="170" r="34" fill="none" stroke="#1A1A1A" stroke-width="3" opacity="0.25"/>
+  <circle cx="160" cy="170" r="58" fill="none" stroke="#1A1A1A" stroke-width="3.5" opacity="0.35"/>
+  <circle cx="160" cy="170" r="82" fill="none" stroke="#1A1A1A" stroke-width="4" opacity="0.5"/>
+  <circle cx="160" cy="88" r="33" fill="#9558B2"/>
+  <circle cx="231" cy="211" r="33" fill="#389826"/>
+  <circle cx="89" cy="211" r="33" fill="#CB3C33"/>
+</svg>

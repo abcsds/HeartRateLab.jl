@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- HRL tri-chrome wordmark: each initial takes a Julia color (echoing the
+       three-dot triad), ECG line underlines the mark with a single R-peak spike. -->
+  <text x="160" y="205" text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="150">
+    <tspan fill="#9558B2">H</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#389826">L</tspan>
+  </text>
+  <path d="M46,238 H124 L134,214 L146,262 L156,238 H274"
+        fill="none" stroke="#1A1A1A" stroke-width="11"
+        stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

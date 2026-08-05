@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8"></head><body><pre id="out">PENDING</pre>
+<script>
+// Measure JuliaMono at any weight: open with #Bold / #ExtraBold / #Black
+const FS=1000, WORD="HeartRateLab", R=x=>Math.round(x*100)/100;
+(async()=>{
+ const wf=(location.hash.slice(1)||'Bold');
+ const face=new FontFace('JM', `url('fonts/JuliaMono-${wf}.ttf')`);
+ await face.load(); document.fonts.add(face); await document.fonts.ready;
+ const ctx=document.createElement('canvas').getContext('2d');
+ ctx.font=`${FS}px JM`; ctx.textBaseline='alphabetic';
+ const penX=i=>ctx.measureText(WORD.substring(0,i)).width, letters=[];
+ for(let i=0;i<WORD.length;i++){const px=penX(i),m=ctx.measureText(WORD[i]);
+   const inkL=px-m.actualBoundingBoxLeft,inkR=px+m.actualBoundingBoxRight;
+   letters.push({c:WORD[i],i,px:R(px),adv:R(m.width),inkL:R(inkL),inkR:R(inkR),
+     center:R((inkL+inkR)/2),inkW:R(inkR-inkL),
+     inkTop:R(-m.actualBoundingBoxAscent),inkBot:R(m.actualBoundingBoxDescent)});}
+ const cap=R(ctx.measureText('H').actualBoundingBoxAscent),
+       xh=R(ctx.measureText('x').actualBoundingBoxAscent),
+       asc=R(ctx.measureText('b').actualBoundingBoxAscent),
+       desc=R(ctx.measureText('p').actualBoundingBoxDescent),
+       advChar=R(ctx.measureText('H').width), advWidth=R(ctx.measureText(WORD).width);
+ const wL=letters[0].inkL, wR=letters[letters.length-1].inkR;
+ const Hh=letters[0],Rr=letters[5],Ll=letters[9];
+ const gHR=R(Rr.center-Hh.center),gRL=R(Ll.center-Rr.center);
+ document.getElementById('out').textContent="JSONSTART"+JSON.stringify({font:"JuliaMono "+wf,em:FS,
+   cap,xh,asc,desc,advChar,advWidth,wL,wR,letters,
+   H:Hh.center,R:Rr.center,L:Ll.center,gHR,gRL,ratio:R(gHR/gRL)})+"JSONEND";
+ document.title='DONE';
+})();
+</script></body></html>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- R-Peak Bolt: the QRS reduced to a single bold gradient spike, favicon-proof -->
+  <defs>
+    <linearGradient id="b5g" x1="85" y1="0" x2="245" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#9558B2"/>
+      <stop offset="1" stop-color="#4063D8"/>
+    </linearGradient>
+  </defs>
+  <path d="M85,190 L125,190 L152,70 L178,230 L215,190 L245,190"
+        fill="none" stroke="url(#b5g)" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

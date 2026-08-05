@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- c2lobe-05: Orbiting Beat — three Julia dots orbit a small central pulse-heart -->
+  <circle cx="160" cy="160" r="118" fill="none" stroke="#1A1A1A" stroke-width="4" opacity="0.4"/>
+  <path d="M160,200 C136,178 108,160 108,128 C108,108 122,94 140,94
+           C150,94 157,100 160,110 C163,100 170,94 180,94
+           C198,94 212,108 212,128 C212,160 184,178 160,200 Z"
+        fill="#1A1A1A"/>
+  <circle cx="160" cy="42" r="30" fill="#9558B2"/>
+  <circle cx="262" cy="219" r="30" fill="#389826"/>
+  <circle cx="58" cy="219" r="30" fill="#CB3C33"/>
+</svg>

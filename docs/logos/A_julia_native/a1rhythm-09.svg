@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Monitor Grid: clinical rhythm strip on a bedside-monitor bezel -->
+  <rect x="40" y="70" width="240" height="180" rx="18" fill="none" stroke="#1A1A1A" stroke-width="4.5" opacity="0.55"/>
+  <g stroke="#1A1A1A" stroke-width="1" opacity="0.14">
+    <line x1="80"  y1="70" x2="80"  y2="250"/>
+    <line x1="120" y1="70" x2="120" y2="250"/>
+    <line x1="160" y1="70" x2="160" y2="250"/>
+    <line x1="200" y1="70" x2="200" y2="250"/>
+    <line x1="240" y1="70" x2="240" y2="250"/>
+    <line x1="40"  y1="110" x2="280" y2="110"/>
+    <line x1="40"  y1="150" x2="280" y2="150"/>
+    <line x1="40"  y1="190" x2="280" y2="190"/>
+    <line x1="40"  y1="230" x2="280" y2="230"/>
+  </g>
+  <path d="M58,190 L86,190 L94,200 L104,150 L112,200 L120,190 L146,190
+           L154,200 L164,150 L172,200 L180,190 L206,190
+           L214,200 L224,150 L232,200 L240,190 L262,190"
+        fill="none" stroke="#1A1A1A" stroke-width="4.5"
+        stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="104" cy="150" r="15" fill="#9558B2"/>
+  <circle cx="164" cy="150" r="15" fill="#CB3C33"/>
+  <circle cx="224" cy="150" r="15" fill="#389826"/>
+</svg>

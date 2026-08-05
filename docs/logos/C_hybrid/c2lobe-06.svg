@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- c2lobe-06: Negative Heart — three fused Julia dots with a heart cut out of the negative space -->
+  <defs>
+    <mask id="negHeart06">
+      <rect x="0" y="0" width="320" height="320" fill="white"/>
+      <path d="M160,252 C118,214 66,186 66,138 C66,104 92,80 122,80
+               C142,80 154,92 160,110 C166,92 178,80 198,80
+               C228,80 254,104 254,138 C254,186 202,214 160,252 Z"
+            fill="black"/>
+    </mask>
+  </defs>
+  <g mask="url(#negHeart06)">
+    <circle cx="160" cy="102" r="78" fill="#9558B2"/>
+    <circle cx="104" cy="214" r="78" fill="#389826"/>
+    <circle cx="216" cy="214" r="78" fill="#CB3C33"/>
+  </g>
+  <path d="M160,252 C118,214 66,186 66,138 C66,104 92,80 122,80
+           C142,80 154,92 160,110 C166,92 178,80 198,80
+           C228,80 254,104 254,138 C254,186 202,214 160,252 Z"
+        fill="none" stroke="#1A1A1A" stroke-width="3.5" opacity="0.55" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- IBI Caliper: two R-peaks with the measured gap called out by a double-headed arrow -->
+  <line x1="50" y1="225" x2="270" y2="225" stroke="#1A1A1A" stroke-width="4" stroke-linecap="round"/>
+  <polygon points="100,225 110,140 120,225" fill="#9558B2"/>
+  <polygon points="200,225 210,140 220,225" fill="#389826"/>
+  <line x1="110" y1="145" x2="110" y2="95" stroke="#1A1A1A" stroke-width="2" stroke-dasharray="4 5" opacity="0.6"/>
+  <line x1="210" y1="145" x2="210" y2="95" stroke="#1A1A1A" stroke-width="2" stroke-dasharray="4 5" opacity="0.6"/>
+  <line x1="112" y1="95" x2="208" y2="95" stroke="#CB3C33" stroke-width="5" stroke-linecap="round"/>
+  <polygon points="110,95 122,88 122,102" fill="#CB3C33"/>
+  <polygon points="210,95 198,88 198,102" fill="#CB3C33"/>
+</svg>

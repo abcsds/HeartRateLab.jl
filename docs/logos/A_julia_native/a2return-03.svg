@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Van der Pol relaxation-oscillator limit cycle: a pinched, flattened loop with the triad riding its rim -->
+  <path d="M160,56
+           C 226,56 258,92 258,140
+           C 258,160 224,158 200,168
+           C 224,178 258,176 258,224
+           C 258,272 226,280 160,280
+           C 94,280 62,272 62,224
+           C 62,176 96,178 120,168
+           C 96,158 62,160 62,140
+           C 62,92 94,56 160,56 Z"
+        fill="none" stroke="#1A1A1A" stroke-width="5" opacity="0.55" stroke-linejoin="round"/>
+  <circle cx="160" cy="60" r="34" fill="#9558B2"/>
+  <circle cx="72" cy="199" r="34" fill="#CB3C33"/>
+  <circle cx="248" cy="199" r="34" fill="#389826"/>
+</svg>

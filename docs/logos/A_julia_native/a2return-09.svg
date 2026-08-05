@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Linked coupled-oscillator orbits: two crossing loops, purple riding the small upper orbit, red/green riding the wide lower one -->
+  <circle cx="160" cy="132" r="54" fill="none" stroke="#1A1A1A" stroke-width="5" opacity="0.5"/>
+  <circle cx="160" cy="206" r="54" fill="none" stroke="#1A1A1A" stroke-width="5" opacity="0.5"/>
+  <circle cx="160" cy="80" r="32" fill="#9558B2"/>
+  <circle cx="112" cy="238" r="32" fill="#CB3C33"/>
+  <circle cx="208" cy="238" r="32" fill="#389826"/>
+</svg>

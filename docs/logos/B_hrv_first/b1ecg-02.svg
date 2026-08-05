@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Capsule Monitor: two-tone pill/capsule tile with a white ECG trace crossing through -->
+  <path d="M116,80 H204 A80,80 0 0 1 204,240 H116 A80,80 0 0 1 116,80 Z" fill="#9558B2"/>
+  <path d="M160,80 H204 A80,80 0 0 1 204,240 H160 Z" fill="#389826"/>
+  <path d="M70,178 L100,178 Q110,163 120,178 L130,178 L138,193 L158,105 L178,230 L192,178 L204,178 Q218,148 240,178"
+        fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

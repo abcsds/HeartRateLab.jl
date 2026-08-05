@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Faceted Heart: a low-poly heart built from three flat color facets -->
+  <polygon points="160,165 60,140 100,85 130,100 160,125" fill="#9558B2"/>
+  <polygon points="160,165 160,125 190,100 220,85 260,140" fill="#389826"/>
+  <polygon points="160,165 260,140 160,255 60,140" fill="#CB3C33"/>
+  <path d="M60,140 L100,85 L130,100 L160,125 L190,100 L220,85 L260,140 L160,255 Z"
+        fill="none" stroke="#1A1A1A" stroke-width="3" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Interval Calipers: beats on a line, unequal double-arrow brackets show the IBI gap ⟷ -->
+  <line x1="40" y1="150" x2="280" y2="150" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="80"  cy="150" r="20" fill="#9558B2"/>
+  <circle cx="160" cy="150" r="20" fill="#CB3C33"/>
+  <circle cx="216" cy="150" r="20" fill="#389826"/>
+
+  <!-- drop ticks -->
+  <line x1="80"  y1="170" x2="80"  y2="216" stroke="#1A1A1A" stroke-width="3" opacity="0.55"/>
+  <line x1="160" y1="170" x2="160" y2="216" stroke="#1A1A1A" stroke-width="3" opacity="0.55"/>
+  <line x1="216" y1="170" x2="216" y2="216" stroke="#1A1A1A" stroke-width="3" opacity="0.55"/>
+
+  <!-- wide gap bracket (purple-red) -->
+  <line x1="80" y1="216" x2="160" y2="216" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M80,216 L92,208 M80,216 L92,224" fill="none" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M160,216 L148,208 M160,216 L148,224" fill="none" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round"/>
+
+  <!-- narrow gap bracket (red-green) -->
+  <line x1="160" y1="216" x2="216" y2="216" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round" opacity="0.9"/>
+  <path d="M216,216 L204,208 M216,216 L204,224" fill="none" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round"/>
+</svg>

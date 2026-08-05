@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Poincare plot built from the comb's intervals: NN(n) vs NN(n+1), ellipse on the diagonal -->
+  <line x1="60" y1="60"  x2="60"  y2="260" stroke="#1A1A1A" stroke-width="3" opacity="0.35" stroke-linecap="round"/>
+  <line x1="60" y1="260" x2="260" y2="260" stroke="#1A1A1A" stroke-width="3" opacity="0.35" stroke-linecap="round"/>
+  <line x1="65" y1="255" x2="245" y2="75" stroke="#8A8F98" stroke-width="2" stroke-dasharray="6 6" opacity="0.6"/>
+
+  <ellipse cx="160" cy="160" rx="105" ry="34" fill="#9558B2" opacity="0.08"
+           transform="rotate(-45 160 160)"/>
+  <ellipse cx="160" cy="160" rx="105" ry="34" fill="none" stroke="#1A1A1A" stroke-width="2" opacity="0.3"
+           transform="rotate(-45 160 160)"/>
+
+  <circle cx="88"  cy="215" r="5" fill="#8A8F98"/>
+  <circle cx="108" cy="200" r="5" fill="#8A8F98"/>
+  <circle cx="122" cy="230" r="5" fill="#8A8F98"/>
+  <circle cx="150" cy="205" r="5" fill="#8A8F98"/>
+  <circle cx="165" cy="190" r="5" fill="#8A8F98"/>
+  <circle cx="185" cy="140" r="5" fill="#8A8F98"/>
+  <circle cx="195" cy="175" r="5" fill="#8A8F98"/>
+  <circle cx="205" cy="155" r="5" fill="#8A8F98"/>
+  <circle cx="225" cy="110" r="5" fill="#8A8F98"/>
+
+  <circle cx="120" cy="195" r="13" fill="#9558B2"/>
+  <circle cx="165" cy="150" r="13" fill="#CB3C33"/>
+  <circle cx="205" cy="120" r="13" fill="#389826"/>
+</svg>

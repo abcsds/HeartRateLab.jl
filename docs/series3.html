@@ -1,0 +1,336 @@
+<!doctype html><html lang="en" data-theme="light"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HeartRateLab.jl — Series 3 (typography)</title>
+<style>
+@font-face{font-family:'JuliaMono';src:local('JuliaMono'),local('JuliaMono Bold'),
+  url('logos/typography/fonts/JuliaMono-Bold.ttf') format('truetype');font-weight:700;font-style:normal;font-display:swap}
+:root{--pt:#9558B2;--gn:#389826;--rd:#CB3C33;--bl:#4063D8;
+  --bg:#f6f6f8;--fg:#1b1b1f;--muted:#6a6a76;--card:#fff;--line:#e6e6ec;--stage:#eceef2;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 8px 24px rgba(0,0,0,.06)}
+html[data-theme=dark]{--bg:#141418;--fg:#ececf1;--muted:#9a9aa8;--card:#1d1d23;--line:#2a2a33;
+  --stage:#24242b;--shadow:0 1px 3px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+a{color:var(--bl)}
+.toggle{position:fixed;top:16px;right:16px;z-index:9;background:var(--card);border:1px solid var(--line);
+  border-radius:999px;padding:8px 14px;cursor:pointer;font-size:13px;color:var(--fg);box-shadow:var(--shadow)}
+header.hero{padding:60px 24px 24px;max-width:1200px;margin:0 auto}
+.wm{font-family:'JuliaMono',monospace;font-weight:700;font-size:clamp(30px,6vw,58px);letter-spacing:-.01em;margin:0 0 6px}
+.wm .h{color:var(--pt)}.wm .r{color:var(--rd)}.wm .l{color:var(--gn)}
+h1sub{font-size:14px}
+.sub{color:var(--muted);font-size:18px;max-width:820px}
+.meta{margin-top:18px;display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:13px;color:var(--muted)}
+.chip b{color:var(--fg)}
+main{max-width:1200px;margin:0 auto;padding:0 24px 80px}
+.topwrap{margin:20px 0 8px;padding:22px;border:1px solid var(--line);border-radius:18px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--pt) 7%,var(--card)),var(--card))}
+.topwrap h2{margin:0 0 4px;font-size:22px}.topwrap>p{margin:0 0 16px;color:var(--muted);max-width:820px}
+.topgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:18px}
+section{padding-top:40px}
+.sec-head{border-left:4px solid var(--pt);padding:2px 0 2px 15px;margin:18px 0;position:relative}
+#g-hrl .sec-head{border-color:var(--rd)}#g-combos .sec-head{border-color:var(--gn)}
+.sec-head h2{font-size:24px;margin:.1em 0}.sec-head p{color:var(--muted);margin:.2em 0 0;max-width:820px}
+.sec-head .count{position:absolute;right:0;top:4px;color:var(--muted);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px}
+.card{margin:0;background:var(--card);border:1px solid var(--line);border-radius:15px;overflow:hidden;
+  box-shadow:var(--shadow);display:flex;flex-direction:column}
+.card.big{border-color:color-mix(in srgb,var(--pt) 45%,var(--line))}
+.stage{background:var(--stage);width:100%;display:flex;align-items:center;justify-content:center;padding:26px;min-height:150px}
+.stage svg{width:100%;height:100%;max-height:210px;display:block}
+figcaption{padding:15px 17px 17px;display:flex;flex-direction:column;gap:7px}
+.cap-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.cap-head h3{margin:0;font-size:17px}
+.rank{font-size:12px;font-weight:700;color:#fff;background:var(--pt);border-radius:999px;padding:2px 10px;white-space:nowrap}
+.id{color:var(--muted);font-size:12px;font-family:'JuliaMono',monospace}
+.badges{display:flex;flex-wrap:wrap;gap:6px}
+.badge{font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.badge.pos{border-color:var(--bl);color:var(--bl)}
+.concept{margin:2px 0;font-size:14px}.why,.risk{margin:0;font-size:13px;color:var(--muted)}
+.why strong{color:var(--gn)}.risk strong{color:var(--rd)}
+.pick{margin:4px 0 0;font-size:13.5px;background:color-mix(in srgb,var(--pt) 8%,transparent);
+  border:1px solid var(--line);border-radius:10px;padding:8px 10px}.pick strong{color:var(--pt)}
+.notes{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:6px 0 0;font-size:12px;
+  border-top:1px dashed var(--line);padding-top:8px}
+.notes dt{color:var(--fg);font-weight:600;white-space:nowrap}.notes dd{margin:0;color:var(--muted)}
+.dl{margin-top:6px;font-size:13px;text-decoration:none;color:var(--muted);border:1px solid var(--line);
+  border-radius:8px;padding:5px 10px;align-self:flex-start}.dl:hover{color:var(--bl);border-color:var(--bl)}
+footer{max-width:1200px;margin:0 auto;padding:0 24px 60px;color:var(--muted);font-size:13px}
+footer code{font-family:'JuliaMono',monospace}
+</style></head><body>
+<button class="toggle" onclick="var h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark'">◐ theme</button>
+<header class="hero">
+  <p class="wm"><span class="h">H</span>eart<span class="r">R</span>ate<span class="l">L</span>ab</p>
+  <p class="sub">Series 3 — typography-driven. Every mark is set in <strong>JuliaMono Bold</strong> and
+  positioned on the <em>measured</em> glyph metrics, so the geometry maps 1:1 onto the bounce animation.
+  The 12 monospace letters are 12 equal time-ticks; the three beats land on <strong>H·R·L</strong> at a
+  real <strong>5:4</strong> inter-beat interval — the name itself is an HRV trace. 18 designs.</p>
+  <div class="meta">
+    <span class="chip"><b>Type</b> JuliaMono Bold · H·R·L tinted</span>
+    <span class="chip"><b>Signal</b> IBI comb (equal ticks = time)</span>
+    <span class="chip"><b>Motion</b> bounce-ready · apex ∝ distance²</span>
+    <span class="chip"><b>Bars</b> dropped (per your note)</span>
+  </div>
+</header>
+<main>
+  <div class="topwrap"><h2>★ My top 3</h2>
+    <p>Given the typography findings, the comb-at-bottom concept and the bounce you described — a wordmark
+    logo, its compact monogram, and the signature treatment I'd build the animation on.</p>
+    <div class="topgrid"><figure class="card big">
+  <div class="stage" style="aspect-ratio:5.454"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-88 -884 7385 1354"><text x="0" y="0" font-family="JuliaMono, monospace" font-weight="700" font-size="1000" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#1b1b1f">eart</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#1b1b1f">ate</tspan><tspan fill="#389826">L</tspan><tspan fill="#1b1b1f">ab</tspan></text><line x1="62" y1="300" x2="7147" y2="300" stroke="#9aa0a8" stroke-width="16" stroke-linecap="round" opacity="0.6"/><line x1="300" y1="300" x2="300" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="900" y1="300" x2="900" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="1500" y1="300" x2="1500" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="2100" y1="300" x2="2100" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="2700" y1="300" x2="2700" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="3300" y1="300" x2="3300" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="3900" y1="300" x2="3900" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="4500" y1="300" x2="4500" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="5100" y1="300" x2="5100" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="5700" y1="300" x2="5700" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="6300" y1="300" x2="6300" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="6900" y1="300" x2="6900" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><circle cx="297" cy="190" r="110" fill="#9558B2"/><circle cx="3305" cy="190" r="110" fill="#CB3C33"/><circle cx="5720" cy="190" r="110" fill="#389826"/></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Comb Underline — the signature</h3><span class="rank">★ Top 1</span></div>
+    <code class="id">word-comb-underline</code>
+    <div class="badges"><span class="badge pos">comb below</span><span class="badge grp">wordmark</span></div>
+    <p class="concept">Series-2&#x27;s favourite, re-fitted: the whole wordmark is underlined by the equal comb; the three ticks under H·R·L are dot-capped in colour, inline with the type.</p>
+    <p class="why"><strong>Why:</strong> Reads as a data-signature rather than decoration, and now the tick spacing is the true monospace grid.</p>
+    <p class="risk"><strong>Watch:</strong> At small sizes the underline can merge into a solid rule; fall back to an icon for favicons.</p>
+    <p class="pick"><strong>Why I pick it:</strong> My overall pick. It fuses both things you liked into one metric-exact mark — the wordmark riding its own inter-beat comb — and is the most animation-ready: grey ticks hold as the time axis while the three colour caps stamp in on the bounce. Best for README/docs headers.</p><dl class="notes"><dt>⚑ animation</dt><dd>The dot-caps are the deposited beats: they pop in on the bounce while the grey ticks stay static as the time axis.</dd><dt>⎙ print</dt><dd>One-colour friendly: whole comb + word ink, only the three caps tinted.</dd><dt>◑ colour</dt><dd>Only the three beat-caps carry colour — a restrained, editorial palette use.</dd></dl>
+    <a class="dl" href="logos/series3/svg/word-comb-underline.svg" download>↓ SVG</a>
+  </figcaption></figure>
+<figure class="card big">
+  <div class="stage" style="aspect-ratio:5.336"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-88 -884 7385 1384"><text x="0" y="0" font-family="JuliaMono, monospace" font-weight="700" font-size="1000" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#1b1b1f">eart</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#1b1b1f">ate</tspan><tspan fill="#389826">L</tspan><tspan fill="#1b1b1f">ab</tspan></text><line x1="62" y1="360" x2="7147" y2="360" stroke="#9aa0a8" stroke-width="16" stroke-linecap="round" opacity="0.6"/><line x1="300" y1="360" x2="300" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="900" y1="360" x2="900" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="1500" y1="360" x2="1500" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="2100" y1="360" x2="2100" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="2700" y1="360" x2="2700" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="3300" y1="360" x2="3300" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="3900" y1="360" x2="3900" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="4500" y1="360" x2="4500" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="5100" y1="360" x2="5100" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="5700" y1="360" x2="5700" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="6300" y1="360" x2="6300" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="6900" y1="360" x2="6900" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><circle cx="297" cy="190" r="170" fill="#9558B2"/><circle cx="3305" cy="190" r="170" fill="#CB3C33"/><circle cx="5720" cy="190" r="170" fill="#389826"/></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Comb Below — 12 ticks of time, 3 beats</h3><span class="rank">★ Top 2</span></div>
+    <code class="id">word-comb-below</code>
+    <div class="badges"><span class="badge pos">comb below</span><span class="badge grp">wordmark</span></div>
+    <p class="concept">The hero idea: a comb of 12 equal ticks (one per letter = equal time) runs under the word; three beats rest on it at cells 0·5·9 — the letters H·R·L, an inter-beat pattern of 5:4.</p>
+    <p class="why"><strong>Why:</strong> The name becomes a recording: regular time grid + irregular beats = HRV, encoded in the monospace itself.</p>
+    <p class="risk"><strong>Watch:</strong> The comb adds height; a header/hero mark, not a square favicon.</p>
+    <p class="pick"><strong>Why I pick it:</strong> Your comb-at-bottom concept, made exact: 12 equal ticks are time, the three beats land on H·R·L at a real 5:4 interval, so the wordmark *is* an HRV trace. Purpose-built for the bounce.</p><dl class="notes"><dt>⚑ animation</dt><dd>The three balls bounce along the comb floor and colour H·R·L on contact; the 12 ticks are the metronome.</dd><dt>⎙ print</dt><dd>Excellent 1-colour: ticks + word ink, beats filled or outlined.</dd><dt>◑ colour</dt><dd>Beats H purple · R red · L green on a neutral grey comb.</dd></dl>
+    <a class="dl" href="logos/series3/svg/word-comb-below.svg" download>↓ SVG</a>
+  </figcaption></figure>
+<figure class="card big">
+  <div class="stage" style="aspect-ratio:1.467"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-88 -884 2001 1364"><text x="0" y="0" font-family="JuliaMono, monospace" font-weight="700" font-size="1000" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#389826">L</tspan></text><line x1="147" y1="360" x2="1670" y2="360" stroke="#9aa0a8" stroke-width="16" stroke-linecap="round" opacity="0.6"/><line x1="297" y1="360" x2="297" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="905" y1="360" x2="905" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="1520" y1="360" x2="1520" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><circle cx="297" cy="210" r="150" fill="#9558B2"/><circle cx="905" cy="210" r="150" fill="#CB3C33"/><circle cx="1520" cy="210" r="150" fill="#389826"/></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>HRL — comb below</h3><span class="rank">★ Top 3</span></div>
+    <code class="id">hrl-comb-below</code>
+    <div class="badges"><span class="badge pos">comb below</span><span class="badge grp">hrl</span></div>
+    <p class="concept">HRL over a three-tick comb (one tick per letter, equal width = time); three beats rest on the ticks.</p>
+    <p class="why"><strong>Why:</strong> The comb-at-bottom idea in favicon form; balls bounce on three ticks and colour each letter.</p>
+    <p class="risk"><strong>Watch:</strong> With only three equal ticks the time grid reads more decorative than data.</p>
+    <p class="pick"><strong>Why I pick it:</strong> The compact companion to the wordmark and the cleanest home for the bounce loop you described: three balls drop onto three time-ticks and light up H·R·L in turn. Crops to a favicon and is the obvious thing to animate.</p><dl class="notes"><dt>⚑ animation</dt><dd>The perfect tiny bounce loop: three ticks, three landings, three colour stamps.</dd><dt>⎙ print</dt><dd>1-colour safe.</dd><dt>◑ colour</dt><dd>Beats and caps share the three hues.</dd></dl>
+    <a class="dl" href="logos/series3/svg/hrl-comb-below.svg" download>↓ SVG</a>
+  </figcaption></figure></div></div>
+<section id="g-wordmark"><div class="sec-head"><h2>HeartRateLab wordmark systems</h2><p>The full wordmark in JuliaMono Bold — H·R·L tinted as the three syllable onsets. The comb is 12 equal time-ticks (one per letter); the three beats land on H·R·L at a real 5:4 interval.</p><span class="count">7</span></div><div class="grid"><figure class="card">
+  <div class="stage" style="aspect-ratio:4.020"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-88 -1484 7385 1837"><text x="0" y="0" font-family="JuliaMono, monospace" font-weight="700" font-size="1000" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#1b1b1f">eart</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#1b1b1f">ate</tspan><tspan fill="#389826">L</tspan><tspan fill="#1b1b1f">ab</tspan></text><circle cx="297" cy="-1100" r="234" fill="#9558B2"/><circle cx="3305" cy="-1100" r="234" fill="#CB3C33"/><circle cx="5720" cy="-1100" r="234" fill="#389826"/></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Dots Above — the measured mark</h3></div>
+    <code class="id">word-dots-above</code>
+    <div class="badges"><span class="badge pos">dots above</span><span class="badge grp">wordmark</span></div>
+    <p class="concept">The canonical wordmark: three word-bounded dots (Ø468 = 0.64·cap, gap 132) resting on the optical centres of H·R·L.</p>
+    <p class="why"><strong>Why:</strong> The exact baseline mark the typography study converged on — instantly Julia-family, perfectly balanced above the caps.</p>
+    <p class="risk"><strong>Watch:</strong> Front-loaded: the beats&#x27; centroid sits ~497 left of the word centre; prefer left-aligned lockups.</p>
+    <dl class="notes"><dt>⚑ animation</dt><dd>Each dot is a bounce-landing point; the three fade in H→R→L as the ball stamps them.</dd><dt>⎙ print</dt><dd>Reads in 1 colour if the dots become ink outlines.</dd><dt>◑ colour</dt><dd>H purple · R red · L green; the only three-colour element.</dd></dl>
+    <a class="dl" href="logos/series3/svg/word-dots-above.svg" download>↓ SVG</a>
+  </figcaption></figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:5.336"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-88 -884 7385 1384"><text x="0" y="0" font-family="JuliaMono, monospace" font-weight="700" font-size="1000" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#1b1b1f">eart</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#1b1b1f">ate</tspan><tspan fill="#389826">L</tspan><tspan fill="#1b1b1f">ab</tspan></text><line x1="62" y1="360" x2="7147" y2="360" stroke="#9aa0a8" stroke-width="16" stroke-linecap="round" opacity="0.6"/><line x1="300" y1="360" x2="300" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="900" y1="360" x2="900" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="1500" y1="360" x2="1500" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="2100" y1="360" x2="2100" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="2700" y1="360" x2="2700" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="3300" y1="360" x2="3300" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="3900" y1="360" x2="3900" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="4500" y1="360" x2="4500" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="5100" y1="360" x2="5100" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="5700" y1="360" x2="5700" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="6300" y1="360" x2="6300" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="6900" y1="360" x2="6900" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><circle cx="297" cy="190" r="170" fill="#9558B2"/><circle cx="3305" cy="190" r="170" fill="#CB3C33"/><circle cx="5720" cy="190" r="170" fill="#389826"/></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Comb Below — 12 ticks of time, 3 beats</h3><span class="rank">★ Top 2</span></div>
+    <code class="id">word-comb-below</code>
+    <div class="badges"><span class="badge pos">comb below</span><span class="badge grp">wordmark</span></div>
+    <p class="concept">The hero idea: a comb of 12 equal ticks (one per letter = equal time) runs under the word; three beats rest on it at cells 0·5·9 — the letters H·R·L, an inter-beat pattern of 5:4.</p>
+    <p class="why"><strong>Why:</strong> The name becomes a recording: regular time grid + irregular beats = HRV, encoded in the monospace itself.</p>
+    <p class="risk"><strong>Watch:</strong> The comb adds height; a header/hero mark, not a square favicon.</p>
+    <dl class="notes"><dt>⚑ animation</dt><dd>The three balls bounce along the comb floor and colour H·R·L on contact; the 12 ticks are the metronome.</dd><dt>⎙ print</dt><dd>Excellent 1-colour: ticks + word ink, beats filled or outlined.</dd><dt>◑ colour</dt><dd>Beats H purple · R red · L green on a neutral grey comb.</dd></dl>
+    <a class="dl" href="logos/series3/svg/word-comb-below.svg" download>↓ SVG</a>
+  </figcaption></figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:3.760"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-88 -1484 7385 1964"><text x="0" y="0" font-family="JuliaMono, monospace" font-weight="700" font-size="1000" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#1b1b1f">eart</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#1b1b1f">ate</tspan><tspan fill="#389826">L</tspan><tspan fill="#1b1b1f">ab</tspan></text><circle cx="297" cy="-1100" r="234" fill="#9558B2"/><circle cx="3305" cy="-1100" r="234" fill="#CB3C33"/><circle cx="5720" cy="-1100" r="234" fill="#389826"/><line x1="62" y1="360" x2="7147" y2="360" stroke="#9aa0a8" stroke-width="16" stroke-linecap="round" opacity="0.6"/><line x1="300" y1="360" x2="300" y2="450" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="900" y1="360" x2="900" y2="450" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="1500" y1="360" x2="1500" y2="450" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="2100" y1="360" x2="2100" y2="450" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="2700" y1="360" x2="2700" y2="450" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="3300" y1="360" x2="3300" y2="450" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="3900" y1="360" x2="3900" y2="450" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="4500" y1="360" x2="4500" y2="450" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="5100" y1="360" x2="5100" y2="450" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="5700" y1="360" x2="5700" y2="450" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="6300" y1="360" x2="6300" y2="450" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="6900" y1="360" x2="6900" y2="450" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><circle cx="297" cy="240" r="120" fill="#9558B2"/><circle cx="3305" cy="240" r="120" fill="#CB3C33"/><circle cx="5720" cy="240" r="120" fill="#389826"/></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Full System — dots above + comb below</h3></div>
+    <code class="id">word-dots-comb</code>
+    <div class="badges"><span class="badge pos">dots above</span><span class="badge grp">wordmark</span></div>
+    <p class="concept">Both registers: beats float above the caps AND a faint time-comb underlines the word with three colour-matched beat-ticks under H·R·L.</p>
+    <p class="why"><strong>Why:</strong> The most complete statement — beats, letters and time grid in one balanced stack.</p>
+    <p class="risk"><strong>Watch:</strong> Busiest of the set; keep the comb faint so the dots lead.</p>
+    <dl class="notes"><dt>⚑ animation</dt><dd>Two-phase: ball bounces along the comb, then stamped beats rise to rest above the caps.</dd><dt>⎙ print</dt><dd>The faint comb drops cleanly in 1-colour; dots carry the colour.</dd><dt>◑ colour</dt><dd>Three hues twice; keep comb ticks grey to avoid four-colour noise.</dd></dl>
+    <a class="dl" href="logos/series3/svg/word-dots-comb.svg" download>↓ SVG</a>
+  </figcaption></figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:5.454"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-88 -884 7385 1354"><text x="0" y="0" font-family="JuliaMono, monospace" font-weight="700" font-size="1000" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#1b1b1f">eart</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#1b1b1f">ate</tspan><tspan fill="#389826">L</tspan><tspan fill="#1b1b1f">ab</tspan></text><line x1="62" y1="300" x2="7147" y2="300" stroke="#9aa0a8" stroke-width="16" stroke-linecap="round" opacity="0.6"/><line x1="300" y1="300" x2="300" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="900" y1="300" x2="900" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="1500" y1="300" x2="1500" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="2100" y1="300" x2="2100" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="2700" y1="300" x2="2700" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="3300" y1="300" x2="3300" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="3900" y1="300" x2="3900" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="4500" y1="300" x2="4500" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="5100" y1="300" x2="5100" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="5700" y1="300" x2="5700" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="6300" y1="300" x2="6300" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><line x1="6900" y1="300" x2="6900" y2="450" stroke="#9aa0a8" stroke-width="22" stroke-linecap="round"/><circle cx="297" cy="190" r="110" fill="#9558B2"/><circle cx="3305" cy="190" r="110" fill="#CB3C33"/><circle cx="5720" cy="190" r="110" fill="#389826"/></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Comb Underline — the signature</h3><span class="rank">★ Top 1</span></div>
+    <code class="id">word-comb-underline</code>
+    <div class="badges"><span class="badge pos">comb below</span><span class="badge grp">wordmark</span></div>
+    <p class="concept">Series-2&#x27;s favourite, re-fitted: the whole wordmark is underlined by the equal comb; the three ticks under H·R·L are dot-capped in colour, inline with the type.</p>
+    <p class="why"><strong>Why:</strong> Reads as a data-signature rather than decoration, and now the tick spacing is the true monospace grid.</p>
+    <p class="risk"><strong>Watch:</strong> At small sizes the underline can merge into a solid rule; fall back to an icon for favicons.</p>
+    <dl class="notes"><dt>⚑ animation</dt><dd>The dot-caps are the deposited beats: they pop in on the bounce while the grey ticks stay static as the time axis.</dd><dt>⎙ print</dt><dd>One-colour friendly: whole comb + word ink, only the three caps tinted.</dd><dt>◑ colour</dt><dd>Only the three beat-caps carry colour — a restrained, editorial palette use.</dd></dl>
+    <a class="dl" href="logos/series3/svg/word-comb-underline.svg" download>↓ SVG</a>
+  </figcaption></figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:4.020"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-88 -1484 7385 1837"><text x="0" y="0" font-family="JuliaMono, monospace" font-weight="700" font-size="1000" xml:space="preserve"><tspan fill="#1b1b1f">H</tspan><tspan fill="#1b1b1f">eart</tspan><tspan fill="#1b1b1f">R</tspan><tspan fill="#1b1b1f">ate</tspan><tspan fill="#1b1b1f">L</tspan><tspan fill="#1b1b1f">ab</tspan></text><circle cx="297" cy="-1100" r="234" fill="none" stroke="#1b1b1f" stroke-width="92"/><circle cx="3305" cy="-1100" r="234" fill="none" stroke="#1b1b1f" stroke-width="92"/><circle cx="5720" cy="-1100" r="234" fill="none" stroke="#1b1b1f" stroke-width="92"/></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Monochrome — 1-colour / print</h3></div>
+    <code class="id">word-mono</code>
+    <div class="badges"><span class="badge pos">dots above</span><span class="badge grp">wordmark</span></div>
+    <p class="concept">A single-ink cut: all letters ink, the three beats as ink outline-rings above the caps so the triad survives with no colour.</p>
+    <p class="why"><strong>Why:</strong> Guarantees one-colour use — engraving, embossing, stamps, dark-mode knockout.</p>
+    <p class="risk"><strong>Watch:</strong> Loses the Julia colour identity; pair with a colour version where colour exists.</p>
+    <dl class="notes"><dt>⚑ animation</dt><dd>Rings can animate by stroke-dashoffset (draw-on) instead of fill — a different elegant motion.</dd><dt>⎙ print</dt><dd>Purpose-built for print: 1 ink, thick strokes, no fine ticks; knocks out to white on dark.</dd><dt>◑ colour</dt><dd>Zero colour; the three-dot rhythm carries identity through form alone.</dd></dl>
+    <a class="dl" href="logos/series3/svg/word-mono.svg" download>↓ SVG</a>
+  </figcaption></figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:3.009"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-88 -1954 7385 2454"><text x="0" y="0" font-family="JuliaMono, monospace" font-weight="700" font-size="1000" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#1b1b1f">eart</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#1b1b1f">ate</tspan><tspan fill="#389826">L</tspan><tspan fill="#1b1b1f">ab</tspan></text><circle cx="297" cy="-1100" r="234" fill="#9558B2"/><circle cx="1550" cy="-1460" r="200" fill="#CB3C33" opacity="0.28"/><circle cx="1750" cy="-1530" r="200" fill="#CB3C33" opacity="0.55"/><ellipse cx="1950" cy="-1570" rx="232" ry="188" fill="#CB3C33"/><line x1="62" y1="360" x2="7147" y2="360" stroke="#9aa0a8" stroke-width="16" stroke-linecap="round" opacity="0.6"/><line x1="300" y1="360" x2="300" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="900" y1="360" x2="900" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="1500" y1="360" x2="1500" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="2100" y1="360" x2="2100" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="2700" y1="360" x2="2700" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="3300" y1="360" x2="3300" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="3900" y1="360" x2="3900" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="4500" y1="360" x2="4500" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="5100" y1="360" x2="5100" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="5700" y1="360" x2="5700" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="6300" y1="360" x2="6300" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="6900" y1="360" x2="6900" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Bounce Still — ball in flight</h3></div>
+    <code class="id">word-bounce-still</code>
+    <div class="badges"><span class="badge pos">dots above</span><span class="badge grp">wordmark</span></div>
+    <p class="concept">A frozen frame of the motion spec: purple beat already stamped on H; the ball (now red, about to stamp R) at the apex of the H→R arc with float-stretch and a smear ghost; comb floor beneath.</p>
+    <p class="why"><strong>Why:</strong> Sells the animation in one static image — the mark is alive and rule-driven (apex ∝ distance²).</p>
+    <p class="risk"><strong>Watch:</strong> A motion still, not a resting logo; use for animated contexts.</p>
+    <dl class="notes"><dt>⚑ animation</dt><dd>This IS the key-frame; arc, squash and colour hand-off are all in GUIDELINES §7.</dd><dt>⎙ print</dt><dd>Motion stills rarely print; use word-dots-above as the print fallback.</dd><dt>◑ colour</dt><dd>Ball colour = the colour it is about to stamp (red for R); trailing ghost at lower opacity.</dd></dl>
+    <a class="dl" href="logos/series3/svg/word-bounce-still.svg" download>↓ SVG</a>
+  </figcaption></figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:5.336"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-88 -884 7385 1384"><text x="0" y="0" font-family="JuliaMono, monospace" font-weight="700" font-size="1000" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#1b1b1f">eart</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#1b1b1f">ate</tspan><tspan fill="#389826">L</tspan><tspan fill="#1b1b1f">ab</tspan></text><line x1="62" y1="360" x2="7147" y2="360" stroke="#9aa0a8" stroke-width="16" stroke-linecap="round" opacity="0.6"/><line x1="300" y1="360" x2="300" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="900" y1="360" x2="900" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="1500" y1="360" x2="1500" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="2100" y1="360" x2="2100" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="2700" y1="360" x2="2700" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="3300" y1="360" x2="3300" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="3900" y1="360" x2="3900" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="4500" y1="360" x2="4500" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="5100" y1="360" x2="5100" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="5700" y1="360" x2="5700" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="6300" y1="360" x2="6300" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="6900" y1="360" x2="6900" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><circle cx="297" cy="190" r="170" fill="#9558B2"/><circle cx="3305" cy="190" r="170" fill="#E8802B"/><circle cx="5720" cy="190" r="170" fill="#389826"/></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Orange Middle — the open question</h3></div>
+    <code class="id">word-orange</code>
+    <div class="badges"><span class="badge pos">comb below</span><span class="badge grp">wordmark</span></div>
+    <p class="concept">The comb-below mark with the middle beat in a literal orange (#E8802B) instead of Julia red — the alternative the guidelines left open.</p>
+    <p class="why"><strong>Why:</strong> Warmer, higher-contrast triad (purple·orange·green); resolves the open colour question for direct comparison.</p>
+    <p class="risk"><strong>Watch:</strong> Orange isn&#x27;t an official Julia hex; reads slightly less &#x27;Julia-family&#x27;.</p>
+    <dl class="notes"><dt>⚑ animation</dt><dd>Same bounce; only the R stamp colour changes — one variable to A/B (RD→ORG).</dd><dt>⎙ print</dt><dd>Orange prints more vividly than the muted red on coated stock.</dd><dt>◑ colour</dt><dd>Purple · orange · green — one-place change if adopted (middle beat only).</dd></dl>
+    <a class="dl" href="logos/series3/svg/word-orange.svg" download>↓ SVG</a>
+  </figcaption></figure></div></section>
+<section id="g-hrl"><div class="sec-head"><h2>HRL monogram &amp; round versions</h2><p>The compact three-letter mark and the circular &#x27;folded&#x27; logo — the round emblem is built to unroll into the linear wordmark.</p><span class="count">6</span></div><div class="grid"><figure class="card">
+  <div class="stage" style="aspect-ratio:1.089"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-88 -1484 2001 1837"><text x="0" y="0" font-family="JuliaMono, monospace" font-weight="700" font-size="1000" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#389826">L</tspan></text><circle cx="297" cy="-1100" r="234" fill="#9558B2"/><circle cx="905" cy="-1100" r="234" fill="#CB3C33"/><circle cx="1520" cy="-1100" r="234" fill="#389826"/></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>HRL — dots above</h3></div>
+    <code class="id">hrl-dots-above</code>
+    <div class="badges"><span class="badge pos">dots above</span><span class="badge grp">hrl</span></div>
+    <p class="concept">The compact monogram: three tinted capitals H·R·L with three beats resting above their optical centres.</p>
+    <p class="why"><strong>Why:</strong> The smallest mark still carrying the three-letter / three-beat / three-colour story; a natural app icon.</p>
+    <p class="risk"><strong>Watch:</strong> Three equal letters lose the 5:4 variability story; this is identity, not data.</p>
+    <dl class="notes"><dt>⚑ animation</dt><dd>Same bounce over three (equal) hops; colours stamp H→R→L.</dd><dt>⎙ print</dt><dd>Clean 1-colour with outline dots.</dd><dt>◑ colour</dt><dd>H purple · R red · L green.</dd></dl>
+    <a class="dl" href="logos/series3/svg/hrl-dots-above.svg" download>↓ SVG</a>
+  </figcaption></figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:1.467"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-88 -884 2001 1364"><text x="0" y="0" font-family="JuliaMono, monospace" font-weight="700" font-size="1000" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#389826">L</tspan></text><line x1="147" y1="360" x2="1670" y2="360" stroke="#9aa0a8" stroke-width="16" stroke-linecap="round" opacity="0.6"/><line x1="297" y1="360" x2="297" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="905" y1="360" x2="905" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="1520" y1="360" x2="1520" y2="480" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><circle cx="297" cy="210" r="150" fill="#9558B2"/><circle cx="905" cy="210" r="150" fill="#CB3C33"/><circle cx="1520" cy="210" r="150" fill="#389826"/></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>HRL — comb below</h3><span class="rank">★ Top 3</span></div>
+    <code class="id">hrl-comb-below</code>
+    <div class="badges"><span class="badge pos">comb below</span><span class="badge grp">hrl</span></div>
+    <p class="concept">HRL over a three-tick comb (one tick per letter, equal width = time); three beats rest on the ticks.</p>
+    <p class="why"><strong>Why:</strong> The comb-at-bottom idea in favicon form; balls bounce on three ticks and colour each letter.</p>
+    <p class="risk"><strong>Watch:</strong> With only three equal ticks the time grid reads more decorative than data.</p>
+    <dl class="notes"><dt>⚑ animation</dt><dd>The perfect tiny bounce loop: three ticks, three landings, three colour stamps.</dd><dt>⎙ print</dt><dd>1-colour safe.</dd><dt>◑ colour</dt><dd>Beats and caps share the three hues.</dd></dl>
+    <a class="dl" href="logos/series3/svg/hrl-comb-below.svg" download>↓ SVG</a>
+  </figcaption></figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:1.000"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-1000 -1000 2000 2000"><circle cx="0" cy="0" r="760" fill="none" stroke="#9aa0a8" stroke-width="26" opacity="0.7"/><line x1="0" y1="-690" x2="0" y2="-830" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="345" y1="-598" x2="415" y2="-719" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="598" y1="-345" x2="719" y2="-415" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="690" y1="0" x2="830" y2="0" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="598" y1="345" x2="719" y2="415" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="345" y1="598" x2="415" y2="719" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="0" y1="690" x2="0" y2="830" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="-345" y1="598" x2="-415" y2="719" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="-598" y1="345" x2="-719" y2="415" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="-690" y1="0" x2="-830" y2="0" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="-598" y1="-345" x2="-719" y2="-415" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><line x1="-345" y1="-598" x2="-415" y2="-719" stroke="#9aa0a8" stroke-width="26" stroke-linecap="round"/><circle cx="0" cy="-760" r="150" fill="#9558B2"/><circle cx="380" cy="658" r="150" fill="#CB3C33"/><circle cx="-760" cy="0" r="150" fill="#389826"/><text x="-565.75" y="227.54" font-family="JuliaMono, monospace" font-weight="700" font-size="620" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#389826">L</tspan></text></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>HRL Ring — the round logo</h3></div>
+    <code class="id">hrl-ring</code>
+    <div class="badges"><span class="badge pos">round</span><span class="badge grp">hrl</span></div>
+    <p class="concept">The round version: HRL centred inside a ring of 12 equal ticks (time folded into a circle); three beats sit at the angles for cells 0·5·9 — the 5:4 pattern, wrapped.</p>
+    <p class="why"><strong>Why:</strong> A distinct circular emblem that still encodes the exact rhythm; the natural seal / avatar form.</p>
+    <p class="risk"><strong>Watch:</strong> Ticks are small on the ring; keep above ~48px or use the clean ring.</p>
+    <dl class="notes"><dt>⚑ animation</dt><dd>KEY animation: the ring unrolls into the straight comb and the beats slide to H·R·L — a round intro that resolves into the wordmark.</dd><dt>⎙ print</dt><dd>Round marks centre well on pins/coins/stickers; strong square crop.</dd><dt>◑ colour</dt><dd>Three beats on a grey ring, HRL tinted in the centre.</dd></dl>
+    <a class="dl" href="logos/series3/svg/hrl-ring.svg" download>↓ SVG</a>
+  </figcaption></figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:1.000"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-1000 -1000 2000 2000"><circle cx="0" cy="0" r="760" fill="none" stroke="#9aa0a8" stroke-width="26" opacity="0.7"/><circle cx="0" cy="-760" r="150" fill="#9558B2"/><circle cx="658" cy="380" r="150" fill="#CB3C33"/><circle cx="-658" cy="380" r="150" fill="#389826"/><text x="-565.75" y="227.54" font-family="JuliaMono, monospace" font-weight="700" font-size="620" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#389826">L</tspan></text></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>HRL Ring — clean (favicon-round)</h3></div>
+    <code class="id">hrl-ring-dots</code>
+    <div class="badges"><span class="badge pos">round</span><span class="badge grp">hrl</span></div>
+    <p class="concept">The ring stripped to essentials: HRL centred, three evenly-spaced beats on a plain ring, no minor ticks.</p>
+    <p class="why"><strong>Why:</strong> The most favicon-proof round mark — reads at 16px where the ticked ring would mush.</p>
+    <p class="risk"><strong>Watch:</strong> Even 120° spacing drops the 5:4 story for legibility; the folded, tidied logo.</p>
+    <dl class="notes"><dt>⚑ animation</dt><dd>Beats orbit the ring, then it opens into the line for the wordmark reveal.</dd><dt>⎙ print</dt><dd>Cleanest round mark for tiny/print use.</dd><dt>◑ colour</dt><dd>Three hues on a neutral ring.</dd></dl>
+    <a class="dl" href="logos/series3/svg/hrl-ring-dots.svg" download>↓ SVG</a>
+  </figcaption></figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:1.119"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-88 -1436 2001 1789"><text x="0" y="0" font-family="JuliaMono, monospace" font-weight="700" font-size="1000" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#389826">L</tspan></text><circle cx="297" cy="-1076" r="210" fill="#9558B2"/><circle cx="905" cy="-1076" r="210" fill="#CB3C33"/><circle cx="1520" cy="-1076" r="210" fill="#389826"/></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>HRL — favicon</h3></div>
+    <code class="id">hrl-favicon</code>
+    <div class="badges"><span class="badge pos">dots above</span><span class="badge grp">hrl</span></div>
+    <p class="concept">Ultra-compact: HRL with three small beats above, sized for 16–32px.</p>
+    <p class="why"><strong>Why:</strong> The smallest legible carrier of the identity; what actually ships as the favicon.</p>
+    <p class="risk"><strong>Watch:</strong> No comb/time story — pure identity at tiny size.</p>
+    <dl class="notes"><dt>⚑ animation</dt><dd>Too small to animate meaningfully; static.</dd><dt>⎙ print</dt><dd>Holds at 16px in 1 or 3 colours.</dd><dt>◑ colour</dt><dd>Three hues or ink.</dd></dl>
+    <a class="dl" href="logos/series3/svg/hrl-favicon.svg" download>↓ SVG</a>
+  </figcaption></figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:1.316"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-1000 -720 2000 1520"><path d="M -700 260 A 760 760 0 1 1 700 260" fill="none" stroke="#9aa0a8" stroke-width="26" opacity="0.6"/><circle cx="-500" cy="120" r="150" fill="#9558B2"/><circle cx="0" cy="80" r="150" fill="#CB3C33"/><circle cx="500" cy="40" r="150" fill="#389826"/><text x="-474.5" y="710.84" font-family="JuliaMono, monospace" font-weight="700" font-size="520" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#389826">L</tspan></text></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Unroll Still — ring → line</h3></div>
+    <code class="id">hrl-unroll-still</code>
+    <div class="badges"><span class="badge pos">round</span><span class="badge grp">hrl</span></div>
+    <p class="concept">A mid-transition frame: the ring has partly opened into an arc, three beats strung along it approaching their H·R·L positions — the concept key-frame for the round→linear reveal.</p>
+    <p class="why"><strong>Why:</strong> Documents the signature animation move for later production; also a lively in-motion badge.</p>
+    <p class="risk"><strong>Watch:</strong> Transitional by nature — not a resting logo.</p>
+    <dl class="notes"><dt>⚑ animation</dt><dd>The storyboard frame for the round-intro → wordmark animation.</dd><dt>⎙ print</dt><dd>Not for print.</dd><dt>◑ colour</dt><dd>Beats keep their hues through the unroll.</dd></dl>
+    <a class="dl" href="logos/series3/svg/hrl-unroll-still.svg" download>↓ SVG</a>
+  </figcaption></figure></div></section>
+<section id="g-combos"><div class="sec-head"><h2>Lockups &amp; combinations</h2><p>Stacked, measured, minimal and emblem lockups — series-2 ideas re-fitted to the measured metrics, plus new ones.</p><span class="count">5</span></div><div class="grid"><figure class="card">
+  <div class="stage" style="aspect-ratio:3.413"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-88 -1811 7385 2164"><g transform="translate(3149 -994) scale(0.5)"><text x="0" y="0" font-family="JuliaMono, monospace" font-weight="700" font-size="1000" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#389826">L</tspan></text><circle cx="297" cy="-1100" r="234" fill="#9558B2"/><circle cx="905" cy="-1100" r="234" fill="#CB3C33"/><circle cx="1520" cy="-1100" r="234" fill="#389826"/></g><text x="0" y="0" font-family="JuliaMono, monospace" font-weight="700" font-size="1000" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#1b1b1f">eart</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#1b1b1f">ate</tspan><tspan fill="#389826">L</tspan><tspan fill="#1b1b1f">ab</tspan></text></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Stacked — HRL emblem over wordmark</h3></div>
+    <code class="id">combo-stacked</code>
+    <div class="badges"><span class="badge pos">dots above</span><span class="badge grp">combos</span></div>
+    <p class="concept">A two-tier lockup: the compact HRL-triad monogram (dots above three tinted caps) floats centred above the full &#x27;HeartRateLab&#x27; wordmark.</p>
+    <p class="why"><strong>Why:</strong> Gives a real vertical brand lockup (icon over name) for square cards, splash screens and app stores — distinct from the flat dots-above mark.</p>
+    <p class="risk"><strong>Watch:</strong> Two focal tiers need vertical breathing room; not for short banners.</p>
+    <dl class="notes"><dt>⚑ animation</dt><dd>The monogram can animate first (its own mini-bounce), then the wordmark rises in beneath it.</dd><dt>⎙ print</dt><dd>1-colour safe (both tiers).</dd><dt>◑ colour</dt><dd>Three hues in the monogram; the wordmark caps repeat them.</dd></dl>
+    <a class="dl" href="logos/series3/svg/combo-stacked.svg" download>↓ SVG</a>
+  </figcaption></figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:5.495"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-88 -884 7385 1344"><text x="0" y="0" font-family="JuliaMono, monospace" font-weight="700" font-size="1000" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#1b1b1f">eart</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#1b1b1f">ate</tspan><tspan fill="#389826">L</tspan><tspan fill="#1b1b1f">ab</tspan></text><line x1="62" y1="320" x2="7147" y2="320" stroke="#9aa0a8" stroke-width="16" opacity="0.5"/><line x1="297" y1="300" x2="297" y2="420" stroke="#9558B2" stroke-width="50" stroke-linecap="round"/><line x1="3305" y1="300" x2="3305" y2="420" stroke="#CB3C33" stroke-width="50" stroke-linecap="round"/><line x1="5720" y1="300" x2="5720" y2="420" stroke="#389826" stroke-width="50" stroke-linecap="round"/></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Minimal Underline — three ticks only</h3></div>
+    <code class="id">combo-min-underline</code>
+    <div class="badges"><span class="badge pos">comb below</span><span class="badge grp">combos</span></div>
+    <p class="concept">The most restrained lockup: a thin baseline under the word with just three coloured ticks at H·R·L, the rest of the comb implied.</p>
+    <p class="why"><strong>Why:</strong> The quietest way to carry the beat identity horizontally — great for dense UI and README badges.</p>
+    <p class="risk"><strong>Watch:</strong> Without the full comb it reads as three marks, not a grid; the data story is implicit.</p>
+    <dl class="notes"><dt>⚑ animation</dt><dd>The three ticks blink in on the bounce; minimal motion, maximal restraint.</dd><dt>⎙ print</dt><dd>Superb 1-colour and tiny-size behaviour (three short strokes).</dd><dt>◑ colour</dt><dd>Only three tinted ticks — the leanest palette use in the set.</dd></dl>
+    <a class="dl" href="logos/series3/svg/combo-min-underline.svg" download>↓ SVG</a>
+  </figcaption></figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:5.620"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-88 -884 7385 1314"><text x="0" y="0" font-family="JuliaMono, monospace" font-weight="700" font-size="1000" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#1b1b1f">eart</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#1b1b1f">ate</tspan><tspan fill="#389826">L</tspan><tspan fill="#1b1b1f">ab</tspan></text><line x1="62" y1="300" x2="7147" y2="300" stroke="#9aa0a8" stroke-width="16" stroke-linecap="round" opacity="0.6"/><line x1="300" y1="300" x2="300" y2="410" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="900" y1="300" x2="900" y2="410" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="1500" y1="300" x2="1500" y2="410" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="2100" y1="300" x2="2100" y2="410" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="2700" y1="300" x2="2700" y2="410" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="3300" y1="300" x2="3300" y2="410" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="3900" y1="300" x2="3900" y2="410" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="4500" y1="300" x2="4500" y2="410" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="5100" y1="300" x2="5100" y2="410" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="5700" y1="300" x2="5700" y2="410" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="6300" y1="300" x2="6300" y2="410" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="6900" y1="300" x2="6900" y2="410" stroke="#9aa0a8" stroke-width="20" stroke-linecap="round"/><line x1="297" y1="300" x2="297" y2="110" stroke="#9558B2" stroke-width="34"/><circle cx="297" cy="110" r="120" fill="#9558B2"/><line x1="3305" y1="300" x2="3305" y2="110" stroke="#CB3C33" stroke-width="34"/><circle cx="3305" cy="110" r="120" fill="#CB3C33"/><line x1="5720" y1="300" x2="5720" y2="110" stroke="#389826" stroke-width="34"/><circle cx="5720" cy="110" r="120" fill="#389826"/></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Ticks Rising — beats grow from the comb</h3></div>
+    <code class="id">combo-ticks-rising</code>
+    <div class="badges"><span class="badge pos">comb below</span><span class="badge grp">combos</span></div>
+    <p class="concept">Series-2&#x27;s &#x27;ticks rising&#x27; idea, fixed to the grid: 12 equal grey ticks under the word; the three under H·R·L grow tall and terminate in coloured beats.</p>
+    <p class="why"><strong>Why:</strong> Ties each beat to its exact time-tick, so the marks read as events on the axis, not free-floating dots.</p>
+    <p class="risk"><strong>Watch:</strong> The tall coloured ticks can look like stems; keep beat radius clearly larger than tick width.</p>
+    <dl class="notes"><dt>⚑ animation</dt><dd>The three ticks extend upward on the beat, launching the balls — a growth-into-bounce transition.</dd><dt>⎙ print</dt><dd>1-colour degrades gracefully (ticks ink, beats outline).</dd><dt>◑ colour</dt><dd>Grey grid + three hue beats.</dd></dl>
+    <a class="dl" href="logos/series3/svg/combo-ticks-rising.svg" download>↓ SVG</a>
+  </figcaption></figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:3.756"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-88 -1356 7385 1966"><text x="0" y="0" font-family="JuliaMono, monospace" font-weight="700" font-size="1000" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#1b1b1f">eart</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#1b1b1f">ate</tspan><tspan fill="#389826">L</tspan><tspan fill="#1b1b1f">ab</tspan></text><circle cx="297" cy="-1100" r="170" fill="#9558B2"/><circle cx="3305" cy="-1100" r="170" fill="#CB3C33"/><circle cx="5720" cy="-1100" r="170" fill="#389826"/><g stroke="#1b1b1f" stroke-width="18" fill="none" opacity="0.85"><path d="M297 300 V360 M5720 300 V360 M3305 300 V470"/><path d="M297 330 H3305 M3305 440 H5720"/></g><text x="1801" y="300" font-family="JuliaMono,monospace" font-weight="700" font-size="150" fill="#1b1b1f" text-anchor="middle">5</text><text x="4512" y="560" font-family="JuliaMono,monospace" font-weight="700" font-size="150" fill="#1b1b1f" text-anchor="middle">4</text></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Caliper — the 5:4, measured</h3></div>
+    <code class="id">combo-caliper</code>
+    <div class="badges"><span class="badge pos">comb below</span><span class="badge grp">combos</span></div>
+    <p class="concept">The wordmark with two dimension calipers under it spanning H→R (3008) and R→L (2416) — measuring the two inter-beat intervals and showing the 5:4 ratio.</p>
+    <p class="why"><strong>Why:</strong> The most explicit &#x27;this measures intervals&#x27; lockup; a teaching mark for docs and papers.</p>
+    <p class="risk"><strong>Watch:</strong> More diagram than logo; best where the story can breathe.</p>
+    <dl class="notes"><dt>⚑ animation</dt><dd>Calipers draw on after the beats land, annotating the rhythm — a great explanatory animation.</dd><dt>⎙ print</dt><dd>Fine linework; keep ≥200px or thicken for print.</dd><dt>◑ colour</dt><dd>Beats tinted; calipers ink/grey.</dd></dl>
+    <a class="dl" href="logos/series3/svg/combo-caliper.svg" download>↓ SVG</a>
+  </figcaption></figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:6.765"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-1321 -921 8618 1274"><g transform="translate(-700 -300) scale(0.62)"><circle cx="0" cy="0" r="760" fill="none" stroke="#9aa0a8" stroke-width="26" opacity="0.7"/><circle cx="0" cy="-760" r="150" fill="#9558B2"/><circle cx="658" cy="380" r="150" fill="#CB3C33"/><circle cx="-658" cy="380" r="150" fill="#389826"/><text x="-565.75" y="227.54" font-family="JuliaMono, monospace" font-weight="700" font-size="620" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#389826">L</tspan></text></g><text x="0" y="0" font-family="JuliaMono, monospace" font-weight="700" font-size="1000" xml:space="preserve"><tspan fill="#9558B2">H</tspan><tspan fill="#1b1b1f">eart</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#1b1b1f">ate</tspan><tspan fill="#389826">L</tspan><tspan fill="#1b1b1f">ab</tspan></text></svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Round Badge — emblem + wordmark</h3></div>
+    <code class="id">combo-round-badge</code>
+    <div class="badges"><span class="badge pos">round</span><span class="badge grp">combos</span></div>
+    <p class="concept">A lockup pairing the clean beat-ring emblem (left) with the &#x27;HeartRateLab&#x27; wordmark (right).</p>
+    <p class="why"><strong>Why:</strong> A formal emblem-plus-name lockup for headers, papers and about-pages; the round mark also stands alone.</p>
+    <p class="risk"><strong>Watch:</strong> Two focal shapes need careful spacing; provided at the measured alignment.</p>
+    <dl class="notes"><dt>⚑ animation</dt><dd>The ring spins/unrolls on load, then the wordmark fades in beside it.</dd><dt>⎙ print</dt><dd>Both elements hold in 1 colour.</dd><dt>◑ colour</dt><dd>Ring beats + word caps share the three hues.</dd></dl>
+    <a class="dl" href="logos/series3/svg/combo-round-badge.svg" download>↓ SVG</a>
+  </figcaption></figure></div></section>
+</main>
+<footer>Series 3 for HeartRateLab.jl. Metrics from <code>logos/typography/full_metrics.json</code>;
+guidelines in <code>logos/typography/GUIDELINES.md</code>. Text kept as live JuliaMono (not outlined) so
+letter fills stay animatable. All raw SVGs under <code>logos/series3/svg/</code>. Bar/tachogram motifs dropped.</footer>
+</body></html>

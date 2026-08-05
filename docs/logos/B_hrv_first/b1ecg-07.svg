@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- HRL Pulseline: bold wordmark monogram underlined by a small rhythm-strip accent -->
+  <text x="160" y="190" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="140"
+        text-anchor="middle" fill="#1A1A1A" letter-spacing="-4">HRL</text>
+  <path d="M60,240 L100,240 L110,220 L130,262 L150,240 L260,240"
+        fill="none" stroke="#CB3C33" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

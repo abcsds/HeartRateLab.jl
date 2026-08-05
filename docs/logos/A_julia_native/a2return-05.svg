@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Spiral phase-space trajectory converging outward to settle on the Julia triad's limit cycle -->
+  <path d="M160,178
+           C172,178 182,168 182,156
+           C182,134 162,118 138,118
+           C104,118 78,146 78,180
+           C78,222 114,256 158,256
+           C210,256 250,214 250,160
+           C250,96 198,60 160,92"
+        fill="none" stroke="#1A1A1A" stroke-width="7" opacity="0.55" stroke-linecap="round"/>
+  <circle cx="160" cy="92" r="34" fill="#9558B2"/>
+  <circle cx="236" cy="205" r="34" fill="#389826"/>
+  <circle cx="84" cy="205" r="34" fill="#CB3C33"/>
+</svg>

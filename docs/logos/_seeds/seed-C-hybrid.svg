@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Direction C seed: ECG trace whose three R-peaks resolve into the three Julia dots -->
+  <path d="M22,214 H74 L86,208 L92,120 L100,208 L130,208 L154,208 L160,120 L168,208
+           L196,208 L222,208 L230,120 L238,208 L250,208 H298"
+        fill="none" stroke="#1A1A1A" stroke-width="6.5"
+        stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="96"  cy="112" r="27" fill="#9558B2"/>
+  <circle cx="160" cy="112" r="27" fill="#CB3C33"/>
+  <circle cx="234" cy="112" r="27" fill="#389826"/>
+</svg>

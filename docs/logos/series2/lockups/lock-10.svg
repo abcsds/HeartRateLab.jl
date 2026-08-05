@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <!-- Compact fused mark: tiny unequal-spaced beat dots tucked under-left, tight composition -->
+  <line x1="60" y1="176" x2="180" y2="176" stroke="#1A1A1A" stroke-width="3" opacity="0.35" stroke-linecap="round"/>
+  <circle cx="85" cy="176" r="16" fill="#9558B2"/>
+  <circle cx="120" cy="176" r="15" fill="#CB3C33"/>
+  <circle cx="170" cy="176" r="17" fill="#389826"/>
+  <text x="195" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="70" textLength="390" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- R-Spike: the purple dot grows a sharp, narrow R-peak spike -->
+  <circle cx="160" cy="136" r="46" fill="#9558B2"/>
+  <path d="M160,36 L174,100 L146,100 Z" fill="#9558B2"/>
+  <circle cx="108" cy="214" r="34" fill="#CB3C33"/>
+  <circle cx="212" cy="214" r="34" fill="#389826"/>
+</svg>

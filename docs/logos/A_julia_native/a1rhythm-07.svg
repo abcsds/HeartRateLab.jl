@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Breath Wave: slow smooth modulation (RSA) carrying three beats at crest / mid / trough -->
+  <path d="M34,180 C67,104 87,104 120,180 C153,256 173,256 200,180 C227,104 247,104 280,180"
+        fill="none" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="100" cy="126" r="18" fill="#9558B2"/>
+  <circle cx="160" cy="188" r="18" fill="#CB3C33"/>
+  <circle cx="220" cy="126" r="18" fill="#389826"/>
+</svg>

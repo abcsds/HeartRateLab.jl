@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Direction B seed: Poincaré plot — ellipse cloud of NN points along the 45° identity line -->
+  <!-- faint L-axes -->
+  <path d="M56,44 V264 H276" fill="none" stroke="#1A1A1A" stroke-width="3" opacity="0.28"/>
+  <!-- identity line y=x -->
+  <line x1="56" y1="264" x2="276" y2="44" stroke="#1A1A1A" stroke-width="2.5"
+        stroke-dasharray="6 8" opacity="0.35"/>
+  <g transform="rotate(-45 160 160)">
+    <!-- SD1/SD2 ellipse envelope -->
+    <ellipse cx="160" cy="160" rx="104" ry="40" fill="#9558B2" fill-opacity="0.10"
+             stroke="#9558B2" stroke-width="2.5" stroke-opacity="0.55"/>
+    <!-- scattered NN(n) vs NN(n+1) points -->
+    <circle cx="72"  cy="168" r="7" fill="#CB3C33"/>
+    <circle cx="88"  cy="150" r="7" fill="#389826"/>
+    <circle cx="96"  cy="180" r="7" fill="#4063D8"/>
+    <circle cx="110" cy="158" r="7" fill="#9558B2"/>
+    <circle cx="122" cy="174" r="7" fill="#389826"/>
+    <circle cx="134" cy="150" r="7" fill="#CB3C33"/>
+    <circle cx="144" cy="168" r="7" fill="#4063D8"/>
+    <circle cx="152" cy="184" r="7" fill="#9558B2"/>
+    <circle cx="160" cy="154" r="7" fill="#CB3C33"/>
+    <circle cx="170" cy="172" r="7" fill="#389826"/>
+    <circle cx="182" cy="150" r="7" fill="#9558B2"/>
+    <circle cx="194" cy="168" r="7" fill="#4063D8"/>
+    <circle cx="206" cy="156" r="7" fill="#CB3C33"/>
+    <circle cx="220" cy="172" r="7" fill="#389826"/>
+    <circle cx="236" cy="160" r="7" fill="#9558B2"/>
+    <circle cx="250" cy="168" r="7" fill="#4063D8"/>
+  </g>
+</svg>

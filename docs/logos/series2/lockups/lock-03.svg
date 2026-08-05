@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <!-- Three dot-beats on a timeline + small interval caliper measuring the last gap -->
+  <line x1="20" y1="120" x2="195" y2="120" stroke="#1A1A1A" stroke-width="3" opacity="0.35" stroke-linecap="round"/>
+  <circle cx="45" cy="120" r="20" fill="#9558B2"/>
+  <circle cx="100" cy="120" r="20" fill="#CB3C33"/>
+  <circle cx="170" cy="120" r="20" fill="#389826"/>
+  <line x1="100" y1="150" x2="100" y2="165" stroke="#8A8F98" stroke-width="3" stroke-linecap="round"/>
+  <line x1="170" y1="150" x2="170" y2="165" stroke="#8A8F98" stroke-width="3" stroke-linecap="round"/>
+  <line x1="100" y1="158" x2="170" y2="158" stroke="#8A8F98" stroke-width="3" stroke-linecap="round"/>
+  <text x="225" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="70" textLength="380" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+</svg>

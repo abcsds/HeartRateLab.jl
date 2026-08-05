@@ -1,0 +1,1018 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HeartRateLab.jl — IBI-First Logo Run</title>
+<style>
+:root{--pt:#9558B2;--gn:#389826;--rd:#CB3C33;--bl:#4063D8;
+  --bg:#f6f6f8;--fg:#1a1a1e;--muted:#6a6a76;--card:#fff;--line:#e6e6ec;--stage:#ececf1;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 8px 24px rgba(0,0,0,.06);}
+html[data-theme=dark]{--bg:#141418;--fg:#ececf1;--muted:#9a9aa8;--card:#1d1d23;
+  --line:#2a2a33;--stage:#26262e;--shadow:0 1px 3px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+a{color:var(--bl)}
+.toggle{position:fixed;top:16px;right:16px;z-index:9;background:var(--card);border:1px solid var(--line);
+  border-radius:999px;padding:8px 14px;cursor:pointer;font-size:13px;color:var(--fg);box-shadow:var(--shadow)}
+header.hero{padding:60px 24px 26px;max-width:1180px;margin:0 auto}
+.brandline{display:flex;gap:6px;margin-bottom:18px}
+.brandline i{width:24px;height:24px;border-radius:50%;display:block}
+.brandline i:nth-child(1){background:var(--pt)}.brandline i:nth-child(2){background:var(--rd)}
+.brandline i:nth-child(3){background:var(--gn)}
+h1{font-size:clamp(28px,4.5vw,44px);margin:.1em 0;letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:18px;max-width:780px}
+.meta{margin-top:18px;display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:13px;color:var(--muted)}
+.chip b{color:var(--fg)}
+main{max-width:1180px;margin:0 auto;padding:0 24px 80px}
+.topwrap{margin:22px 0 10px;padding:22px;border:1px solid var(--line);border-radius:18px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--pt) 7%,var(--card)),var(--card))}
+.topwrap h2{margin:0 0 4px;font-size:22px}
+.topwrap>p{margin:0 0 16px;color:var(--muted);max-width:760px}
+.topgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+section{padding-top:40px}
+.sec-head{border-left:4px solid var(--pt);padding:2px 0 2px 15px;margin:18px 0 18px;position:relative}
+#g-lockups .sec-head{border-color:var(--rd)}#g-combos .sec-head{border-color:var(--gn)}
+.sec-head h2{font-size:25px;margin:.1em 0}.sec-head p{color:var(--muted);margin:.2em 0 0;max-width:720px}
+.sec-head .count{position:absolute;right:0;top:4px;color:var(--muted);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.card{margin:0;background:var(--card);border:1px solid var(--line);border-radius:15px;overflow:hidden;
+  box-shadow:var(--shadow);display:flex;flex-direction:column}
+.card.big{border-color:color-mix(in srgb,var(--pt) 45%,var(--line))}
+.stage{background:var(--stage);width:100%;display:flex;align-items:center;justify-content:center;padding:24px;min-height:150px}
+.stage svg{width:100%;height:100%;max-height:220px;display:block}
+figcaption{padding:15px 17px 17px;display:flex;flex-direction:column;gap:7px}
+.cap-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.cap-head h3{margin:0;font-size:17px}
+.rank{font-size:12px;font-weight:700;color:#fff;background:var(--pt);border-radius:999px;padding:2px 10px;white-space:nowrap}
+.id{color:var(--muted);font-size:12px}
+.badges{display:flex;flex-wrap:wrap;gap:6px}
+.badge{font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.badge.motif{border-color:var(--bl);color:var(--bl)}.badge.wm.text{border-color:var(--gn);color:var(--gn)}
+.concept{margin:2px 0;font-size:14px}.why,.risk{margin:0;font-size:13px;color:var(--muted)}
+.why strong{color:var(--gn)}.risk strong{color:var(--rd)}
+.pick{margin:4px 0 0;font-size:13.5px;background:color-mix(in srgb,var(--pt) 8%,transparent);
+  border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.pick strong{color:var(--pt)}
+.dl{margin-top:4px;font-size:13px;text-decoration:none;color:var(--muted);border:1px solid var(--line);
+  border-radius:8px;padding:5px 10px;align-self:flex-start}.dl:hover{color:var(--bl);border-color:var(--bl)}
+footer{max-width:1180px;margin:0 auto;padding:0 24px 60px;color:var(--muted);font-size:13px}
+</style></head>
+<body>
+<button class="toggle" onclick="var h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark'">◐ theme</button>
+<header class="hero">
+  <div class="brandline"><i></i><i></i><i></i></div>
+  <h1>HeartRateLab.jl — IBI-First Logo Run</h1>
+  <p class="sub">A focused second pass on the two chosen marks — the <em>IBI Comb</em>
+  and the <em>Triad + name lockup</em> — honouring the package's real signal:
+  <strong>inter-beat intervals</strong>, not ECG. 30 new designs.</p>
+  <div class="meta">
+    <span class="chip"><b>Rule</b> IBI vocabulary only — no ECG/QRS</span>
+    <span class="chip"><b>Keep</b> three Julia dots · logo + wordmark lockup</span>
+    <span class="chip"><b>Format</b> hand-built SVG</span>
+  </div>
+</header>
+<main>
+  <div class="topwrap">
+    <h2>★ My top 3</h2>
+    <p>Given everything so far — the IBI focus, the lockup you liked, and legibility
+    from favicon to README header — these are the three I'd move forward with.</p>
+    <div class="topgrid"><figure class="card big">
+  <div class="stage" style="aspect-ratio:2.909"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <!-- Wordmark underlined by an irregular IBI tick comb; three ticks carry the Julia colors -->
+  <text x="90" y="115" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="84" textLength="460" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+  <line x1="90" y1="160" x2="550" y2="160" stroke="#1A1A1A" stroke-width="2" opacity="0.2" stroke-linecap="round"/>
+  <line x1="100" y1="160" x2="100" y2="146" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="140" y1="160" x2="140" y2="136" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="175" y1="160" x2="175" y2="148" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="215" y1="160" x2="215" y2="126" stroke="#9558B2" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="215" cy="126" r="7" fill="#9558B2"/>
+  <line x1="250" y1="160" x2="250" y2="142" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="285" y1="160" x2="285" y2="134" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="320" y1="160" x2="320" y2="146" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="355" y1="160" x2="355" y2="128" stroke="#CB3C33" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="355" cy="128" r="7" fill="#CB3C33"/>
+  <line x1="390" y1="160" x2="390" y2="140" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="425" y1="160" x2="425" y2="145" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="460" y1="160" x2="460" y2="132" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="495" y1="160" x2="495" y2="126" stroke="#389826" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="495" cy="126" r="7" fill="#389826"/>
+  <line x1="530" y1="160" x2="530" y2="144" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Underlined by the Comb</h3><span class="rank">★ Top 1</span></div>
+    <code class="id">lock-04</code>
+    <div class="badges"><span class="badge motif">IBI comb as underline / type</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">No separate icon block — the whole &#x27;HeartRateLab&#x27; wordmark is underlined by an irregular IBI tick comb; three ticks in the Julia colors are dot-capped, echoing identity inline with the type.</p>
+    <p class="why"><strong>Why:</strong> The strongest type-led option; the comb underline scans as a data-signature rather than decoration.</p>
+    <p class="risk"><strong>Risk:</strong> At small sizes the underline ticks can merge into a solid rule — best at medium+ (favicon should fall back to an icon-only mark).</p>
+    <p class="pick"><strong>Why I pick it:</strong> My overall favorite. It fuses both things you liked — the IBI comb and the name lockup — into one mark: the package name literally written onto an inter-beat recording. Distinctive, legible, and unmistakably about interval variability.</p>
+    <a class="dl" href="logos/series2/lockups/lock-04.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card big">
+  <div class="stage" style="aspect-ratio:2.909"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <!-- Compact IBI tick-comb: 3 colored ticks, unequal spacing & heights, dot-capped -->
+  <line x1="15" y1="150" x2="175" y2="150" stroke="#1A1A1A" stroke-width="2" opacity="0.3" stroke-linecap="round"/>
+  <line x1="45" y1="150" x2="45" y2="110" stroke="#9558B2" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="45" cy="110" r="11" fill="#9558B2"/>
+  <line x1="90" y1="150" x2="90" y2="95" stroke="#CB3C33" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="90" cy="95" r="12" fill="#CB3C33"/>
+  <line x1="150" y1="150" x2="150" y2="120" stroke="#389826" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="150" cy="120" r="10" fill="#389826"/>
+  <text x="200" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="70" textLength="390" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Tick-Comb Mini</h3><span class="rank">★ Top 2</span></div>
+    <code class="id">lock-02</code>
+    <div class="badges"><span class="badge motif">IBI tick-comb (dot-capped)</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">Three colored ticks at unequal spacing and heights (= unequal IBI durations), each capped with a small Julia dot — a compact, icon-first version of Base A&#x27;s comb, set left of the wordmark.</p>
+    <p class="why"><strong>Why:</strong> Ties directly to the hero comb while staying a clean &#x27;icon + name&#x27; lockup — the format you said you liked.</p>
+    <p class="risk"><strong>Risk:</strong> At very small sizes the dot caps can fuse with the ticks; keep dot radius ≥ stroke width.</p>
+    <p class="pick"><strong>Why I pick it:</strong> The horizontal &#x27;logo next to the name&#x27; you specifically liked — but rebuilt honestly: a tiny IBI comb instead of the ECG spike. This is the everyday workhorse lockup for README headers and docs.</p>
+    <a class="dl" href="logos/series2/lockups/lock-02.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card big">
+  <div class="stage" style="aspect-ratio:1.000"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Dense rhythm comb: irregular clustering of ticks, three Julia-dot beats -->
+  <line x1="30" y1="230" x2="276" y2="230" stroke="#1A1A1A" stroke-width="3" opacity="0.4" stroke-linecap="round"/>
+  <line x1="40"  y1="230" x2="40"  y2="202" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="56"  y1="230" x2="56"  y2="178" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round"/>
+  <line x1="66"  y1="230" x2="66"  y2="160" stroke="#9558B2" stroke-width="7" stroke-linecap="round"/>
+  <line x1="92"  y1="230" x2="92"  y2="202" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="120" y1="230" x2="120" y2="178" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round"/>
+  <line x1="133" y1="230" x2="133" y2="202" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="160" y1="230" x2="160" y2="160" stroke="#CB3C33" stroke-width="7" stroke-linecap="round"/>
+  <line x1="192" y1="230" x2="192" y2="178" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round"/>
+  <line x1="203" y1="230" x2="203" y2="202" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="228" y1="230" x2="228" y2="160" stroke="#389826" stroke-width="7" stroke-linecap="round"/>
+  <line x1="246" y1="230" x2="246" y2="202" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="266" y1="230" x2="266" y2="178" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="66"  cy="150" r="15" fill="#9558B2"/>
+  <circle cx="160" cy="150" r="15" fill="#CB3C33"/>
+  <circle cx="228" cy="150" r="15" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Rhythm Comb</h3><span class="rank">★ Top 3</span></div>
+    <code class="id">comb-01</code>
+    <div class="badges"><span class="badge motif">tick comb / event raster</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Base A intensified — 12 ticks clustered in irregular groups so the rhythm itself, not just three gaps, reads as variable; the three tallest ticks carry the Julia dots.</p>
+    <p class="why"><strong>Why:</strong> The most literal refinement of the hero motif you chose; scales density up without losing the baseline-and-ticks read.</p>
+    <p class="risk"><strong>Risk:</strong> Busiest of the set; at 32px the filler ticks fuzz into a grey band (the three dots still pop).</p>
+    <p class="pick"><strong>Why I pick it:</strong> It&#x27;s the direct, stronger evolution of the exact mark you already picked (Base A) — the standalone &#x27;symbol&#x27; of the system. Crop it for social/app icons; drop to comb-08 for a true 16–32px favicon.</p>
+    <a class="dl" href="logos/series2/ibi_icons/comb-01.svg" download>↓ SVG</a>
+  </figcaption>
+</figure></div>
+  </div>
+<section id="g-icons">
+  <div class="sec-head"><h2>IBI-Comb icons</h2><p>Ten evolutions of the inter-beat-interval comb — beat events as ticks, the unequal gaps as variability. Icon-only, three Julia dots.</p>
+    <span class="count">10 logos</span></div>
+  <div class="grid"><figure class="card">
+  <div class="stage" style="aspect-ratio:1.000"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Dense rhythm comb: irregular clustering of ticks, three Julia-dot beats -->
+  <line x1="30" y1="230" x2="276" y2="230" stroke="#1A1A1A" stroke-width="3" opacity="0.4" stroke-linecap="round"/>
+  <line x1="40"  y1="230" x2="40"  y2="202" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="56"  y1="230" x2="56"  y2="178" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round"/>
+  <line x1="66"  y1="230" x2="66"  y2="160" stroke="#9558B2" stroke-width="7" stroke-linecap="round"/>
+  <line x1="92"  y1="230" x2="92"  y2="202" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="120" y1="230" x2="120" y2="178" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round"/>
+  <line x1="133" y1="230" x2="133" y2="202" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="160" y1="230" x2="160" y2="160" stroke="#CB3C33" stroke-width="7" stroke-linecap="round"/>
+  <line x1="192" y1="230" x2="192" y2="178" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round"/>
+  <line x1="203" y1="230" x2="203" y2="202" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="228" y1="230" x2="228" y2="160" stroke="#389826" stroke-width="7" stroke-linecap="round"/>
+  <line x1="246" y1="230" x2="246" y2="202" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="266" y1="230" x2="266" y2="178" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="66"  cy="150" r="15" fill="#9558B2"/>
+  <circle cx="160" cy="150" r="15" fill="#CB3C33"/>
+  <circle cx="228" cy="150" r="15" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Rhythm Comb</h3><span class="rank">★ Top 3</span></div>
+    <code class="id">comb-01</code>
+    <div class="badges"><span class="badge motif">tick comb / event raster</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Base A intensified — 12 ticks clustered in irregular groups so the rhythm itself, not just three gaps, reads as variable; the three tallest ticks carry the Julia dots.</p>
+    <p class="why"><strong>Why:</strong> The most literal refinement of the hero motif you chose; scales density up without losing the baseline-and-ticks read.</p>
+    <p class="risk"><strong>Risk:</strong> Busiest of the set; at 32px the filler ticks fuzz into a grey band (the three dots still pop).</p>
+    
+    <a class="dl" href="logos/series2/ibi_icons/comb-01.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:1.000"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Comb bent into a full ring: the cyclic cardiac cycle, ticks radiate from a beat circle -->
+  <circle cx="160" cy="160" r="78" fill="none" stroke="#1A1A1A" stroke-width="3" opacity="0.3"/>
+
+  <line x1="238.0" y1="160.0" x2="252.0" y2="160.0" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="235.3" y1="180.2" x2="248.9" y2="183.8" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="213.2" y1="217.0" x2="236.4" y2="241.9" stroke="#9558B2" stroke-width="6" stroke-linecap="round"/>
+  <line x1="190.5" y1="231.8" x2="195.9" y2="244.7" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+  <line x1="130.8" y1="232.3" x2="125.5" y2="245.3" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+  <line x1="109.9" y1="219.8" x2="100.9" y2="230.5" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="86.7"  y1="186.7" x2="54.8"  y2="198.3" stroke="#CB3C33" stroke-width="6" stroke-linecap="round"/>
+  <line x1="92.5"  y1="121.0" x2="80.3"  y2="114.0" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="112.0" y1="98.5"  x2="103.4" y2="87.5"  stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+  <line x1="129.5" y1="88.2"  x2="124.1" y2="75.3"  stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+  <line x1="180.2" y1="84.7"  x2="189.0" y2="51.8"  stroke="#389826" stroke-width="6" stroke-linecap="round"/>
+  <line x1="210.1" y1="100.2" x2="219.1" y2="89.5"  stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="236.8" y1="146.5" x2="250.6" y2="144.0" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+
+  <circle cx="243.9" cy="250.0" r="13" fill="#9558B2"/>
+  <circle cx="44.4"  cy="202.1" r="13" fill="#CB3C33"/>
+  <circle cx="191.8" cy="41.2"  r="13" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Cycle Ring</h3></div>
+    <code class="id">comb-04</code>
+    <div class="badges"><span class="badge motif">comb bent into a full ring</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">The comb bent into a full ring — ticks radiate from a circle at irregular angular gaps (a cyclic cardiac cycle); three extended ticks carry the Julia dots.</p>
+    <p class="why"><strong>Why:</strong> The most distinctive silhouette in the set (radial vs linear) and reads well as an app icon at any size.</p>
+    <p class="risk"><strong>Risk:</strong> Could look clock-like; mitigated by irregular (non-12-hour) spacing and the dot colors.</p>
+    
+    <a class="dl" href="logos/series2/ibi_icons/comb-04.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:1.000"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Ultra-minimal: just three beats + explicit gap marks; the comb is only implied -->
+  <line x1="50" y1="170" x2="260" y2="170" stroke="#1A1A1A" stroke-width="2" opacity="0.2" stroke-linecap="round"/>
+
+  <line x1="80"  y1="205" x2="150" y2="205" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+  <line x1="80"  y1="198" x2="80"  y2="212" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+  <line x1="150" y1="198" x2="150" y2="212" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+
+  <line x1="150" y1="205" x2="240" y2="205" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+  <line x1="240" y1="198" x2="240" y2="212" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+
+  <circle cx="80"  cy="170" r="19" fill="#9558B2"/>
+  <circle cx="150" cy="170" r="19" fill="#CB3C33"/>
+  <circle cx="240" cy="170" r="19" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Minimal Gaps</h3></div>
+    <code class="id">comb-08</code>
+    <div class="badges"><span class="badge motif">ultra-minimal beats + gap marks</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Stripped to three large Julia dots on a barely-there baseline with two small caliper marks making the unequal gaps explicit — the comb fully implied.</p>
+    <p class="why"><strong>Why:</strong> Cleanest of the set and the best true favicon: nothing is lost in downscaling (verified crisp at 32px).</p>
+    <p class="risk"><strong>Risk:</strong> Loses the comb texture that makes Base A distinctive; reads generic if the caliper marks are removed.</p>
+    
+    <a class="dl" href="logos/series2/ibi_icons/comb-08.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:1.000"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Tachogram: interval duration vs beat number, step-line with three colored beats -->
+  <line x1="40" y1="250" x2="280" y2="250" stroke="#1A1A1A" stroke-width="3" opacity="0.35" stroke-linecap="round"/>
+  <polyline points="60,190 90,150 120,175 150,120 180,160 210,100 240,140 270,170"
+            fill="none" stroke="#1A1A1A" stroke-width="3" opacity="0.55" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="60"  cy="190" r="5" fill="#8A8F98"/>
+  <circle cx="90"  cy="150" r="5" fill="#8A8F98"/>
+  <circle cx="120" cy="175" r="14" fill="#9558B2"/>
+  <circle cx="150" cy="120" r="5" fill="#8A8F98"/>
+  <circle cx="180" cy="160" r="14" fill="#CB3C33"/>
+  <circle cx="210" cy="100" r="5" fill="#8A8F98"/>
+  <circle cx="240" cy="140" r="14" fill="#389826"/>
+  <circle cx="270" cy="170" r="5" fill="#8A8F98"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Tachogram</h3></div>
+    <code class="id">comb-06</code>
+    <div class="badges"><span class="badge motif">tachogram (point series + line)</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Classic tachogram — beat number on x, interval duration as point height on y, points joined by a step line; three enlarged colored points anchor identity among grey ones.</p>
+    <p class="why"><strong>Why:</strong> The most &#x27;real HRV analysis output&#x27; of the set — anyone who&#x27;s plotted NN-intervals recognizes it instantly.</p>
+    <p class="risk"><strong>Risk:</strong> The zig-zag could brush &#x27;ECG&#x27; if too spiky; kept rounded and modest (whitelisted IBI vocabulary).</p>
+    
+    <a class="dl" href="logos/series2/ibi_icons/comb-06.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:1.000"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Interval calipers: brackets measuring the unequal gaps between beats -->
+  <line x1="40" y1="220" x2="270" y2="220" stroke="#1A1A1A" stroke-width="3" opacity="0.3" stroke-linecap="round"/>
+
+  <!-- caliper 1: short gap, beat1-beat2 -->
+  <line x1="80" y1="148" x2="150" y2="148" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+  <line x1="80" y1="140" x2="80" y2="156" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+  <line x1="150" y1="140" x2="150" y2="156" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- caliper 2: long gap, beat2-beat3 -->
+  <line x1="150" y1="108" x2="230" y2="108" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+  <line x1="150" y1="100" x2="150" y2="116" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+  <line x1="230" y1="100" x2="230" y2="116" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- drop stems from calipers to beats -->
+  <line x1="80"  y1="156" x2="80"  y2="204" stroke="#8A8F98" stroke-width="2" opacity="0.6"/>
+  <line x1="150" y1="156" x2="150" y2="204" stroke="#8A8F98" stroke-width="2" opacity="0.6"/>
+  <line x1="230" y1="116" x2="230" y2="204" stroke="#8A8F98" stroke-width="2" opacity="0.6"/>
+
+  <!-- three beat-event dots on the baseline -->
+  <circle cx="80"  cy="220" r="18" fill="#9558B2"/>
+  <circle cx="150" cy="220" r="18" fill="#CB3C33"/>
+  <circle cx="230" cy="220" r="18" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Interval Calipers</h3></div>
+    <code class="id">comb-02</code>
+    <div class="badges"><span class="badge motif">interval brackets / calipers</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Three beat-dots on the baseline; two engineering-style dimension brackets span beat1→2 and beat2→3 at different lengths, explicitly measuring the unequal IBI gaps.</p>
+    <p class="why"><strong>Why:</strong> The most explicit &#x27;this measures a duration&#x27; read — good where the measurement idea must be instant.</p>
+    <p class="risk"><strong>Risk:</strong> Could be mistaken for a bar-chart/table icon if colors are stripped.</p>
+    
+    <a class="dl" href="logos/series2/ibi_icons/comb-02.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:1.000"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Dots floating as event markers above a plain, regular tick timeline -->
+  <line x1="34" y1="250" x2="286" y2="250" stroke="#1A1A1A" stroke-width="3" opacity="0.4" stroke-linecap="round"/>
+  <line x1="40"  y1="250" x2="40"  y2="230" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="64"  y1="250" x2="64"  y2="230" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="88"  y1="250" x2="88"  y2="230" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="112" y1="250" x2="112" y2="230" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="136" y1="250" x2="136" y2="230" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="160" y1="250" x2="160" y2="230" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="184" y1="250" x2="184" y2="230" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="208" y1="250" x2="208" y2="230" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="232" y1="250" x2="232" y2="230" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="256" y1="250" x2="256" y2="230" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="280" y1="250" x2="280" y2="230" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+
+  <line x1="88"  y1="230" x2="88"  y2="145" stroke="#1A1A1A" stroke-width="2" stroke-dasharray="4 5" opacity="0.5"/>
+  <line x1="160" y1="230" x2="160" y2="110" stroke="#1A1A1A" stroke-width="2" stroke-dasharray="4 5" opacity="0.5"/>
+  <line x1="232" y1="230" x2="232" y2="165" stroke="#1A1A1A" stroke-width="2" stroke-dasharray="4 5" opacity="0.5"/>
+
+  <circle cx="88"  cy="130" r="17" fill="#9558B2"/>
+  <circle cx="160" cy="95"  r="17" fill="#CB3C33"/>
+  <circle cx="232" cy="150" r="17" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Floating Beats</h3></div>
+    <code class="id">comb-09</code>
+    <div class="badges"><span class="badge motif">event markers over a plain raster</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A regular tick timeline underneath with three Julia dots floating above at irregular heights, each linked by a thin dashed stem — the floating heights are the variability signal.</p>
+    <p class="why"><strong>Why:</strong> Cleanly separates &#x27;when&#x27; (regular raster) from &#x27;how variable&#x27; (floating heights) — a distinct two-layer composition.</p>
+    <p class="risk"><strong>Risk:</strong> Dashed stems can vanish at 32px (the floating dots still read as the hero).</p>
+    
+    <a class="dl" href="logos/series2/ibi_icons/comb-09.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:1.000"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Poincare plot built from the comb's intervals: NN(n) vs NN(n+1), ellipse on the diagonal -->
+  <line x1="60" y1="60"  x2="60"  y2="260" stroke="#1A1A1A" stroke-width="3" opacity="0.35" stroke-linecap="round"/>
+  <line x1="60" y1="260" x2="260" y2="260" stroke="#1A1A1A" stroke-width="3" opacity="0.35" stroke-linecap="round"/>
+  <line x1="65" y1="255" x2="245" y2="75" stroke="#8A8F98" stroke-width="2" stroke-dasharray="6 6" opacity="0.6"/>
+
+  <ellipse cx="160" cy="160" rx="105" ry="34" fill="#9558B2" opacity="0.08"
+           transform="rotate(-45 160 160)"/>
+  <ellipse cx="160" cy="160" rx="105" ry="34" fill="none" stroke="#1A1A1A" stroke-width="2" opacity="0.3"
+           transform="rotate(-45 160 160)"/>
+
+  <circle cx="88"  cy="215" r="5" fill="#8A8F98"/>
+  <circle cx="108" cy="200" r="5" fill="#8A8F98"/>
+  <circle cx="122" cy="230" r="5" fill="#8A8F98"/>
+  <circle cx="150" cy="205" r="5" fill="#8A8F98"/>
+  <circle cx="165" cy="190" r="5" fill="#8A8F98"/>
+  <circle cx="185" cy="140" r="5" fill="#8A8F98"/>
+  <circle cx="195" cy="175" r="5" fill="#8A8F98"/>
+  <circle cx="205" cy="155" r="5" fill="#8A8F98"/>
+  <circle cx="225" cy="110" r="5" fill="#8A8F98"/>
+
+  <circle cx="120" cy="195" r="13" fill="#9558B2"/>
+  <circle cx="165" cy="150" r="13" fill="#CB3C33"/>
+  <circle cx="205" cy="120" r="13" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Poincaré</h3></div>
+    <code class="id">comb-07</code>
+    <div class="badges"><span class="badge motif">Poincaré plot</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">NN(n) vs NN(n+1) scatter — axes, a 45° diagonal, grey interval-pairs inside a faint SD1/SD2 ellipse on the diagonal, with three colored anchor points.</p>
+    <p class="why"><strong>Why:</strong> Signals analytical depth (a real HRV metric plot) and is visually the most distinctive &#x27;documentation&#x27; companion mark.</p>
+    <p class="risk"><strong>Risk:</strong> Most detail-heavy icon; axis lines and scatter thin out at 32px — bump size if used very small.</p>
+    
+    <a class="dl" href="logos/series2/ibi_icons/comb-07.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:1.000"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Comb bent into an arc: one cardiac cycle read left-to-right along a curve -->
+  <path d="M 40,210 A 200,200 0 0,1 280,210" fill="none" stroke="#1A1A1A" stroke-width="3" opacity="0.35" stroke-linecap="round"/>
+
+  <line x1="39.9"  y1="210.1" x2="27.9"  y2="194.1" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="69.2"  y1="191.8" x2="53.8"  y2="161.5" stroke="#9558B2" stroke-width="6" stroke-linecap="round"/>
+  <line x1="94.9"  y1="180.9" x2="88.4"  y2="162.0" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+  <line x1="132.2" y1="171.9" x2="126.6" y2="132.3" stroke="#CB3C33" stroke-width="6" stroke-linecap="round"/>
+  <line x1="160.0" y1="170.0" x2="160.0" y2="150.0" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="191.3" y1="172.5" x2="197.5" y2="133.0" stroke="#389826" stroke-width="6" stroke-linecap="round"/>
+  <line x1="221.8" y1="179.8" x2="228.0" y2="160.8" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+  <line x1="247.7" y1="190.2" x2="262.6" y2="159.7" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="280.1" y1="210.1" x2="292.1" y2="194.1" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+
+  <circle cx="49.3"  cy="152.6" r="14" fill="#9558B2"/>
+  <circle cx="125.2" cy="122.4" r="14" fill="#CB3C33"/>
+  <circle cx="199.1" cy="123.1" r="14" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Cardiac Arc</h3></div>
+    <code class="id">comb-03</code>
+    <div class="badges"><span class="badge motif">comb bent into an arc</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">The comb bent along a gentle upward arc — one cycle read left-to-right along a curve; ticks radiate outward and three carry the Julia dots.</p>
+    <p class="why"><strong>Why:</strong> Softens the motif (less &#x27;ruler&#x27;, more &#x27;pulse&#x27;) and reads well as a badge/favicon silhouette.</p>
+    <p class="risk"><strong>Risk:</strong> Faint resemblance to a crown/rainbow at a glance; dot colors and tick texture disambiguate.</p>
+    
+    <a class="dl" href="logos/series2/ibi_icons/comb-03.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:1.000"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Barcode of intervals: bar width encodes IBI duration; three colored beats among grey/ink bars -->
+  <rect x="40"   y="90" width="8.7"  height="140" rx="2" fill="#8A8F98"/>
+  <rect x="51.7" y="90" width="15.3" height="140" rx="2" fill="#1A1A1A"/>
+  <rect x="70.0" y="90" width="6.6"  height="140" rx="2" fill="#8A8F98"/>
+  <rect x="79.6" y="90" width="21.8" height="140" rx="2" fill="#9558B2"/>
+  <rect x="104.4" y="90" width="10.9" height="140" rx="2" fill="#8A8F98"/>
+  <rect x="118.4" y="90" width="28.4" height="140" rx="2" fill="#CB3C33"/>
+  <rect x="149.8" y="90" width="8.7"  height="140" rx="2" fill="#1A1A1A"/>
+  <rect x="161.5" y="90" width="17.5" height="140" rx="2" fill="#8A8F98"/>
+  <rect x="182.0" y="90" width="24.0" height="140" rx="2" fill="#389826"/>
+  <rect x="209.0" y="90" width="10.9" height="140" rx="2" fill="#1A1A1A"/>
+  <rect x="222.9" y="90" width="6.6"  height="140" rx="2" fill="#8A8F98"/>
+  <rect x="232.5" y="90" width="19.7" height="140" rx="2" fill="#1A1A1A"/>
+  <rect x="255.2" y="90" width="13.1" height="140" rx="2" fill="#8A8F98"/>
+  <rect x="271.3" y="90" width="8.7"  height="140" rx="2" fill="#1A1A1A"/>
+  <line x1="34" y1="240" x2="286" y2="240" stroke="#1A1A1A" stroke-width="2" opacity="0.25" stroke-linecap="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Interval Barcode</h3></div>
+    <code class="id">comb-10</code>
+    <div class="badges"><span class="badge motif">barcode of intervals</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Only vertical bars packed edge to edge — bar width encodes IBI duration; most are grey, three are purple/red/green standing in for the identity beats.</p>
+    <p class="why"><strong>Why:</strong> The boldest, most brandable icon; reads as a &#x27;waveform of durations&#x27; rather than any ECG shape.</p>
+    <p class="risk"><strong>Risk:</strong> Deliberately has no circular dots — identity is carried by bar color, not dots (flag if reviewers expect circles).</p>
+    
+    <a class="dl" href="logos/series2/ibi_icons/comb-10.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:1.000"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Vertical comb: ticks horizontal, read top-to-bottom as a stacked event raster -->
+  <line x1="160" y1="40" x2="160" y2="280" stroke="#1A1A1A" stroke-width="3" opacity="0.4" stroke-linecap="round"/>
+  <line x1="160" y1="58"  x2="196" y2="58"  stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="160" y1="82"  x2="224" y2="82"  stroke="#9558B2" stroke-width="7" stroke-linecap="round"/>
+  <line x1="160" y1="108" x2="196" y2="108" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="160" y1="132" x2="196" y2="132" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="160" y1="168" x2="224" y2="168" stroke="#CB3C33" stroke-width="7" stroke-linecap="round"/>
+  <line x1="160" y1="192" x2="196" y2="192" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="160" y1="210" x2="196" y2="210" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="160" y1="238" x2="224" y2="238" stroke="#389826" stroke-width="7" stroke-linecap="round"/>
+  <line x1="160" y1="262" x2="196" y2="262" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="234" cy="82"  r="16" fill="#9558B2"/>
+  <circle cx="234" cy="168" r="16" fill="#CB3C33"/>
+  <circle cx="234" cy="238" r="16" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Vertical Raster</h3></div>
+    <code class="id">comb-05</code>
+    <div class="badges"><span class="badge motif">vertical comb / stacked raster</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">The comb rotated 90° — a vertical baseline with horizontal ticks stacked at irregular vertical spacing; three ticks extend to the Julia dots.</p>
+    <p class="why"><strong>Why:</strong> A useful alternate orientation for sidebar/vertical-nav icon slots.</p>
+    <p class="risk"><strong>Risk:</strong> Less immediately &#x27;cardiac&#x27; than the horizontal version; the raster read needs the dots to anchor it.</p>
+    
+    <a class="dl" href="logos/series2/ibi_icons/comb-05.svg" download>↓ SVG</a>
+  </figcaption>
+</figure></div></section>
+<section id="g-lockups">
+  <div class="sec-head"><h2>Triad + name lockups</h2><p>Ten logo-next-to-name lockups. The ECG spike is gone; the mark reads as beat events on a timeline, in IBI vocabulary, beside the HeartRateLab wordmark.</p>
+    <span class="count">10 logos</span></div>
+  <div class="grid"><figure class="card">
+  <div class="stage" style="aspect-ratio:2.909"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <!-- Wordmark underlined by an irregular IBI tick comb; three ticks carry the Julia colors -->
+  <text x="90" y="115" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="84" textLength="460" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+  <line x1="90" y1="160" x2="550" y2="160" stroke="#1A1A1A" stroke-width="2" opacity="0.2" stroke-linecap="round"/>
+  <line x1="100" y1="160" x2="100" y2="146" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="140" y1="160" x2="140" y2="136" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="175" y1="160" x2="175" y2="148" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="215" y1="160" x2="215" y2="126" stroke="#9558B2" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="215" cy="126" r="7" fill="#9558B2"/>
+  <line x1="250" y1="160" x2="250" y2="142" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="285" y1="160" x2="285" y2="134" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="320" y1="160" x2="320" y2="146" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="355" y1="160" x2="355" y2="128" stroke="#CB3C33" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="355" cy="128" r="7" fill="#CB3C33"/>
+  <line x1="390" y1="160" x2="390" y2="140" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="425" y1="160" x2="425" y2="145" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="460" y1="160" x2="460" y2="132" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="495" y1="160" x2="495" y2="126" stroke="#389826" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="495" cy="126" r="7" fill="#389826"/>
+  <line x1="530" y1="160" x2="530" y2="144" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Underlined by the Comb</h3><span class="rank">★ Top 1</span></div>
+    <code class="id">lock-04</code>
+    <div class="badges"><span class="badge motif">IBI comb as underline / type</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">No separate icon block — the whole &#x27;HeartRateLab&#x27; wordmark is underlined by an irregular IBI tick comb; three ticks in the Julia colors are dot-capped, echoing identity inline with the type.</p>
+    <p class="why"><strong>Why:</strong> The strongest type-led option; the comb underline scans as a data-signature rather than decoration.</p>
+    <p class="risk"><strong>Risk:</strong> At small sizes the underline ticks can merge into a solid rule — best at medium+ (favicon should fall back to an icon-only mark).</p>
+    
+    <a class="dl" href="logos/series2/lockups/lock-04.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:2.909"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <!-- Compact IBI tick-comb: 3 colored ticks, unequal spacing & heights, dot-capped -->
+  <line x1="15" y1="150" x2="175" y2="150" stroke="#1A1A1A" stroke-width="2" opacity="0.3" stroke-linecap="round"/>
+  <line x1="45" y1="150" x2="45" y2="110" stroke="#9558B2" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="45" cy="110" r="11" fill="#9558B2"/>
+  <line x1="90" y1="150" x2="90" y2="95" stroke="#CB3C33" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="90" cy="95" r="12" fill="#CB3C33"/>
+  <line x1="150" y1="150" x2="150" y2="120" stroke="#389826" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="150" cy="120" r="10" fill="#389826"/>
+  <text x="200" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="70" textLength="390" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Tick-Comb Mini</h3><span class="rank">★ Top 2</span></div>
+    <code class="id">lock-02</code>
+    <div class="badges"><span class="badge motif">IBI tick-comb (dot-capped)</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">Three colored ticks at unequal spacing and heights (= unequal IBI durations), each capped with a small Julia dot — a compact, icon-first version of Base A&#x27;s comb, set left of the wordmark.</p>
+    <p class="why"><strong>Why:</strong> Ties directly to the hero comb while staying a clean &#x27;icon + name&#x27; lockup — the format you said you liked.</p>
+    <p class="risk"><strong>Risk:</strong> At very small sizes the dot caps can fuse with the ticks; keep dot radius ≥ stroke width.</p>
+    
+    <a class="dl" href="logos/series2/lockups/lock-02.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:2.909"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <!-- Three dot-beats on a timeline + small interval caliper measuring the last gap -->
+  <line x1="20" y1="120" x2="195" y2="120" stroke="#1A1A1A" stroke-width="3" opacity="0.35" stroke-linecap="round"/>
+  <circle cx="45" cy="120" r="20" fill="#9558B2"/>
+  <circle cx="100" cy="120" r="20" fill="#CB3C33"/>
+  <circle cx="170" cy="120" r="20" fill="#389826"/>
+  <line x1="100" y1="150" x2="100" y2="165" stroke="#8A8F98" stroke-width="3" stroke-linecap="round"/>
+  <line x1="170" y1="150" x2="170" y2="165" stroke="#8A8F98" stroke-width="3" stroke-linecap="round"/>
+  <line x1="100" y1="158" x2="170" y2="158" stroke="#8A8F98" stroke-width="3" stroke-linecap="round"/>
+  <text x="225" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="70" textLength="380" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Measured Gap</h3></div>
+    <code class="id">lock-03</code>
+    <div class="badges"><span class="badge motif">beat dots + interval caliper</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">Three dot-beats on a timeline plus a small caliper explicitly measuring the interval between the last two beats — the &#x27;we measure intervals&#x27; story made literal, beside the wordmark.</p>
+    <p class="why"><strong>Why:</strong> The caliper is unambiguous — nobody could mistake this for a heartbeat monitor.</p>
+    <p class="risk"><strong>Risk:</strong> The caliper is small at icon scale; needs thicker strokes below ~64px stand-alone.</p>
+    
+    <a class="dl" href="logos/series2/lockups/lock-03.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:2.909"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <!-- Triad sitting on a plain timeline baseline, visibly unequal gaps -->
+  <line x1="15" y1="120" x2="215" y2="120" stroke="#1A1A1A" stroke-width="3" opacity="0.35" stroke-linecap="round"/>
+  <circle cx="50" cy="120" r="24" fill="#9558B2"/>
+  <circle cx="112" cy="120" r="24" fill="#CB3C33"/>
+  <circle cx="188" cy="120" r="24" fill="#389826"/>
+  <text x="235" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="70" textLength="390" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Triad on the Timeline</h3></div>
+    <code class="id">lock-01</code>
+    <div class="badges"><span class="badge motif">beat-event dots on a timeline</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">The three Julia dots sit directly on a plain baseline with visibly unequal gaps — the gaps are the inter-beat intervals, no waveform involved — beside the wordmark.</p>
+    <p class="why"><strong>Why:</strong> The most legible/neutral option; reads instantly as &#x27;events on a line&#x27; — a safe default lockup.</p>
+    <p class="risk"><strong>Risk:</strong> Low risk; can look generic if not seen alongside the tick-comb variants.</p>
+    
+    <a class="dl" href="logos/series2/lockups/lock-01.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:1.200"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 300">
+  <!-- Stacked: IBI tick-comb icon above the wordmark -->
+  <line x1="54" y1="190" x2="306" y2="190" stroke="#1A1A1A" stroke-width="3" opacity="0.4" stroke-linecap="round"/>
+  <line x1="72"  y1="190" x2="72"  y2="154" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="100" y1="190" x2="100" y2="130" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/>
+  <line x1="124" y1="190" x2="124" y2="154" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="184" y1="190" x2="184" y2="130" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/>
+  <line x1="210" y1="190" x2="210" y2="154" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="242" y1="190" x2="242" y2="130" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/>
+  <line x1="278" y1="190" x2="278" y2="154" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="100" cy="120" r="18" fill="#9558B2"/>
+  <circle cx="184" cy="120" r="18" fill="#CB3C33"/>
+  <circle cx="242" cy="120" r="18" fill="#389826"/>
+  <text x="30" y="270" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="54" textLength="300" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Comb Stack</h3></div>
+    <code class="id">lock-05</code>
+    <div class="badges"><span class="badge motif">IBI tick-comb (stacked)</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">Stacked lockup — Base A&#x27;s full tick-comb icon (grey ticks + three dot-capped colored ticks) centered above the wordmark.</p>
+    <p class="why"><strong>Why:</strong> The most faithful port of the Base A hero icon into a lockup — best if you want one lockup that matches the standalone icon exactly.</p>
+    <p class="risk"><strong>Risk:</strong> None major; verify icon/word vertical rhythm at target sizes.</p>
+    
+    <a class="dl" href="logos/series2/lockups/lock-05.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:2.909"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <!-- "Heart" + "Rate" (weighted, accent color) + "Lab", small tick-comb icon at left -->
+  <line x1="15" y1="150" x2="145" y2="150" stroke="#1A1A1A" stroke-width="2" opacity="0.3" stroke-linecap="round"/>
+  <line x1="35" y1="150" x2="35" y2="125" stroke="#9558B2" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="35" cy="125" r="8" fill="#9558B2"/>
+  <line x1="75" y1="150" x2="75" y2="105" stroke="#CB3C33" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="75" cy="105" r="9" fill="#CB3C33"/>
+  <line x1="125" y1="150" x2="125" y2="130" stroke="#389826" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="125" cy="130" r="7" fill="#389826"/>
+  <text x="170" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="70" textLength="162" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">Heart</text>
+  <text x="332" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="82" textLength="152" lengthAdjust="spacingAndGlyphs" fill="#CB3C33">Rate</text>
+  <text x="484" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="70" textLength="97" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">Lab</text>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Heart·Rate·Lab</h3></div>
+    <code class="id">lock-08</code>
+    <div class="badges"><span class="badge motif">mini comb + weighted wordmark</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">&#x27;Rate&#x27; is set larger and in Julia red for emphasis (the product&#x27;s core subject), paired with a tiny 3-tick dot-capped comb at left.</p>
+    <p class="why"><strong>Why:</strong> The weighted &#x27;Rate&#x27; is a memorable reading aid tying the accent color to the product&#x27;s central concept.</p>
+    <p class="risk"><strong>Risk:</strong> Three text runs must stay baseline-aligned if re-flowed/localized; keep as one composed unit.</p>
+    
+    <a class="dl" href="logos/series2/lockups/lock-08.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:1.200"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 300">
+  <!-- Stacked: triad on a plain timeline above the wordmark, tight tracking below -->
+  <line x1="55" y1="110" x2="320" y2="110" stroke="#1A1A1A" stroke-width="3" opacity="0.35" stroke-linecap="round"/>
+  <circle cx="90" cy="110" r="26" fill="#9558B2"/>
+  <circle cx="180" cy="110" r="26" fill="#CB3C33"/>
+  <circle cx="285" cy="110" r="26" fill="#389826"/>
+  <text x="25" y="230" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="60" textLength="310" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Triad Stack (Tight)</h3></div>
+    <code class="id">lock-06</code>
+    <div class="badges"><span class="badge motif">beat-event dots on a timeline</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">Stacked lockup — triad on a plain timeline (larger dots, unequal gaps) above a tightly tracked wordmark.</p>
+    <p class="why"><strong>Why:</strong> Big dots read well even at small stacked-icon crops; tight tracking gives a modern condensed feel.</p>
+    <p class="risk"><strong>Risk:</strong> Tight tracking pushes legibility slightly; don&#x27;t set textLength smaller.</p>
+    
+    <a class="dl" href="logos/series2/lockups/lock-06.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:2.909"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <!-- Large icon left: triad on timeline + interval caliper; wide-tracked name, offset baseline -->
+  <line x1="20" y1="140" x2="256" y2="140" stroke="#1A1A1A" stroke-width="4" opacity="0.35" stroke-linecap="round"/>
+  <circle cx="50" cy="140" r="26" fill="#9558B2"/>
+  <circle cx="135" cy="140" r="26" fill="#CB3C33"/>
+  <circle cx="230" cy="140" r="26" fill="#389826"/>
+  <line x1="135" y1="176" x2="135" y2="194" stroke="#8A8F98" stroke-width="3" stroke-linecap="round"/>
+  <line x1="230" y1="176" x2="230" y2="194" stroke="#8A8F98" stroke-width="3" stroke-linecap="round"/>
+  <line x1="135" y1="185" x2="230" y2="185" stroke="#8A8F98" stroke-width="3" stroke-linecap="round"/>
+  <text x="276" y="130" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="58" textLength="345" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Big Icon, Wide Track</h3></div>
+    <code class="id">lock-09</code>
+    <div class="badges"><span class="badge motif">beat dots + interval caliper</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">A larger triad-on-timeline icon with a caliper under the last gap, paired with a looser-tracked wordmark on a slightly raised baseline — a scale/alignment study.</p>
+    <p class="why"><strong>Why:</strong> Shows the lockup scaling gracefully with a dominant icon — useful for hero/splash placements.</p>
+    <p class="risk"><strong>Risk:</strong> The raised text baseline is a subtle asymmetry; don&#x27;t mix with the centered lockups in one UI.</p>
+    
+    <a class="dl" href="logos/series2/lockups/lock-09.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:2.909"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <!-- Type treatment: the three dots as a small accent cluster over the "a" in "Heart" -->
+  <text x="105" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="80" textLength="430" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+  <circle cx="183" cy="60" r="7" fill="#9558B2"/>
+  <circle cx="207" cy="60" r="7" fill="#CB3C33"/>
+  <circle cx="195" cy="44" r="7" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Accented Heart</h3></div>
+    <code class="id">lock-07</code>
+    <div class="badges"><span class="badge motif">three dots as a type accent</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">A small triad of dots sits as an accent/tittle above the &#x27;a&#x27; in &#x27;Heart&#x27; — the three Julia dots become a type-level detail rather than a separate icon.</p>
+    <p class="why"><strong>Why:</strong> The most minimal/sophisticated option — no icon &#x27;box&#x27;, just a knowing detail for people who look twice.</p>
+    <p class="risk"><strong>Risk:</strong> The accent is subtle; at very small sizes it can read as noise on the glyph — medium-to-large use only.</p>
+    
+    <a class="dl" href="logos/series2/lockups/lock-07.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:2.909"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <!-- Compact fused mark: tiny unequal-spaced beat dots tucked under-left, tight composition -->
+  <line x1="60" y1="176" x2="180" y2="176" stroke="#1A1A1A" stroke-width="3" opacity="0.35" stroke-linecap="round"/>
+  <circle cx="85" cy="176" r="16" fill="#9558B2"/>
+  <circle cx="120" cy="176" r="15" fill="#CB3C33"/>
+  <circle cx="170" cy="176" r="17" fill="#389826"/>
+  <text x="195" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="70" textLength="390" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Compact Fused Mark</h3></div>
+    <code class="id">lock-10</code>
+    <div class="badges"><span class="badge motif">beat-event dots (short timeline)</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">Three small unequal-spaced beat-dots tucked under-left on a short baseline, sitting close to and almost fusing with the wordmark — the tightest horizontal lockup.</p>
+    <p class="why"><strong>Why:</strong> The smallest footprint of the horizontal set — best for tight UI chrome (navbars, README badges).</p>
+    <p class="risk"><strong>Risk:</strong> The dots are small (r≈15–17); keep a minimum render width (~200px) to preserve the Julia-dot identity.</p>
+    
+    <a class="dl" href="logos/series2/lockups/lock-10.svg" download>↓ SVG</a>
+  </figcaption>
+</figure></div></section>
+<section id="g-combos">
+  <div class="sec-head"><h2>Comb × wordmark combinations</h2><p>Ten fusions where the IBI comb and the wordmark become one integrated mark.</p>
+    <span class="count">10 logos</span></div>
+  <div class="grid"><figure class="card">
+  <div class="stage" style="aspect-ratio:2.909"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <text x="142" y="94" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="64" textLength="357" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+  <line x1="100" y1="163" x2="545" y2="163" stroke="#1A1A1A" stroke-width="3" opacity="0.4" stroke-linecap="round"/>
+  <line x1="120" y1="163" x2="120" y2="148" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="150" y1="163" x2="150" y2="126" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="150" cy="115" r="13" fill="#9558B2"/>
+  <line x1="180" y1="163" x2="180" y2="148" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="215" y1="163" x2="215" y2="148" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="255" y1="163" x2="255" y2="126" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="255" cy="115" r="13" fill="#CB3C33"/>
+  <line x1="300" y1="163" x2="300" y2="148" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="345" y1="163" x2="345" y2="148" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="400" y1="163" x2="400" y2="126" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="400" cy="115" r="13" fill="#389826"/>
+  <line x1="440" y1="163" x2="440" y2="148" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="480" y1="163" x2="480" y2="148" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="520" y1="163" x2="520" y2="148" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Comb Underline</h3></div>
+    <code class="id">combo-01</code>
+    <div class="badges"><span class="badge motif">tick comb as underline</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">The plain rule under the wordmark is replaced by the actual IBI comb — irregular ticks on a baseline, three dot-capped — so the underline itself is the beat raster.</p>
+    <p class="why"><strong>Why:</strong> The closest 1:1 reuse of Base A&#x27;s own vocabulary; instantly reads as &#x27;comb become underline&#x27;, very on-brief.</p>
+    <p class="risk"><strong>Risk:</strong> The underline could be mistaken for decoration if scaled too small; keep dot caps visible.</p>
+    
+    <a class="dl" href="logos/series2/combos/combo-01.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:2.909"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <path d="M140,130 Q320,40 500,130" fill="none" stroke="#1A1A1A" stroke-width="3" opacity="0.5" stroke-linecap="round"/>
+
+  <line x1="248" y1="92" x2="248" y2="78" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="291" y1="86" x2="291" y2="72" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="349" y1="86" x2="349" y2="72" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="392" y1="92" x2="392" y2="78" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+
+  <circle cx="194" cy="107" r="15" fill="#9558B2"/>
+  <circle cx="320" cy="85" r="15" fill="#CB3C33"/>
+  <circle cx="446" cy="107" r="15" fill="#389826"/>
+
+  <text x="164" y="190" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="56" textLength="312" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Cyclic Beat Arc</h3></div>
+    <code class="id">combo-08</code>
+    <div class="badges"><span class="badge motif">comb bent into an arc + dots</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">The comb is bent into a shallow arc above the name (a cyclic beat); irregular ticks radiate off it and the three Julia dots sit on the arc at unequal angular spacing.</p>
+    <p class="why"><strong>Why:</strong> The most distinctive silhouette of the combos — reads as a badge/seal from a distance while resolving into comb+dots up close.</p>
+    <p class="risk"><strong>Risk:</strong> The arc must not be mistaken for a waveform; radiating ticks kept straight to avoid an ECG-adjacent read.</p>
+    
+    <a class="dl" href="logos/series2/combos/combo-08.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:2.909"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <text x="125" y="100" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="70" textLength="390" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+  <line x1="60" y1="160" x2="580" y2="160" stroke="#1A1A1A" stroke-width="3" opacity="0.35" stroke-linecap="round"/>
+  <line x1="190" y1="155" x2="190" y2="165" stroke="#8A8F98" stroke-width="3"/>
+  <line x1="320" y1="155" x2="320" y2="165" stroke="#8A8F98" stroke-width="3"/>
+  <line x1="500" y1="155" x2="500" y2="165" stroke="#8A8F98" stroke-width="3"/>
+  <line x1="550" y1="155" x2="550" y2="165" stroke="#8A8F98" stroke-width="3"/>
+  <circle cx="140" cy="160" r="14" fill="#9558B2"/>
+  <circle cx="260" cy="160" r="14" fill="#CB3C33"/>
+  <circle cx="430" cy="160" r="14" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Beat Timeline</h3></div>
+    <code class="id">combo-03</code>
+    <div class="badges"><span class="badge motif">beat-event dots on a timeline</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">The three Julia dots sit on a timeline under the wordmark with clearly unequal gaps (plus a few minor ticks) — the timeline is the hero, the dots are beat events in time.</p>
+    <p class="why"><strong>Why:</strong> The most literal expression of &#x27;IBI&#x27; — the variable gap is the message; a very clean, calm composition.</p>
+    <p class="risk"><strong>Risk:</strong> Can read as &#x27;just 3 dots on a line&#x27; without the minor ticks; keep some comb texture.</p>
+    
+    <a class="dl" href="logos/series2/combos/combo-03.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:2.909"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <text x="125" y="100" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="70" textLength="390" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+
+  <line x1="125" y1="140" x2="515" y2="140" stroke="#8A8F98" stroke-width="2" opacity="0.4" stroke-linecap="round"/>
+
+  <line x1="125" y1="128" x2="125" y2="152" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="125" cy="121" r="11" fill="#9558B2"/>
+
+  <line x1="288" y1="128" x2="288" y2="152" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="288" cy="121" r="11" fill="#CB3C33"/>
+
+  <line x1="418" y1="128" x2="418" y2="152" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="418" cy="121" r="11" fill="#389826"/>
+
+  <line x1="515" y1="128" x2="515" y2="152" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Interval Ruler</h3></div>
+    <code class="id">combo-04</code>
+    <div class="badges"><span class="badge motif">interval brackets / calipers</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">A thin ruler runs under the single wordmark with three colored caliper marks at the syllable boundaries (Heart|Rate|Lab) — measuring the word itself like a sequence of intervals.</p>
+    <p class="why"><strong>Why:</strong> Turns the wordmark into the &#x27;signal being measured&#x27; — a clever literal fusion of typography and IBI measurement.</p>
+    <p class="risk"><strong>Risk:</strong> Subtler than a literal comb; benefits from context on first exposure (docs/README).</p>
+    
+    <a class="dl" href="logos/series2/combos/combo-04.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:1.200"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 300">
+  <line x1="34" y1="140" x2="286" y2="140" stroke="#1A1A1A" stroke-width="2.5" opacity="0.4" stroke-linecap="round"/>
+  <line x1="52" y1="140" x2="52" y2="120" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="80" y1="140" x2="80" y2="107" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="80" cy="99" r="10" fill="#9558B2"/>
+  <line x1="104" y1="140" x2="104" y2="120" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="164" y1="140" x2="164" y2="107" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="164" cy="99" r="10" fill="#CB3C33"/>
+  <line x1="190" y1="140" x2="190" y2="120" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="222" y1="140" x2="222" y2="107" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="222" cy="99" r="10" fill="#389826"/>
+  <line x1="258" y1="140" x2="258" y2="120" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+
+  <text x="68" y="230" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="40" textLength="223" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Stacked Comb + Name</h3></div>
+    <code class="id">combo-06</code>
+    <div class="badges"><span class="badge motif">IBI tick-comb (stacked)</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">A compact vertical lockup — the IBI comb icon (near-verbatim Base A, scaled) above, the wordmark centered below.</p>
+    <p class="why"><strong>Why:</strong> The most traditional &#x27;icon + name&#x27; structure — a compact app-icon-adjacent lockup for square avatars.</p>
+    <p class="risk"><strong>Risk:</strong> The least &#x27;invented&#x27; fusion — more juxtaposition than fusion (kept per the brief&#x27;s stacked requirement).</p>
+    
+    <a class="dl" href="logos/series2/combos/combo-06.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:1.200"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 300">
+  <line x1="25" y1="170" x2="300" y2="170" stroke="#1A1A1A" stroke-width="2" opacity="0.3" stroke-linecap="round"/>
+
+  <rect x="40"  y="138" width="16" height="32" rx="2" fill="#8A8F98"/>
+  <rect x="64"  y="102" width="16" height="68" rx="2" fill="#9558B2"/>
+  <rect x="88"  y="148" width="16" height="22" rx="2" fill="#8A8F98"/>
+  <rect x="118" y="122" width="16" height="48" rx="2" fill="#8A8F98"/>
+  <rect x="150" y="92"  width="16" height="78" rx="2" fill="#CB3C33"/>
+  <rect x="174" y="142" width="16" height="28" rx="2" fill="#8A8F98"/>
+  <rect x="198" y="118" width="16" height="52" rx="2" fill="#8A8F98"/>
+  <rect x="228" y="108" width="16" height="62" rx="2" fill="#389826"/>
+  <rect x="252" y="132" width="16" height="38" rx="2" fill="#8A8F98"/>
+  <rect x="276" y="126" width="16" height="44" rx="2" fill="#8A8F98"/>
+
+  <text x="68" y="230" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="40" textLength="223" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Stacked Tachogram</h3></div>
+    <code class="id">combo-09</code>
+    <div class="badges"><span class="badge motif">tachogram (bars)</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">A tachogram (bar heights = interval durations, three colored by the triad) sits above the wordmark in a compact vertical lockup.</p>
+    <p class="why"><strong>Why:</strong> Introduces a second IBI vocabulary (bars, not ticks) into the stacked format — real variety versus combo-06.</p>
+    <p class="risk"><strong>Risk:</strong> Bars can look like a generic analytics chart if muted; keep the three triad bars saturated.</p>
+    
+    <a class="dl" href="logos/series2/combos/combo-09.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:2.909"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <text x="125" y="110" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="70" textLength="390" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+
+  <!-- accent balls sitting just above H (Heart), R (Rate), L (Lab) like diacritic dots -->
+  <circle cx="130" cy="44" r="13" fill="#9558B2"/>
+  <circle cx="291" cy="44" r="13" fill="#CB3C33"/>
+  <circle cx="421" cy="44" r="13" fill="#389826"/>
+
+  <!-- plain grey comb baseline beneath the whole word -->
+  <line x1="115" y1="165" x2="525" y2="165" stroke="#1A1A1A" stroke-width="2" opacity="0.3" stroke-linecap="round"/>
+  <line x1="140" y1="165" x2="140" y2="145" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="175" y1="165" x2="175" y2="137" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="210" y1="165" x2="210" y2="147" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="250" y1="165" x2="250" y2="143" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="300" y1="165" x2="300" y2="145" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="340" y1="165" x2="340" y2="137" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="380" y1="165" x2="380" y2="147" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="430" y1="165" x2="430" y2="145" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="470" y1="165" x2="470" y2="137" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="500" y1="165" x2="500" y2="147" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Diacritic Triad</h3></div>
+    <code class="id">combo-07</code>
+    <div class="badges"><span class="badge motif">dots as letter accents + comb</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">The three Julia dots perch above the H, R and L like diacritics on the wordmark&#x27;s ascenders; a plain grey comb runs beneath the word as the &#x27;beat floor&#x27;.</p>
+    <p class="why"><strong>Why:</strong> The most typographic fusion — the triad becomes part of the letterforms while the comb carries IBI honesty.</p>
+    <p class="risk"><strong>Risk:</strong> Dot alignment over H/R/L is font-metric-approximate; verify at final render.</p>
+    
+    <a class="dl" href="logos/series2/combos/combo-07.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:2.909"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <line x1="90" y1="112" x2="550" y2="112" stroke="#1A1A1A" stroke-width="2.5" opacity="0.35" stroke-linecap="round"/>
+  <line x1="140" y1="112" x2="140" y2="100" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="220" y1="112" x2="220" y2="100" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="270" y1="112" x2="270" y2="100" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="390" y1="112" x2="390" y2="100" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="430" y1="112" x2="430" y2="100" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="500" y1="112" x2="500" y2="100" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="180" y1="112" x2="180" y2="80" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="180" cy="68" r="16" fill="#9558B2"/>
+  <line x1="330" y1="112" x2="330" y2="80" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="330" cy="68" r="16" fill="#CB3C33"/>
+  <line x1="470" y1="112" x2="470" y2="80" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="470" cy="68" r="16" fill="#389826"/>
+  <text x="97" y="182" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="80" textLength="446" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Ticks Rising Into the Triad</h3></div>
+    <code class="id">combo-02</code>
+    <div class="badges"><span class="badge motif">event raster, dots as terminals</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">A sparse row of minor grey ticks sits above the name; three grow tall and terminate in the Julia dots, so the triad reads as the comb&#x27;s peaks floating over the wordmark.</p>
+    <p class="why"><strong>Why:</strong> Inverts combo-01&#x27;s placement (comb above, not below), giving variety while reusing the honest ticks+dots language.</p>
+    <p class="risk"><strong>Risk:</strong> At small sizes the thin grey ticks may disappear, leaving three isolated dots.</p>
+    
+    <a class="dl" href="logos/series2/combos/combo-02.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:2.909"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <text x="142" y="94" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="64" textLength="357" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+
+  <line x1="140" y1="170" x2="505" y2="170" stroke="#1A1A1A" stroke-width="2.5" opacity="0.3" stroke-linecap="round"/>
+
+  <!-- under "Heart" -->
+  <line x1="165" y1="170" x2="165" y2="148" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="216" y1="170" x2="216" y2="125" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="216" cy="113" r="13" fill="#9558B2"/>
+  <line x1="260" y1="170" x2="260" y2="148" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- under "Rate" -->
+  <line x1="300" y1="170" x2="300" y2="148" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="350" y1="170" x2="350" y2="125" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="350" cy="113" r="13" fill="#CB3C33"/>
+  <line x1="392" y1="170" x2="392" y2="148" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- under "Lab" -->
+  <line x1="425" y1="170" x2="425" y2="148" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="454" y1="170" x2="454" y2="125" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="454" cy="113" r="13" fill="#389826"/>
+  <line x1="480" y1="170" x2="480" y2="148" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Three Syllable Combs</h3></div>
+    <code class="id">combo-05</code>
+    <div class="badges"><span class="badge motif">distributed tick comb</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">Three small mini-combs (each with a dot-capped tall tick) sit under Heart·Rate·Lab on one shared baseline — the comb distributed under the word rather than concentrated.</p>
+    <p class="why"><strong>Why:</strong> Ties each Julia-color dot to a syllable, reinforcing &#x27;Heart-Rate-Lab&#x27; as three linked ideas under one timeline.</p>
+    <p class="risk"><strong>Risk:</strong> Per-glyph alignment depends on font metrics; ticks may drift slightly off-syllable on other engines.</p>
+    
+    <a class="dl" href="logos/series2/combos/combo-05.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage" style="aspect-ratio:2.909"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <text x="125" y="100" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="70" textLength="390" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+
+  <line x1="115" y1="185" x2="525" y2="185" stroke="#1A1A1A" stroke-width="2" opacity="0.3" stroke-linecap="round"/>
+
+  <rect x="125" y="167" width="14" height="18" rx="2" fill="#8A8F98"/>
+  <rect x="150" y="150" width="14" height="35" rx="2" fill="#9558B2"/>
+  <rect x="175" y="173" width="14" height="12" rx="2" fill="#8A8F98"/>
+  <rect x="205" y="157" width="14" height="28" rx="2" fill="#8A8F98"/>
+  <rect x="235" y="143" width="14" height="42" rx="2" fill="#CB3C33"/>
+  <rect x="260" y="170" width="14" height="15" rx="2" fill="#8A8F98"/>
+  <rect x="290" y="152" width="14" height="33" rx="2" fill="#8A8F98"/>
+  <rect x="320" y="165" width="14" height="20" rx="2" fill="#8A8F98"/>
+  <rect x="350" y="140" width="14" height="45" rx="2" fill="#389826"/>
+  <rect x="380" y="169" width="14" height="16" rx="2" fill="#8A8F98"/>
+  <rect x="410" y="155" width="14" height="30" rx="2" fill="#8A8F98"/>
+  <rect x="440" y="163" width="14" height="22" rx="2" fill="#8A8F98"/>
+  <rect x="470" y="147" width="14" height="38" rx="2" fill="#8A8F98"/>
+  <rect x="500" y="171" width="14" height="14" rx="2" fill="#8A8F98"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Tachogram Baseplate</h3></div>
+    <code class="id">combo-10</code>
+    <div class="badges"><span class="badge motif">tachogram (bars)</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">The tachogram bars run directly under the full-width wordmark like a textured baseplate/EQ meter — one continuous horizontal mark.</p>
+    <p class="why"><strong>Why:</strong> Completes the set&#x27;s coverage of all allowed IBI motifs in horizontal form; reads well small since bars are chunky.</p>
+    <p class="risk"><strong>Risk:</strong> At very small sizes the thin bars blur together; reduce bar count for a favicon variant.</p>
+    
+    <a class="dl" href="logos/series2/combos/combo-10.svg" download>↓ SVG</a>
+  </figcaption>
+</figure></div></section>
+</main>
+<footer>Focused run #2 for HeartRateLab.jl. All raw attempts kept under
+<code>docs/logos/series2/</code>. Julia palette: purple #9558B2 · green #389826 · red #CB3C33 · blue #4063D8.</footer>
+</body></html>

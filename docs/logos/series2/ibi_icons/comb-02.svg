@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Interval calipers: brackets measuring the unequal gaps between beats -->
+  <line x1="40" y1="220" x2="270" y2="220" stroke="#1A1A1A" stroke-width="3" opacity="0.3" stroke-linecap="round"/>
+
+  <!-- caliper 1: short gap, beat1-beat2 -->
+  <line x1="80" y1="148" x2="150" y2="148" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+  <line x1="80" y1="140" x2="80" y2="156" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+  <line x1="150" y1="140" x2="150" y2="156" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- caliper 2: long gap, beat2-beat3 -->
+  <line x1="150" y1="108" x2="230" y2="108" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+  <line x1="150" y1="100" x2="150" y2="116" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+  <line x1="230" y1="100" x2="230" y2="116" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- drop stems from calipers to beats -->
+  <line x1="80"  y1="156" x2="80"  y2="204" stroke="#8A8F98" stroke-width="2" opacity="0.6"/>
+  <line x1="150" y1="156" x2="150" y2="204" stroke="#8A8F98" stroke-width="2" opacity="0.6"/>
+  <line x1="230" y1="116" x2="230" y2="204" stroke="#8A8F98" stroke-width="2" opacity="0.6"/>
+
+  <!-- three beat-event dots on the baseline -->
+  <circle cx="80"  cy="220" r="18" fill="#9558B2"/>
+  <circle cx="150" cy="220" r="18" fill="#CB3C33"/>
+  <circle cx="230" cy="220" r="18" fill="#389826"/>
+</svg>

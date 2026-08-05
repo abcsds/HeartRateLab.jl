@@ -1,0 +1,23 @@
+{
+ "under": {
+  "static_w": 1800,
+  "static_h": 486,
+  "anim_w": 1200,
+  "anim_h": 343,
+  "cycle": 4320
+ },
+ "side": {
+  "static_w": 1800,
+  "static_h": 168,
+  "anim_w": 1200,
+  "anim_h": 136,
+  "cycle": 1169
+ },
+ "ring": {
+  "static_w": 1100,
+  "static_h": 1100,
+  "anim_w": 900,
+  "anim_h": 900,
+  "cycle": 2006
+ }
+}

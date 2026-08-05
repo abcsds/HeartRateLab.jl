@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- QRS Line: honest single-stroke P-QRS-T complex, pure minimal mark -->
+  <path d="M30,180 L70,180 Q82,160 95,180 L110,180 L120,195 L150,60 L170,230 L185,180 L200,180 Q230,120 260,180 L290,180"
+        fill="none" stroke="#9558B2" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

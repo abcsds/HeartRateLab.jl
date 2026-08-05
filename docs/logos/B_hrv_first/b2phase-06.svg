@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Return-Map Heart: NN(n) vs NN(n+1) samples arranged so the point cloud itself reads as a heart -->
+  <polygon points="160.0,107.1 198.9,61.7 270.0,114.0 246.7,164.1 198.9,207.5 160.0,258.3 121.1,207.5 73.3,164.1 50.0,114.0 121.1,61.7"
+           fill="none" stroke="#1A1A1A" stroke-opacity="0.10" stroke-width="2"/>
+  <circle cx="160.0" cy="107.1" r="15" fill="#9558B2"/>
+  <circle cx="198.9" cy="61.7"  r="15" fill="#CB3C33"/>
+  <circle cx="270.0" cy="114.0" r="15" fill="#389826"/>
+  <circle cx="246.7" cy="164.1" r="15" fill="#4063D8"/>
+  <circle cx="198.9" cy="207.5" r="15" fill="#9558B2"/>
+  <circle cx="160.0" cy="258.3" r="15" fill="#CB3C33"/>
+  <circle cx="121.1" cy="207.5" r="15" fill="#389826"/>
+  <circle cx="73.3"  cy="164.1" r="15" fill="#4063D8"/>
+  <circle cx="50.0"  cy="114.0" r="15" fill="#9558B2"/>
+  <circle cx="121.1" cy="61.7"  r="15" fill="#CB3C33"/>
+</svg>

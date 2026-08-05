@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Triad Pulse: QRS spike heights literally trace the Julia triangle (top=purple, base=red/green) -->
+  <path d="M26,236 H78 L92,236 L106,196 L120,236 H140 L160,118 L180,236 H200 L214,236 L228,196 L242,236 H294"
+        fill="none" stroke="#1A1A1A" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="106" cy="194" r="27" fill="#CB3C33"/>
+  <circle cx="228" cy="194" r="27" fill="#389826"/>
+  <circle cx="160" cy="116" r="28" fill="#9558B2"/>
+</svg>

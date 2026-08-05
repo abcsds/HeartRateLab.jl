@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Rhythm Ring: a continuous monitoring loop in the four Julia colors, broken by one R-spike -->
+  <path d="M160,76 A84,84 0 0 1 244,160" fill="none" stroke="#4063D8" stroke-width="16" stroke-linecap="round"/>
+  <path d="M244,160 A84,84 0 0 1 160,244" fill="none" stroke="#CB3C33" stroke-width="16" stroke-linecap="round"/>
+  <path d="M160,244 A84,84 0 0 1 76,160" fill="none" stroke="#389826" stroke-width="16" stroke-linecap="round"/>
+  <path d="M76,160 A84,84 0 0 1 160,76" fill="none" stroke="#9558B2" stroke-width="16" stroke-linecap="round"/>
+  <path d="M136,80 L160,30 L184,80 Z" fill="#CB3C33"/>
+</svg>

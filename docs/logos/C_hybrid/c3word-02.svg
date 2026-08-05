@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Blocky "H" monogram (H for HeartRateLab): the two verticals carry the
+       Julia purple/green pair, the crossbar is redrawn as a sharp R-peak
+       spike in red -- literally an R-peak as the stroke of a letter. -->
+  <rect x="66" y="58" width="50" height="204" rx="12" fill="#9558B2"/>
+  <rect x="204" y="58" width="50" height="204" rx="12" fill="#389826"/>
+  <rect x="116" y="147" width="88" height="30" fill="#CB3C33"/>
+  <path d="M148,147 L160,100 L172,147 Z" fill="#CB3C33"/>
+  <circle cx="160" cy="100" r="8" fill="#1A1A1A"/>
+</svg>

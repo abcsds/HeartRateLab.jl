@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Rhythm Strip Classic: three QRS complexes, R-peaks are the Julia dots -->
+  <path d="M26,232 L72,232 L80,244 L96,152 L108,244 L116,232 Q126,214 136,232
+           L148,244 L160,152 L172,244 L180,232 Q190,214 200,232
+           L212,244 L224,152 L236,244 L244,232 L294,232"
+        fill="none" stroke="#1A1A1A" stroke-width="6"
+        stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="96"  cy="152" r="19" fill="#9558B2"/>
+  <circle cx="160" cy="152" r="19" fill="#CB3C33"/>
+  <circle cx="224" cy="152" r="19" fill="#389826"/>
+</svg>
