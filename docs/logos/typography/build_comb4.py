@@ -41,6 +41,9 @@ def glyphs(cid):
             out.append(f'<text x="{x:.0f}" y="0" font-family="JMBold,monospace" font-size="1000" fill="{INK}">{ch}</text>')
     return "".join(out)
 
+def _tlen(i):   # gray tick length — the tachogram (same law as comb_teeth_up); accents stay at max
+    h=170+80*math.sin(i*0.9+0.5)+45*math.sin(i*2.3+1.1)
+    return max(70.0,min(272.0,h))
 def comb_under():
     s=[f'<line x1="{wL-40:.0f}" y1="{combFar1}" x2="{wR+40:.0f}" y2="{combFar1}" stroke="{GRAY}" stroke-width="{tW}" stroke-linecap="round"/>']
     for i in range(12):
@@ -49,7 +52,8 @@ def comb_under():
         elif i==9: x,col=Lc,GN
         else: x,col=i*A+A/2,GRAY
         w=tW if i in (0,5,9) else tW*0.72
-        s.append(f'<line x1="{x:.0f}" y1="{combFar1}" x2="{x:.0f}" y2="{combNear1}" stroke="{col}" stroke-width="{w:.0f}" stroke-linecap="round"/>')
+        tip = combNear1 if i in (0,5,9) else combFar1-_tlen(i)
+        s.append(f'<line x1="{x:.0f}" y1="{combFar1}" x2="{x:.0f}" y2="{tip:.1f}" stroke="{col}" stroke-width="{w:.0f}" stroke-linecap="round"/>')
     return "".join(s)
 
 def deposits_top1(cid):

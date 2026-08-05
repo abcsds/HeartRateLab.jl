@@ -115,6 +115,14 @@ Shared rule: **one margin `m = 132` (0.18·cap)** governs every gap — letter�
 circle↔comb, and circle↔circle when the comb is compressed. Icon circle Ø = 435
 (sized so the icon equals cap-height); the comb-under circle Ø = 600.
 
+**Tick heights are a tachogram (do not flatten).** In the comb-under, the nine
+gray ticks have **varying heights** — an irregular inter-beat-interval series
+(`h = 170 + 80·sin(0.9i+0.5) + 45·sin(2.3i+1.1)`, clamped 70–272); the three
+tinted accents at H·R·L stay at the **max** (280, tip = `m` below the circle).
+The unevenness *is* the HRV the package measures — it must be preserved in every
+render (static, animated, header). In the icon-left the same idea is the three
+tick levels `0.82 · 1.00 · 0.58`.
+
 ## 8. Motion (animation spec)
 
 The bounce is one engine across all three marks (reference:

@@ -3,8 +3,11 @@
 comb-under logo (logo 1) with every guideline parameter drawn on the mark and
 lit on hover of its card. Below: the three final lockups, the report gallery, and
 the parameter table. Geometry from metrics_900.json (JuliaMono Black, em=1000)."""
-import json, pathlib
+import json, pathlib, math
 H = pathlib.Path(__file__).resolve().parent
+def _tlen(i):   # gray tick length — the tachogram (same law as comb_teeth_up); accents stay at max
+    h=170+80*math.sin(i*0.9+0.5)+45*math.sin(i*2.3+1.1)
+    return max(70.0,min(272.0,h))
 M = json.loads((H/"metrics_900.json").read_text())
 A=M['advChar']; cap=M['cap']; advW=M['advWidth']; wL=M['wL']; wR=M['wR']
 Hc,Rc,Lc = M['H'],M['R'],M['L']
@@ -44,7 +47,7 @@ def hero():
         elif i==5: x,col=Rc,RD
         elif i==9: x,col=Lc,GN
         else: x,col=CELL[i],GRAY
-        S.append(ln(x,combFar,x,combNear,col,(tW if i in(0,5,9) else tW*0.72)))
+        S.append(ln(x,combFar,x,(combNear if i in(0,5,9) else combFar-_tlen(i)),col,(tW if i in(0,5,9) else tW*0.72)))
     for x,col in [(Hc,PU),(Rc,RD),(Lc,GN)]:
         S.append(f'<circle cx="{x:.0f}" cy="{cCy:.0f}" r="{Rr:.0f}" fill="{col}"/>')
     S.append(f'<g>{wordC()}</g></g>')
@@ -68,7 +71,7 @@ def hero():
     An("centres","".join(ce))
     # comb
     An("comb", ln(wL-40,combFar,wR+40,combFar,BL,tW+14,o=0.32)
-        + "".join(ln((Hc if i==0 else Rc if i==5 else Lc if i==9 else CELL[i]),combFar,(Hc if i==0 else Rc if i==5 else Lc if i==9 else CELL[i]),combNear,BL,tW+8,o=0.28) for i in range(12))
+        + "".join(ln((Hc if i==0 else Rc if i==5 else Lc if i==9 else CELL[i]),combFar,(Hc if i==0 else Rc if i==5 else Lc if i==9 else CELL[i]),(combNear if i in(0,5,9) else combFar-_tlen(i)),BL,tW+8,o=0.28) for i in range(12))
         + hcal(1004, CELL[1], CELL[2], "600", BL)
         + tx((wL+wR)/2, combFar+150, "comb line · 12 IBI ticks, one per letter", 70, BL,"middle",700,True))
     # colours

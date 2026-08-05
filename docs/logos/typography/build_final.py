@@ -34,6 +34,9 @@ def hrl_ink():
     return (f'<text x="-565.75" y="227.54" font-size="620" font-weight="900" fill="{INK}">HRL</text>')
 
 # ---------- static logo builders ----------
+def _tlen(i):   # gray tick length — the tachogram (same law as comb_teeth_up); accents stay at max
+    h=170+80*math.sin(i*0.9+0.5)+45*math.sin(i*2.3+1.1)
+    return max(70.0,min(272.0,h))
 def comb_under_static():
     s=[f'<line x1="{wL-40:.0f}" y1="{combFar1}" x2="{wR+40:.0f}" y2="{combFar1}" stroke="{GRAY}" stroke-width="{tW}" stroke-linecap="round"/>']
     for i in range(12):
@@ -41,7 +44,7 @@ def comb_under_static():
         elif i==5: x,col=Rc,RD
         elif i==9: x,col=Lc,GN
         else: x,col=i*A+A/2,GRAY
-        s.append(f'<line x1="{x:.0f}" y1="{combFar1}" x2="{x:.0f}" y2="{combNear1}" stroke="{col}" stroke-width="{(tW if i in(0,5,9) else tW*0.72):.0f}" stroke-linecap="round"/>')
+        s.append(f'<line x1="{x:.0f}" y1="{combFar1}" x2="{x:.0f}" y2="{(combNear1 if i in(0,5,9) else combFar1-_tlen(i)):.1f}" stroke="{col}" stroke-width="{(tW if i in(0,5,9) else tW*0.72):.0f}" stroke-linecap="round"/>')
     for x,col in [(Hc,PU),(Rc,RD),(Lc,GN)]:
         s.append(f'<circle cx="{x:.0f}" cy="{cCy1:.0f}" r="{Rr:.0f}" fill="{col}"/>')
     return "".join(s)
@@ -147,7 +150,7 @@ def comb_under_noballs():
         elif i==5: x,col=Rc,RD
         elif i==9: x,col=Lc,GN
         else: x,col=i*A+A/2,GRAY
-        s.append(f'<line x1="{x:.0f}" y1="{combFar1}" x2="{x:.0f}" y2="{combNear1}" stroke="{col}" stroke-width="{(tW if i in(0,5,9) else tW*0.72):.0f}" stroke-linecap="round"/>')
+        s.append(f'<line x1="{x:.0f}" y1="{combFar1}" x2="{x:.0f}" y2="{(combNear1 if i in(0,5,9) else combFar1-_tlen(i)):.1f}" stroke="{col}" stroke-width="{(tW if i in(0,5,9) else tW*0.72):.0f}" stroke-linecap="round"/>')
     return "".join(s)
 UNDER_AVB=(-120,-900,advW+240,(combFar1+80)-(-900))
 depU=("".join(f'<circle id="d{j}" cx="{x:.0f}" cy="{cCy1:.0f}" r="{Rr:.0f}" fill="{col}" opacity="0"/>' for j,(x,col) in enumerate([(Hc,PU),(Rc,RD),(Lc,GN)])))
