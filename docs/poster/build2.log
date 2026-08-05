@@ -1,0 +1,605 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025/nixos.org) (preloaded format=pdflatex)
+ restricted \write18 enabled.
+entering extended mode
+(./juliacon2026_poster.tex
+LaTeX2e <2025-11-01>
+L3 programming layer <2026-01-19>
+
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/koma-script/scrartcl.cls
+Document Class: scrartcl 2026/02/02 v3.49.2 KOMA-Script document class (article
+)
+
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/koma-script/scrkbase.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/koma-script/scrbase.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/koma-script/scrlfile.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/koma-script/scrlfile-hook.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/koma-script/scrlogo.sty)))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/graphics/keyval.sty)))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/koma-script/tocbasic.sty)
+
+LaTeX Font Warning: Font shape `OT1/cmr/m/n' in size <23> not available
+(Font)              size <24.88> substituted on input line 2489.
+
+
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/koma-script/typearea.sty
+
+Package typearea Warning: DIV for 23.0pt and used papersize
+(typearea)                not defined!
+(typearea)                Using DIV=calc.
+
+
+Package typearea Info: DIV calculation for classic typearea. on input line 1810
+.
+
+))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/base/fontenc.sty
+
+LaTeX Font Warning: Font shape `T1/cmr/m/n' in size <23> not available
+(Font)              size <24.88> substituted on input line 116.
+
+)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/base/inputenc.sty)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/fira/FiraSans.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/iftex/ifxetex.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/iftex/iftex.sty))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/iftex/ifluatex.sty)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/xkeyval/xkeyval.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/xkeyval/xkeyval.tex
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/xkeyval/xkvutils.tex)))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/base/textcomp.sty)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/fontaxes/fontaxes.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/figureversions/figureversions.sty)))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/geometry/geometry.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/iftex/ifvtex.sty))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/pgf/frontendlayer/tikz.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/pgf/basiclayer/pgf.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/pgf/utilities/pgfrcs.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/utilities/pgfutil-common.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/utilities/pgfutil-latex.def)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/utilities/pgfrcs.code.tex
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/pgf.revision.tex)))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/pgf/basiclayer/pgfcore.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/graphics/graphicx.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/graphics/graphics.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/graphics/trig.sty)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/graphics-cfg/graphics.cfg)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/graphics-def/pdftex.def)))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/pgf/systemlayer/pgfsys.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/systemlayer/pgfsys.code.tex
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/utilities/pgfkeys.code.tex
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/utilities/pgfkeyslibraryfiltered.code.tex))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/systemlayer/pgf.cfg)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/systemlayer/pgfsys-pdftex.def
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/systemlayer/pgfsys-common-pdf.def)))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/systemlayer/pgfsyssoftpath.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/systemlayer/pgfsysprotocol.code.tex))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/xcolor/xcolor.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/graphics-cfg/color.cfg)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/graphics/mathcolor.ltx))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/basiclayer/pgfcore.code.tex
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/math/pgfmath.code.tex
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/math/pgfmathutil.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/math/pgfmathparser.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/math/pgfmathfunctions.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/math/pgfmathfunctions.basic.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/math/pgfmathfunctions.trigonometric.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/math/pgfmathfunctions.random.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/math/pgfmathfunctions.comparison.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/math/pgfmathfunctions.base.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/math/pgfmathfunctions.round.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/math/pgfmathfunctions.misc.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/math/pgfmathfunctions.integerarithmetics.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/math/pgfmathcalc.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/math/pgfmathfloat.code.tex))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/math/pgfint.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/basiclayer/pgfcorepoints.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/basiclayer/pgfcorepathconstruct.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/basiclayer/pgfcorepathusage.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/basiclayer/pgfcorescopes.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/basiclayer/pgfcoregraphicstate.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/basiclayer/pgfcoretransformations.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/basiclayer/pgfcorequick.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/basiclayer/pgfcoreobjects.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/basiclayer/pgfcorepathprocessing.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/basiclayer/pgfcorearrows.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/basiclayer/pgfcoreshade.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/basiclayer/pgfcoreimage.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/basiclayer/pgfcoreexternal.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/basiclayer/pgfcorelayers.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/basiclayer/pgfcoretransparency.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/basiclayer/pgfcorepatterns.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/basiclayer/pgfcorerdf.code.tex)))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/modules/pgfmoduleshapes.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/modules/pgfmoduleplot.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/pgf/compatibility/pgfcomp-version-0-65.sty)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/pgf/compatibility/pgfcomp-version-1-18.sty))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/pgf/utilities/pgffor.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/pgf/utilities/pgfkeys.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/utilities/pgfkeys.code.tex))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/pgf/math/pgfmath.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/math/pgfmath.code.tex))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/utilities/pgffor.code.tex))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/frontendlayer/tikz/tikz.code.tex
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/libraries/pgflibraryplothandlers.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/modules/pgfmodulematrix.code.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarytopaths.code.t
+ex)))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarycalc.code.tex)
+
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarypositioning.co
+de.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibraryshapes.geometr
+ic.code.tex
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/libraries/shapes/pgflibraryshapes.geometric.code.tex))
+
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarybackgrounds.co
+de.tex)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibraryfadings.code.t
+ex
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pgf/libraries/pgflibraryfadings.code.tex))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/tcolorbox/tcolorbox.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/tools/verbatim.sty)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/environ/environ.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/trimspaces/trimspaces.sty))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/etoolbox/etoolbox.sty)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/tcolorbox/tcbraster.code.tex
+Library (tcolorbox): 'tcbraster.code.tex' version '6.9.0'
+)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/tcolorbox/tcbskins.code.tex
+Library (tcolorbox): 'tcbskins.code.tex' version '6.9.0'
+
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/tikzfill/tikzfill.image.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/tikzfill/tikzfill-common.sty)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/tikzfill/tikzlibraryfill.image.code.tex))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/tcolorbox/tcbskinsjigsaw.code.tex
+Library (tcolorbox): 'tcbskinsjigsaw.code.tex' version '6.9.0'
+))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/tcolorbox/tcbbreakable.code.tex
+Library (tcolorbox): 'tcbbreakable.code.tex' version '6.9.0'
+
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/pdfcol/pdfcol.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/ltxcmds/ltxcmds.sty)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/infwarerr/infwarerr.sty)))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/tcolorbox/tcbhooks.code.tex
+Library (tcolorbox): 'tcbhooks.code.tex' version '6.9.0'
+)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/tcolorbox/tcbtheorems.code.tex
+Library (tcolorbox): 'tcbtheorems.code.tex' version '6.9.0'
+
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/amsmath/amstext.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/amsmath/amsgen.sty))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/amsmath/amsbsy.sty)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/amsmath/amsopn.sty)))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/tcolorbox/tcbfitting.code.tex
+Library (tcolorbox): 'tcbfitting.code.tex' version '6.9.0'
+)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/tcolorbox/tcblistingsutf8.code.tex
+Library (tcolorbox): 'tcblistingsutf8.code.tex' version '6.9.0'
+
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/tcolorbox/tcblistings.code.tex
+Library (tcolorbox): 'tcblistings.code.tex' version '6.9.0'
+
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/listings/listings.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/listings/lstpatch.sty)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/listings/lstmisc.sty)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/listings/listings.cfg))
+==> First Aid for listings.sty no longer applied!
+    Expected:
+        2024/09/23 1.10c (Carsten Heinz)
+    but found:
+        2025/11/14 1.11b (Carsten Heinz)
+    so I'm assuming it got fixed.
+
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/tcolorbox/tcblistingscore.code.tex
+Library (tcolorbox): 'tcblistingscore.code.tex' version '6.9.0'
+
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/tcolorbox/tcbprocessing.code.tex
+Library (tcolorbox): 'tcbprocessing.code.tex' version '6.9.0'
+)))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/listingsutf8/listingsutf8.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pdftexcmds/pdftexcmds.sty)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/stringenc/stringenc.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/generic/pdfescape/pdfescape.sty))))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/tcolorbox/tcbexternal.code.tex
+Library (tcolorbox): 'tcbexternal.code.tex' version '6.9.0'
+)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/tcolorbox/tcbmagazine.code.tex
+Library (tcolorbox): 'tcbmagazine.code.tex' version '6.9.0'
+)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/tcolorbox/tcbvignette.code.tex
+Library (tcolorbox): 'tcbvignette.code.tex' version '6.9.0'
+)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/tcolorbox/tcbposter.code.tex
+Library (tcolorbox): 'tcbposter.code.tex' version '6.9.0'
+))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/qrcode/qrcode.sty)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/ragged2e/ragged2e.sty)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/fontawesome5/fontawesome5.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/l3kernel/expl3.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/l3backend/l3backend-pdftex.def))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/l3packages/l3keys2e/l3keys2e.sty)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/l3packages/xparse/xparse.sty)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/fontawesome5/fontawesome5-generic-helper.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/fontawesome5/fontawesome5-mapping.def)))
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/fira/T1FiraSans-OsF.fd) (./juliacon2026_poster.aux
+<Reading QR code for "https://github.com/abcsds/HeartRateLab.jl" at level 3-M f
+rom aux file.>
+)
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/context/base/mkii/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+)
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/epstopdf-pkg/epstopdf-base.sty
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/latexconfig/epstopdf-sys.cfg))
+
+
+<QR code requested for "https://github.com/abcsds/HeartRateLab.jl" in version 0
+-M.>
+
+<Copying the QR code for "https://github.com/abcsds/HeartRateLab.jl" in version
+ 3-M as previously calculated.>
+
+LaTeX Font Warning: Font shape `OT1/cmr/m/n' in size <16.09993> not available
+(Font)              size <17.28> substituted on input line 138.
+
+
+LaTeX Font Warning: Font shape `OT1/cmr/m/n' in size <11.5> not available
+(Font)              size <12> substituted on input line 138.
+
+
+LaTeX Font Warning: Font shape `OML/cmm/m/it' in size <23> not available
+(Font)              size <24.88> substituted on input line 138.
+
+
+LaTeX Font Warning: Font shape `OML/cmm/m/it' in size <16.09993> not available
+(Font)              size <17.28> substituted on input line 138.
+
+
+LaTeX Font Warning: Font shape `OML/cmm/m/it' in size <11.5> not available
+(Font)              size <12> substituted on input line 138.
+
+
+LaTeX Font Warning: Font shape `OMS/cmsy/m/n' in size <23> not available
+(Font)              size <24.88> substituted on input line 138.
+
+
+LaTeX Font Warning: Font shape `OMS/cmsy/m/n' in size <16.09993> not available
+(Font)              size <17.28> substituted on input line 138.
+
+
+LaTeX Font Warning: Font shape `OMS/cmsy/m/n' in size <11.5> not available
+(Font)              size <12> substituted on input line 138.
+
+
+LaTeX Font Warning: Font shape `OMX/cmex/m/n' in size <23> not available
+(Font)              size <24.88> substituted on input line 138.
+
+
+LaTeX Font Warning: Font shape `OMX/cmex/m/n' in size <16.09993> not available
+(Font)              size <17.28> substituted on input line 138.
+
+
+LaTeX Font Warning: Font shape `OMX/cmex/m/n' in size <11.5> not available
+(Font)              size <12> substituted on input line 138.
+
+
+LaTeX Font Warning: Font shape `OT1/cmr/m/n' in size <27.59993> not available
+(Font)              size <24.88> substituted on input line 158.
+
+
+LaTeX Font Warning: Font shape `OT1/cmr/m/n' in size <19.31985> not available
+(Font)              size <20.74> substituted on input line 158.
+
+
+LaTeX Font Warning: Font shape `OT1/cmr/m/n' in size <13.79996> not available
+(Font)              size <14.4> substituted on input line 158.
+
+
+LaTeX Font Warning: Font shape `OML/cmm/m/it' in size <27.59993> not available
+(Font)              size <24.88> substituted on input line 158.
+
+
+LaTeX Font Warning: Font shape `OML/cmm/m/it' in size <19.31985> not available
+(Font)              size <20.74> substituted on input line 158.
+
+
+LaTeX Font Warning: Font shape `OML/cmm/m/it' in size <13.79996> not available
+(Font)              size <14.4> substituted on input line 158.
+
+
+LaTeX Font Warning: Font shape `OMS/cmsy/m/n' in size <27.59993> not available
+(Font)              size <24.88> substituted on input line 158.
+
+
+LaTeX Font Warning: Font shape `OMS/cmsy/m/n' in size <19.31985> not available
+(Font)              size <20.74> substituted on input line 158.
+
+
+LaTeX Font Warning: Font shape `OMS/cmsy/m/n' in size <13.79996> not available
+(Font)              size <14.4> substituted on input line 158.
+
+
+LaTeX Font Warning: Font shape `OMX/cmex/m/n' in size <27.59993> not available
+(Font)              size <24.88> substituted on input line 158.
+
+
+LaTeX Font Warning: Font shape `OMX/cmex/m/n' in size <19.31985> not available
+(Font)              size <20.74> substituted on input line 158.
+
+
+LaTeX Font Warning: Font shape `OMX/cmex/m/n' in size <13.79996> not available
+(Font)              size <14.4> substituted on input line 158.
+
+
+LaTeX Font Warning: Font shape `T1/cmtt/m/n' in size <23> not available
+(Font)              size <24.88> substituted on input line 188.
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 211--212
+
+
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/fira/TS1FiraSans-OsF.fd)
+
+LaTeX Font Warning: Font shape `OT1/cmr/m/n' in size <10.49382> not available
+(Font)              size <10.95> substituted on input line 226.
+
+
+LaTeX Font Warning: Font shape `OML/cmm/m/it' in size <10.49382> not available
+(Font)              size <10.95> substituted on input line 226.
+
+
+LaTeX Font Warning: Font shape `OMS/cmsy/m/n' in size <10.49382> not available
+(Font)              size <10.95> substituted on input line 226.
+
+
+LaTeX Font Warning: Font shape `OMX/cmex/m/n' in size <10.49382> not available
+(Font)              size <10.95> substituted on input line 226.
+
+[1{/nix/store/l0n2akf6lv4v2z3ik5a9aykawf72drnm-texlive-combined-full-2025-final
+/share/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/nix/store/c98w3qqk6xxbxih
+bgxs1vpwi50kxcydr-texlive-combined-full-2025-final-texmfdist/fonts/enc/dvips/fi
+ra/fir_iln36p.enc}{/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined
+-full-2025-final-texmfdist/fonts/enc/dvips/cm-super/cm-super-t1.enc}{/nix/store
+/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-texmfdist/fo
+nts/enc/dvips/fira/fir_d67aat.enc} <./figs/between_dataset_kde.png>]
+
+LaTeX Font Warning: Font shape `OT1/cmr/m/n' in size <39.74393> not available
+(Font)              size <24.88> substituted on input line 275.
+
+
+LaTeX Font Warning: Font shape `OT1/cmr/m/n' in size <27.82062> not available
+(Font)              size <24.88> substituted on input line 275.
+
+
+LaTeX Font Warning: Font shape `OT1/cmr/m/n' in size <19.87196> not available
+(Font)              size <20.74> substituted on input line 275.
+
+
+LaTeX Font Warning: Font shape `OML/cmm/m/it' in size <39.74393> not available
+(Font)              size <24.88> substituted on input line 275.
+
+
+LaTeX Font Warning: Font shape `OML/cmm/m/it' in size <27.82062> not available
+(Font)              size <24.88> substituted on input line 275.
+
+
+LaTeX Font Warning: Font shape `OML/cmm/m/it' in size <19.87196> not available
+(Font)              size <20.74> substituted on input line 275.
+
+
+LaTeX Font Warning: Font shape `OMS/cmsy/m/n' in size <39.74393> not available
+(Font)              size <24.88> substituted on input line 275.
+
+
+LaTeX Font Warning: Font shape `OMS/cmsy/m/n' in size <27.82062> not available
+(Font)              size <24.88> substituted on input line 275.
+
+
+LaTeX Font Warning: Font shape `OMS/cmsy/m/n' in size <19.87196> not available
+(Font)              size <20.74> substituted on input line 275.
+
+
+LaTeX Font Warning: Font shape `OMX/cmex/m/n' in size <39.74393> not available
+(Font)              size <24.88> substituted on input line 275.
+
+
+LaTeX Font Warning: Font shape `OMX/cmex/m/n' in size <27.82062> not available
+(Font)              size <24.88> substituted on input line 275.
+
+
+LaTeX Font Warning: Font shape `OMX/cmex/m/n' in size <19.87196> not available
+(Font)              size <20.74> substituted on input line 275.
+
+
+(/nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-t
+exmfdist/tex/latex/fontawesome5/ufontawesomebrands0.fd) [2{/nix/store/c98w3qqk6
+xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-texmfdist/fonts/enc/dv
+ips/fontawesome5/fa5brands0.enc} <./figs/hero_participant_vs_normative.png> <./
+figs/lfhf_over_time.png> <./figs/rmssd_over_time.png>]
+(./juliacon2026_poster.aux
+<Reading QR code for "https://github.com/abcsds/HeartRateLab.jl" at level 3-M f
+rom aux file.>
+)
+
+LaTeX Font Warning: Size substitutions with differences
+(Font)              up to 14.86392pt have occurred.
+
+ )
+(see the transcript file for additional information)</nix/store/c98w3qqk6xxbxih
+bgxs1vpwi50kxcydr-texlive-combined-full-2025-final-texmfdist/fonts/type1/public
+/fira/FiraSans-Bold.pfb></nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-co
+mbined-full-2025-final-texmfdist/fonts/type1/public/fira/FiraSans-Italic.pfb></
+nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-tex
+mfdist/fonts/type1/public/fira/FiraSans-Regular.pfb></nix/store/c98w3qqk6xxbxih
+bgxs1vpwi50kxcydr-texlive-combined-full-2025-final-texmfdist/fonts/type1/public
+/fontawesome5/FontAwesome5Brands-Regular.pfb></nix/store/c98w3qqk6xxbxihbgxs1vp
+wi50kxcydr-texlive-combined-full-2025-final-texmfdist/fonts/type1/public/amsfon
+ts/cm/cmmi12.pfb></nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-
+full-2025-final-texmfdist/fonts/type1/public/amsfonts/cm/cmr17.pfb></nix/store/
+c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-2025-final-texmfdist/fon
+ts/type1/public/amsfonts/cm/cmsy10.pfb></nix/store/c98w3qqk6xxbxihbgxs1vpwi50kx
+cydr-texlive-combined-full-2025-final-texmfdist/fonts/type1/public/cm-super/sft
+t2074.pfb></nix/store/c98w3qqk6xxbxihbgxs1vpwi50kxcydr-texlive-combined-full-20
+25-final-texmfdist/fonts/type1/public/cm-super/sftt2488.pfb>
+Output written on juliacon2026_poster.pdf (2 pages, 937286 bytes).
+Transcript written on juliacon2026_poster.log.

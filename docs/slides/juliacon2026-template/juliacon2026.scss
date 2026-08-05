@@ -1,0 +1,269 @@
+/*
+ * juliacon2026.scss — Quarto reveal.js theme
+ *
+ * Brand extracted from the JuliaCon 2026 poster template and the JuliaCon
+ * website source (github.com/JuliaCon/www.juliacon.org, franklin branch):
+ * indigo bubble background, Julia-logo accent colors, bold sans headings.
+ * Shares its palette with docs/poster/juliacon2026_poster.tex.
+ *
+ * Use:  format: revealjs: theme: [default, juliacon2026.scss]
+ */
+
+/*-- scss:defaults --*/
+
+// ---------- brand palette ----------
+$jc-indigo:        #38376C; // primary dark background
+$jc-indigo-dark:    #201C46; // background gradient bottom
+$jc-purple:         #4B518C; // section rails / mid accents
+$jc-lavender:       #F3E8F2; // light band
+$jc-green:          #389826; // Julia green — "typical" / tip / positive
+$jc-red:            #CB3C33; // Julia red — alert / important
+$jc-purple-accent:  #9558B2; // Julia purple
+$jc-blue:           #4063D8; // Julia blue — links / note
+$jc-gold:           #E0A93B; // slightly-atypical / caution
+$jc-ink:            #23213F; // body text on light backgrounds
+
+// Google-hosted Fira Sans/Mono, matching the poster's typography.
+// Falls back to a system sans/mono stack when offline.
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Fira+Mono:wght@400;500;700&display=swap');
+
+$font-family-sans-serif: "Fira Sans", "Inter", "Helvetica Neue", Arial, sans-serif !default;
+$font-family-monospace: "Fira Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace !default;
+
+$body-bg: #ffffff !default;
+$body-color: $jc-ink !default;
+$text-muted: lighten($jc-ink, 35%) !default;
+
+$link-color: $jc-blue !default;
+$link-color-hover: lighten($jc-blue, 12%) !default;
+$selection-bg: rgba($jc-green, 0.30) !default;
+$selection-color: $jc-ink !default;
+
+$presentation-heading-font: "Fira Sans", sans-serif !default;
+$presentation-heading-color: $jc-indigo !default;
+$presentation-heading-font-weight: 800 !default;
+$presentation-heading-line-height: 1.15 !default;
+$presentation-heading-letter-spacing: normal !default;
+$presentation-heading-text-transform: none !default;
+$presentation-heading-text-shadow: none !default;
+
+$presentation-h1-font-size: 2.1em !default;
+$presentation-h2-font-size: 1.55em !default;
+$presentation-h3-font-size: 1.2em !default;
+$presentation-h4-font-size: 1.0em !default;
+
+$presentation-title-slide-text-align: left !default;
+
+$code-block-bg: #F4F2FA !default;
+$code-block-border-color: $jc-purple !default;
+$code-block-color: $jc-ink !default;
+$code-color: $jc-purple-accent !default;
+
+$border-color: $jc-lavender !default;
+$table-border-color: lighten($jc-purple, 25%) !default;
+
+// Callouts reuse the poster's card accent colors: note=blue, tip=green,
+// important=red, caution=gold, warning=purple.
+$callout-color-note: $jc-blue !default;
+$callout-color-tip: $jc-green !default;
+$callout-color-important: $jc-red !default;
+$callout-color-caution: $jc-gold !default;
+$callout-color-warning: $jc-purple-accent !default;
+
+$light-bg-text-color: $jc-ink !default;
+$dark-bg-text-color: #ffffff !default;
+$light-bg-link-color: $jc-blue !default;
+$dark-bg-link-color: #C9D6FF !default;
+$light-bg-code-color: $jc-purple-accent !default;
+$dark-bg-code-color: #FFD199 !default;
+
+/*-- scss:rules --*/
+
+// ---------- full-bleed indigo slides (title + section-divider) ----------
+// IMPORTANT: the indigo base is supplied by reveal's NATIVE background layer
+// (`data-background-gradient` on the slide — set via `title-slide-attributes`
+// in YAML and `{background-gradient="…"}` on section headings). That native
+// layer covers the WHOLE viewport, including reveal's 8% `margin` band, so
+// there is no white frame around the slide. Painting the background on the
+// <section> itself (as an earlier version did) stops at the content box and
+// leaves the deck's white background showing in the margin — that was the
+// "purple slide framed in white" bug.
+//
+// This mixin ONLY sets text color. It must NOT set `position` or `height` on the
+// section:
+//   • `position: relative` breaks reveal's vertical centering — reveal centers a
+//     slide by setting `top:` on the (absolutely-positioned) <section>, and a
+//     `relative` override drops the content to its natural bottom position (the
+//     "content out of frame at the bottom" bug).
+//   • `height: 100%` breaks reveal's vertical-stack offset math and pushes
+//     down-slides off-screen.
+// The full-bleed indigo comes entirely from reveal's native background layer, so
+// the section needs no background of its own. Vertical centering is `center: true`.
+@mixin jc-section-fill {
+  color: $dark-bg-text-color;
+}
+
+// Quarto's auto-generated title slide is <section id="title-slide"
+// class="quarto-title-block ...">  — no ".title-slide" class exists, so the
+// id selector is the one that actually matches.
+// Descendant combinator (not `>`): a `#` section-divider that heads a vertical
+// stack is nested inside reveal's `.stack` wrapper, so it is NOT a direct child
+// of `.slides`. `>` would silently miss those dividers.
+.reveal .slides section#title-slide,
+.reveal .slides section.section-slide {
+  @include jc-section-fill;
+
+  h1, h2, h3 { color: #fff; }
+  p, li { color: rgba(255,255,255,0.88); }
+  a { color: $dark-bg-link-color; }
+}
+
+// ---------- title slide ----------
+#title-slide {
+  text-align: left;
+
+  h1.title {
+    font-size: 2.3em;
+    font-weight: 800;
+    border-bottom: 5px solid $jc-green;
+    display: inline-block;
+    padding-bottom: 0.18em;
+    margin-bottom: 0.5em;
+  }
+  p.subtitle { color: rgba(255,255,255,0.85); font-weight: 400; }
+  p.author, p.date, p.institute, .quarto-title-affiliation {
+    color: $jc-lavender;
+    font-weight: 600;
+  }
+}
+
+// ---------- section-divider slides ----------
+// Usage:  # Section title {.section-slide}
+.reveal .slides section.section-slide {
+  h1, h2 {
+    font-size: 2.6em;
+    border-left: 10px solid $jc-green;
+    padding-left: 0.5em;
+  }
+}
+
+// ---------- centered variant (e.g. closing "Thank you" slide) ----------
+// Usage:  # Thank you {.section-slide .jc-center}
+// Centers everything and swaps the left rule for a centered underline.
+.reveal .slides section.section-slide.jc-center {
+  text-align: center;
+  h1, h2, h3, p, li { text-align: center; }
+  h1, h2 {
+    border-left: none;
+    padding-left: 0;
+    display: inline-block;
+    border-bottom: 6px solid $jc-green;
+    padding-bottom: 0.15em;
+  }
+  .juliacon-badge { justify-content: center; }
+  img { display: block; margin-left: auto; margin-right: auto; }
+}
+
+// ---------- content slide headings ----------
+// `.slide` is the class reveal gives every leaf slide; the `.stack` wrapper
+// around a vertical group does NOT get `.slide`, so this cleanly targets only
+// real content slides (horizontal or down-slides) and skips dividers/title.
+.reveal .slides section.slide:not(.section-slide):not(.title-slide) {
+  h2 {
+    border-bottom: 4px solid $jc-lavender;
+    padding-bottom: 0.15em;
+    position: relative;
+    &::before {
+      content: "";
+      display: inline-block;
+      width: 0.32em;
+      height: 0.32em;
+      border-radius: 50%;
+      background: $jc-green;
+      margin-right: 0.28em;
+      vertical-align: middle;
+    }
+  }
+}
+
+// ---------- code blocks ----------
+.reveal div.sourceCode, .reveal pre {
+  border-left: 5px solid $jc-purple;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(35, 33, 63, 0.10);
+}
+.reveal pre code {
+  font-size: 0.62em;
+}
+
+// ---------- callouts (native Quarto ::: {.callout-*} boxes) ----------
+.reveal div.callout {
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(35, 33, 63, 0.12);
+  font-size: 0.78em;
+}
+
+// ---------- juliacon dots wordmark (title slide + footer) ----------
+.juliacon-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-weight: 800;
+  font-size: 1em;
+  .jc-dots {
+    display: inline-block;
+    width: 1.6em;
+    height: 1.6em;
+    position: relative;
+    span {
+      position: absolute;
+      width: 0.62em;
+      height: 0.62em;
+      border-radius: 50%;
+    }
+    .d-green  { background: $jc-green;  top: 0;    left: 0.49em; }
+    .d-blue   { background: $jc-blue;   top: 0.62em; left: 0; }
+    .d-red    { background: $jc-red;    top: 0.62em; left: 0.49em; }
+    .d-purple { background: $jc-purple-accent; top: 0.62em; left: 0.98em; }
+  }
+  .jc-word .jc-julia { color: #fff; }
+  .jc-word .jc-con { color: $jc-purple-accent; }
+}
+.reveal .slides > section:not(.title-slide):not(.section-slide) .juliacon-badge {
+  .jc-word .jc-julia { color: $jc-ink; }
+}
+
+// ---------- stat / big-number highlight (echoes the poster's z-score callouts) ----------
+.jc-stat {
+  display: inline-block;
+  font-weight: 800;
+  padding: 0.05em 0.28em;
+  border-radius: 6px;
+  &.jc-stat-typical    { color: $jc-green;  background: rgba($jc-green, 0.12); }
+  &.jc-stat-elevated   { color: $jc-red;    background: rgba($jc-red, 0.12); }
+  &.jc-stat-borderline { color: darken($jc-gold, 12%); background: rgba($jc-gold, 0.20); }
+}
+
+// ---------- footer / logo ----------
+.reveal .footer {
+  color: $jc-purple;
+  font-weight: 600;
+}
+.reveal .slide-logo {
+  max-height: 42px;
+  opacity: 0.92;
+}
+
+// ---------- blockquotes ----------
+.reveal blockquote {
+  border-left: 6px solid $jc-green;
+  padding-left: 0.6em;
+  font-style: italic;
+  color: $jc-purple;
+}
+
+// ---------- two-column figure captions ----------
+.reveal figcaption, .reveal .caption {
+  font-size: 0.6em;
+  color: $text-muted;
+}
