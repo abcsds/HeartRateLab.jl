@@ -239,7 +239,7 @@ save("my_plot.png", fig)
 
 ## Next Steps
 
-- **[Feature Documentation](features.md)** - Learn about all 54 HRV features
+- **[Feature Documentation](features.md)** - Learn about all 53 HRV features
 - **[Modeling Guide](models/index.md)** - Fit mechanistic models to your data
 - **[Visualization Guide](visualization.md)** - Create publication-quality plots
 - **[GitHub Repository](https://github.com/abcsds/HeartRateLab.jl)** - Source code and examples

@@ -16,7 +16,7 @@ using HeartRateLab
 # Load IBI data (inter-beat-intervals in milliseconds)
 ibis = read_txt("your_data.txt")
 
-# Extract all 54 HRV features
+# Extract all 53 HRV features
 features = extract_feature_set(ibis)
 
 # Extract specific domains
@@ -62,7 +62,7 @@ plot_lorenz_3d(ibis)
 
 ## Core Features
 
-- **54 HRV Features** across 9 analysis domains
+- **53 HRV Features** across 4 analysis domains
 - **Input/Output**: Read/write TXT, WFDB, XDF formats
 - **Preprocessing**: Outlier removal, ectopic beats, interpolation
 - **4 Mechanistic Models**: LIF, Van der Pol, Lorenz, DMD

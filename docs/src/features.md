@@ -1,6 +1,6 @@
 # Heart Rate Variability Features
 
-HeartRateLab extracts **54 HRV features** across **9 analysis domains** from inter-beat-interval (IBI) time series data.
+HeartRateLab extracts **53 HRV features** across **4 analysis domains** from inter-beat-interval (IBI) time series data.
 
 ## Feature Domains
 
