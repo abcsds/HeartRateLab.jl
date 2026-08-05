@@ -579,11 +579,57 @@ function windowed_features(ibis::Vector{Float64}, participant_id::String,
     end
 end
 
-"""Write metadata TOML file for a dataset."""
+"""Write metadata TOML file for a dataset, appending a new analysis entry.
+
+Each call appends one `[[analyses]]` entry (window/stride/timestamp/stats) to
+the existing file so that multiple collection runs with different parameters are
+all recorded.  If the file already exists with the old `[collection]` single-
+table format it is migrated automatically.
+"""
 function write_metadata(ds, out_dir::String, window_size::Int, stride::Int,
                         n_collected::Int, n_failed::Int, elapsed_s::Float64)
-    meta = Dict(
-        "dataset" => Dict(
+    meta_path = joinpath(out_dir, "metadata.toml")
+
+    # ── Load existing analyses (migrate old [collection] format if needed) ──────
+    existing_analyses = Dict{String,Any}[]
+    if isfile(meta_path)
+        existing = TOML.parsefile(meta_path)
+        if haskey(existing, "analyses")
+            # New format: already an array of tables
+            existing_analyses = existing["analyses"]
+        elseif haskey(existing, "collection")
+            # Old format: migrate single [collection] block as first entry
+            old = existing["collection"]
+            push!(existing_analyses, Dict{String,Any}(
+                "date"                 => get(old, "date", "unknown"),
+                "heartrateLab_version" => get(old, "heartrateLab_version", "unknown"),
+                "window_size"          => get(old, "window_size", 0),
+                "stride"               => get(old, "stride", 0),
+                "windowed_features"    => get(get(existing, "files", Dict()), "windowed_features",
+                                             "windowed_w$(get(old,"window_size",0))_s$(get(old,"stride",0))_features.csv"),
+                "n_records_attempted"  => get(old, "n_records_attempted", 0),
+                "n_records_collected"  => get(old, "n_records_collected", 0),
+                "n_records_failed"     => get(old, "n_records_failed", 0),
+                "elapsed_seconds"      => get(old, "elapsed_seconds", 0.0),
+            ))
+        end
+    end
+
+    # ── Append this run ─────────────────────────────────────────────────────────
+    push!(existing_analyses, Dict{String,Any}(
+        "date"                 => string(now()),
+        "heartrateLab_version" => PKG_VERSION,
+        "window_size"          => window_size,
+        "stride"               => stride,
+        "windowed_features"    => "windowed_w$(window_size)_s$(stride)_features.csv",
+        "n_records_attempted"  => length(ds.records),
+        "n_records_collected"  => n_collected,
+        "n_records_failed"     => n_failed,
+        "elapsed_seconds"      => round(elapsed_s; digits=1),
+    ))
+
+    meta = Dict{String,Any}(
+        "dataset" => Dict{String,Any}(
             "name"          => ds.name,
             "description"   => ds.description,
             "physionet_url" => ds.physionet_url,
@@ -595,28 +641,17 @@ function write_metadata(ds, out_dir::String, window_size::Int, stride::Int,
             "license"       => ds.license,
             "all_records"   => ds.records,
         ),
-        "collection" => Dict(
-            "date"                 => string(now()),
-            "heartrateLab_version" => PKG_VERSION,
-            "window_size"          => window_size,
-            "stride"               => stride,
-            "overlap"              => window_size - stride,
-            "n_records_attempted"  => length(ds.records),
-            "n_records_collected"  => n_collected,
-            "n_records_failed"     => n_failed,
-            "elapsed_seconds"      => round(elapsed_s; digits=1),
-        ),
-        "files" => Dict(
+        "files" => Dict{String,Any}(
             "participant_features" => "participant_features.csv",
-            "windowed_features"    => "windowed_w$(window_size)_s$(stride)_features.csv",
         ),
-        "normative" => Dict(
-            "description" => "Use participant_features.csv for recording-level normative ranges.",
-            "sigma_threshold"   => 4,
-            "reference"  => "Evaluate new values: flag if |x - μ| > 4σ for any feature.",
+        "normative" => Dict{String,Any}(
+            "description"     => "Use participant_features.csv for recording-level normative ranges.",
+            "sigma_threshold" => 4,
+            "reference"       => "Evaluate new values: flag if |x - μ| > 4σ for any feature.",
         ),
+        "analyses" => existing_analyses,
     )
-    open(joinpath(out_dir, "metadata.toml"), "w") do io
+    open(meta_path, "w") do io
         TOML.print(io, meta)
     end
 end
@@ -646,6 +681,8 @@ function process_dataset(ds; window_size::Int, stride::Int, output_root::String)
         println("    participant_features.csv  ($(n_parts) rows)")
         println("    windowed_w$(window_size)_s$(stride)_features.csv")
         println("    Set SKIP_EXISTING=false to force re-collection.")
+        write_metadata(ds, out_dir, window_size, stride, n_parts, 0, 0.0)
+        println("  → metadata.toml  (analysis entry appended)")
         return (ok=n_parts, fail=0)
     end
 
