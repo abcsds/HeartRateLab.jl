@@ -1,3 +1,4 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+DocumenterCitations = "daee34ce-89f3-4625-b898-19384cb65244"
 HeartRateLab = "ac0e5f2a-24d1-4b35-a8b3-775c05ea78ca"

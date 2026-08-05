@@ -3,7 +3,7 @@ apen,Approximate entropy,log(C_m(r) / C_{m+1}(r)),Normal,,,NaN,,NaN,0,56472,NaN,
 ccsi,Corrected cardiac sympathetic index,4 * SD2^2 / SD1,LogNormal,"LogNormal(6.64948, 0.878659)",μ,6.649483723999631,σ,0.8786592618464346,56472,56472,2.274064592482625e-6,nsrdb+nsr2db,360,120,ok
 cvi,Cardiac vagal index,log10(SD1 * SD2 * 16),Normal,"Normal(4.26936, 0.424368)",μ,4.269361868873552,σ,0.4243675840387835,56472,56472,1.0802024412690063e-28,nsrdb+nsr2db,360,120,ok
 cvsd,Coefficient of variation of successive differences,sdsd / mean(IBI),Gamma,"Gamma(3.20435, 0.0130001)",α,3.204348862258013,θ,0.0130001040956156,56472,56472,2.4787353932095975e-141,nsrdb+nsr2db,360,120,ok
-dfa2,DFA long-term scaling exponent alpha2,alpha2 from DFA (scales 4-64),Normal,,,NaN,,NaN,0,56472,NaN,nsrdb+nsr2db,360,120,not in CSV
+dfa2,DFA long-term scaling exponent alpha2,alpha2 from DFA (scales 16-64),Normal,,,NaN,,NaN,0,56472,NaN,nsrdb+nsr2db,360,120,not in CSV
 hf,High frequency power (0.15-0.4 Hz),integral(PSD; 0.15; 0.4) Hz,Gamma,"Gamma(0.691591, 460.854)",α,0.6915906068536339,θ,460.85408190943764,56472,56472,1.0583963580069326e-188,nsrdb+nsr2db,360,120,ok
 hf_peak,Peak frequency in HF band,argmax(PSD; 0.15; 0.4),Normal,"Normal(0.212262, 0.0625479)",μ,0.21226187931873128,σ,0.06254788942772876,56472,56472,5.887682393120889e-112,nsrdb+nsr2db,360,120,ok
 hf_percentage,HF power as percentage of total power,100 * HF / TP,Gamma,"Gamma(2.53548, 7.59191)",α,2.535484787806655,θ,7.591913141879362,56472,56472,7.611135703051224e-49,nsrdb+nsr2db,360,120,ok
