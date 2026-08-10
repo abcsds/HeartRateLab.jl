@@ -55,8 +55,10 @@ plot_ibi_series(ibis; backend=:plots)
 
 ```julia
 julia> using Pkg
-julia> Pkg.add("HeartRateLab")
+julia> Pkg.add(url="https://github.com/abcsds/HeartRateLab.jl")
 ```
+
+> HeartRateLab is not yet registered in the Julia General registry (registration is planned), so install it directly from the GitHub URL.
 
 For visualization, optionally install:
 ```julia
@@ -67,11 +69,11 @@ julia> Pkg.add("Turing")  # For Bayesian inference
 
 ## Features
 
-- **53 HRV Features** across 5 domains (time, statistics, frequency, geometric, nonlinear)
+- **53 HRV Features** across 4 domains (time, frequency, geometric, nonlinear)
 - **Input/Output**: Read/write TXT, WFDB, XDF formats
 - **Preprocessing**: Handle outliers, ectopic beats, interpolation
 - **4 Mechanistic Models**: LIF, Van der Pol, Lorenz, DMD
-- **13 Visualization Functions**: Analysis, comparison, normative, and 3D plots
+- **18 Visualization Functions**: Analysis, comparison, normative, and 3D plots
 - **Modular Extensions**: Load only what you need (DifferentialEquations, Turing, GLMakie optional)
 
 ## Documentation
@@ -92,7 +94,7 @@ features = extract_feature_set(ibis)               # ← DEFAULT_FEATURES
 # Fast set: same but includes ulf (needs ≥24h recording for meaningful ulf)
 features_fast = extract_feature_set(ibis; features=:fast)
 
-# Full 53-feature extraction (adds nonlinear: apen, sampen, hurst, dfa, rényi)
+# Full 53-feature extraction (adds nonlinear: apen, sampen, hurst, dfa2, rényi)
 features_all = extract_feature_set(ibis; features=:all)
 
 # Only the expensive nonlinear features
@@ -110,12 +112,12 @@ Features are organized into two tiers based on computational complexity:
 |-----|-------|------------|---------|-------------|
 | **`DEFAULT_FEATURES`** (default) | 39 | O(n) – O(n log n) | time, frequency, geometric | Any |
 | **`FAST_FEATURES`** | 40 | O(n) – O(n log n) | time, frequency, geometric | Any |
-| **`NONLINEAR_FEATURES`** | 14 | O(n²) or worse | nonlinear, entropy | < 5 000 beats |
+| **`NONLINEAR_FEATURES`** | 13 | O(n²) or worse | nonlinear, entropy | < 5 000 beats |
 | **`ALL_FEATURES`** | 53 | O(n²) | all | < 5 000 beats |
 
 `DEFAULT_FEATURES` = `FAST_FEATURES` minus `ulf` (ultra-low frequency power requires ≥ 24-hour recordings to be physiologically meaningful).
 
-The **nonlinear features** (`apen`, `sampen`, `fuzzyen`, `shan_en`, `svd_en`, `spec_en`, `perm_en`, `mse`, `hurst`, `dfa1`, `dfa2`, `renyi0`, `renyi1`, `renyi2`) use algorithms whose time and memory consumption grow quadratically (or worse) with signal length. On recordings longer than ~5 000 beats they become slow; above ~50 000 beats they can exhaust available RAM.
+The **nonlinear features** (`apen`, `sampen`, `fuzzyen`, `shan_en`, `svd_en`, `spec_en`, `perm_en`, `mse`, `hurst`, `dfa2`, `renyi0`, `renyi1`, `renyi2`) use algorithms whose time and memory consumption grow quadratically (or worse) with signal length. On recordings longer than ~5 000 beats they become slow; above ~50 000 beats they can exhaust available RAM.
 
 The default `features=:default` setting is safe for any recording length and covers the most commonly reported HRV metrics in the literature (RMSSD, SDNN, pNN50, LF/HF ratio, Poincaré SD1/SD2, etc.).
 
@@ -179,7 +181,7 @@ Every feature in the registry carries an **analytical distribution family** deri
 | ∫\|P(f)\|² df (spectral band power: sum of squared spectral components → sum of Exp → Gamma) | **Gamma** | `ulf`, `vlf`, `lf`, `hf`, `tp`, `lf_percentage`, `hf_percentage` |
 | Proportion in \[0,1\] | **Beta** | `pnn50`, `pnn20`, `lf_relative`, `hf_relative`, `hurst` |
 | Ratio of Gamma RVs (log is ≈ Normal) | **LogNormal** | `lf_hf_ratio`, `sd2_sd1`, `sd1_sd2_area`, `ccsi` |
-| Entropy / regression slope (CLT) | **Normal** | `apen`, `sampen`, `dfa1`, `dfa2`, `renyi0`, `renyi1`, `renyi2` |
+| Entropy / regression slope (CLT) | **Normal** | `apen`, `sampen`, `dfa2`, `renyi0`, `renyi1`, `renyi2` |
 
 Distribution families are stored in each `HRFeature.distribution` field and are accessible via the feature registry:
 
@@ -252,7 +254,7 @@ plot_lorenz_3d(fit_result)               # 3D dynamics from a fitted result
 plot_lorenz_3d(ibis)                     # GLMakie 3D embedding (needs `using GLMakie`)
 plot_radar(datasets)                     # Radar/spider chart for feature comparison
 plot_correlations(feature_sets)          # Cross-dataset feature correlations
-plot_feature_violins(real, ensembles)    # Violin plots (needs `using GLMakie`)
+HeartRateLab.Visualization.plot_feature_violins(real, ensembles)  # Violin plots (needs `using GLMakie`)
 
 # Normative analysis
 plot_normative_kde_comparison(datasets, features)  # KDE overlay with σ-bands
@@ -264,7 +266,7 @@ plot_normative_pairplot(datasets, features)        # Scatter matrix (pairplot)
 
 While several open-source HRV packages exist (NeuroKit in Python), most Julia options are unmaintained. HeartRateLab provides:
 
-- **Comprehensive**: 53 features across 5 analysis domains
+- **Comprehensive**: 53 features across 4 analysis domains
 - **Performant**: Leverages Julia's speed for batch processing
 - **Extensible**: Modular architecture with optional dependencies
 - **Modern**: Interactive GLMakie visualizations and ODE-based models
@@ -282,13 +284,13 @@ Heart Rate Variability (HRV) analysis involves examining variations in heart Int
 
 | Component | Status | Details |
 |-----------|--------|---------|
-| **Core Features** | ✅ Complete | 53 HRV features across 5 domains |
+| **Core Features** | ✅ Complete | 53 HRV features across 4 domains |
 | **Input/Output** | ✅ Complete | TXT, WFDB, XDF formats |
 | **Preprocessing** | ✅ Complete | Outlier removal, interpolation, windowing |
 | **Mechanistic Models** | ✅ Complete | LIF, Van der Pol, Lorenz (ODE-based) |
 | **Spectral Models** | 🧪 Beta | DMD (data-driven; reconstructs dynamics about the mean) |
 | **Bayesian Inference** | ✅ Available | Turing.jl MCMC fitting (`:bayesian`) + convergence (`rhat`) |
-| **Real-time Streaming** | 🧪 Available (setup) | Live LSL RR/PP HRV; needs an LSL stream + first-run `.viz-env`, launched via `HeartRateLab.Visualization.bpm_tt()` (no `nix run .#viz` yet) |
+| **Real-time Streaming** | 🧪 Available (setup) | Live LSL RR/PP HRV; needs an LSL stream + first-run `.viz-env`. Launch with `nix run .#viz` (subcommands: `bpm`, `bpm_tt`, `vdp_field`) or `HeartRateLab.Visualization.bpm_tt()` |
 | **Visualizations** | 🚧 Expanding | Offline + live LSL plots; entropy/fractal/DMD + 3D views in progress |
 | **Deep Learning Models** | ⏳ Planned | Neural ODE, VAE (Flux.jl) |
 
@@ -307,11 +309,11 @@ Contributions are welcome! To get started:
 If you use HeartRateLab in your research, please cite:
 
 ```bibtex
-@software{barradas2025heartrateLab,
+@software{barradas2026heartrateLab,
   author = {Barradas, Alberto},
   title = {HeartRateLab.jl: Comprehensive Heart Rate Variability Analysis},
   version = {0.1.0},
-  year = {2025},
+  year = {2026},
   url = {https://github.com/abcsds/HeartRateLab.jl}
 }
 ```

@@ -12,8 +12,11 @@ Open the Julia REPL and type:
 
 ```julia
 julia> using Pkg
-julia> Pkg.add("HeartRateLab")
+julia> Pkg.add(url="https://github.com/abcsds/HeartRateLab.jl")
 ```
+
+!!! note
+    HeartRateLab is not yet registered in the Julia General registry (registration is planned), so it is installed directly from the GitHub URL.
 
 ### Step 3: Install Optional Dependencies
 
@@ -38,24 +41,25 @@ Create a text file `data.txt` with inter-beat-intervals (IBIs) in milliseconds, 
 ...
 ```
 
-Or download sample data from the [HeartRateLab repository](https://github.com/abcsds/HeartRateLab.jl/tree/main/data).
+Or use the sample recording that ships with the package: [`test/testdata/example.txt`](https://github.com/abcsds/HeartRateLab.jl/blob/main/test/testdata/example.txt) (an anonymized slow-breathing session).
 
 ### Extract HRV Features
 
 ```julia
 using HeartRateLab
+using DataFrames
 
 # Step 1: Load your IBI data
 ibis = read_txt("data.txt")
 println("Loaded $(length(ibis)) beats")
 
-# Step 2: Extract all HRV features (automatically preprocessed)
-features = extract_feature_set(ibis)
-println("Extracted $(length(features)) features")
+# Step 2: Extract all 53 HRV features (returns a one-row DataFrame)
+features = extract_feature_set(ibis; features=:all)
+println("Extracted $(ncol(features)) features")
 
 # Step 3: Display results
-for (name, value) in pairs(features)
-    println("$name: $(round(value; digits=2))")
+for name in names(features)
+    println("$name: $(round(features[1, name]; digits=2))")
 end
 ```
 
@@ -63,10 +67,10 @@ end
 ```
 Loaded 500 beats
 Extracted 53 features
-mean_ibi: 800.25
-std_ibi: 45.32
+mean: 800.25
+sdnn: 45.32
 rmssd: 38.14
-pnn50: 22.5
+pnn50: 0.23
 ...
 ```
 
@@ -87,14 +91,14 @@ files = [
     "subject_003.txt"
 ]
 
-# Extract features for each
-all_features = []
+# Extract features for each (extract_feature_set returns a one-row DataFrame)
+all_features = DataFrame[]
 
 for file in files
     try
         ibis = read_txt(file)
         features = extract_feature_set(ibis)
-        features["subject"] = split(file, ".")[1]  # Add subject ID
+        features.subject .= split(file, ".")[1]  # Add subject ID column
         push!(all_features, features)
         println("✓ Processed $file")
     catch e
@@ -102,8 +106,8 @@ for file in files
     end
 end
 
-# Convert to DataFrame for analysis
-df = DataFrame(all_features)
+# Stack into one DataFrame (one row per subject) for analysis
+df = reduce(vcat, all_features)
 
 # Save results
 CSV.write("hrv_features.csv", df)
@@ -145,7 +149,7 @@ ibis = read_txt("data.txt")
 # Fit LIF model to your data
 println("Fitting LIF model...")
 lif = LIF()
-result = fit(lif, ibis; method=:gradient, max_iter=1000)
+result = fit(lif, ibis; method=:gradient)
 
 # Check convergence
 println("Converged: $(result.diagnostics["converged"])")
@@ -180,17 +184,14 @@ ibi
 795
 ```
 
-**WFDB format** - If you have WFDB tools installed:
+**WFDB format** - If you have WFDB tools installed, pass the record name and the annotator extension:
 ```julia
-ibis = read_wfdb("record_name")
+ibis = read_wfdb("16265", "atr")   # record "16265" with the "atr" annotation file
 ```
 
 ### Output Formats
 
 ```julia
-# Write to text file
-write_txt("output.txt", ibis)
-
 # Write to CSV
 using CSV, DataFrames
 df = DataFrame(ibi=ibis)
@@ -200,10 +201,10 @@ CSV.write("output.csv", df)
 ## Troubleshooting
 
 ### Issue: "Module not found"
-**Solution:** Make sure HeartRateLab is installed:
+**Solution:** Make sure HeartRateLab is installed (from the GitHub URL — the package is not yet in the General registry):
 ```julia
 using Pkg
-Pkg.add("HeartRateLab")
+Pkg.add(url="https://github.com/abcsds/HeartRateLab.jl")
 ```
 
 ### Issue: Features return NaN
@@ -252,5 +253,5 @@ save("my_plot.png", fig)
 - Create a new issue with details about your problem
 
 **Contributing?**
-- See [CONTRIBUTING.md](https://github.com/abcsds/HeartRateLab.jl/blob/main/CONTRIBUTING.md)
+- Open or comment on a [GitHub issue](https://github.com/abcsds/HeartRateLab.jl/issues) to discuss your idea
 - Fork the repository and submit a pull request

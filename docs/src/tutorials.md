@@ -4,23 +4,24 @@
 
 Learn to extract, filter, and analyze HRV features.
 
-### Extract Features by Domain
+### Extract Feature Sets
 
 ```julia
 using HeartRateLab
+using DataFrames
 
 ibis = read_txt("data.txt")
 
-# Extract specific domains
-time_features = extract_feature_set(ibis; domains=[:time])
-freq_features = extract_feature_set(ibis; domains=[:frequency])
-nonlinear_features = extract_feature_set(ibis; domains=[:nonlinear])
-fractal_features = extract_feature_set(ibis; domains=[:fractal])
+# Extract preset feature sets (each returns a one-row DataFrame)
+default_features = extract_feature_set(ibis)                       # time, frequency, geometric
+all_features = extract_feature_set(ibis; features=:all)            # all 53 (adds nonlinear)
+nonlinear_features = extract_feature_set(ibis; features=:nonlinear) # entropy/fractal measures only
+custom_features = extract_feature_set(ibis; features=["mean", "sdnn", "rmssd"])
 
-println("Time domain features: $(length(time_features))")
-println("Frequency domain features: $(length(freq_features))")
-println("Nonlinear features: $(length(nonlinear_features))")
-println("Fractal features: $(length(fractal_features))")
+println("Default set: $(ncol(default_features)) features")
+println("All features: $(ncol(all_features)) features")
+println("Nonlinear features: $(ncol(nonlinear_features)) features")
+println("Custom subset: $(ncol(custom_features)) features")
 ```
 
 ### Handle Signal Length Constraints

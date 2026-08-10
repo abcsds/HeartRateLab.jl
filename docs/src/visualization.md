@@ -1,6 +1,6 @@
 # Heart Rate Variability Visualization
 
-HeartRateLab provides **9 interactive visualization functions** using GLMakie for analysis and model comparison.
+HeartRateLab provides **18 visualization functions** for analysis, model comparison, and normative reference — static Plots.jl figures by default, upgrading to interactive GLMakie figures when GLMakie is loaded.
 
 ## Analysis Plots
 

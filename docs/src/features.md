@@ -2,97 +2,91 @@
 
 HeartRateLab extracts **53 HRV features** across **4 analysis domains** from inter-beat-interval (IBI) time series data.
 
+Every feature has a full "Pokédex" entry in the [HRV Variable Zoo](zoo/index.md) — definition, equation, normative distribution, resource cost, and seminal citation.
+
 ## Feature Domains
 
-### 1. Time Domain (10 features)
-Statistical measures of IBI variations:
+### 1. Time Domain (20 features)
 
-- **Mean IBI** - Average inter-beat-interval
-- **Heart Rate** - Mean heart rate in beats per minute
-- **Std RR** - Standard deviation of RR-intervals
-- **CV RR** - Coefficient of variation
-- **RMSSD** - Root mean square of successive differences
-- **pNN50** - Percentage of successive intervals > 50ms
-- **pNN20** - Percentage of successive intervals > 20ms
-- **Median RR** - Median RR-interval
-- **Min RR / Max RR** - Range of RR-intervals
+Statistics of the NN/RR intervals and their successive differences — the classic, cheapest, most-reported HRV panel:
 
-### 2. Frequency Domain (8 features)
-Power spectral characteristics:
+- [`mean`](zoo/mean.md) — Mean inter-beat interval
+- [`sdnn`](zoo/sdnn.md) — Standard deviation of NN intervals
+- [`median`](zoo/median.md) — Median inter-beat interval
+- [`max`](zoo/max.md) — Maximum inter-beat interval
+- [`min`](zoo/min.md) — Minimum inter-beat interval
+- [`mean_hr`](zoo/mean_hr.md) — Mean heart rate (BPM)
+- [`std_hr`](zoo/std_hr.md) — Standard deviation of heart rate
+- [`max_hr`](zoo/max_hr.md) — Maximum heart rate
+- [`min_hr`](zoo/min_hr.md) — Minimum heart rate
+- [`median_hr`](zoo/median_hr.md) — Median heart rate (BPM)
+- [`range_hr`](zoo/range_hr.md) — Range (max − min) of instantaneous heart rate
+- [`sdsd`](zoo/sdsd.md) — Standard deviation of successive differences
+- [`range`](zoo/range.md) — Range of inter-beat intervals
+- [`rmssd`](zoo/rmssd.md) — Root mean square of successive differences
+- [`sdann`](zoo/sdann.md) — Standard deviation of 5-min average NN intervals
+- [`pnn50`](zoo/pnn50.md) — Proportion of successive differences > 50 ms
+- [`pnn20`](zoo/pnn20.md) — Proportion of successive differences > 20 ms
+- [`cvsd`](zoo/cvsd.md) — Coefficient of variation of successive differences
+- [`cvnni`](zoo/cvnni.md) — Coefficient of variation of NN intervals (SDNN / mean)
+- [`rRR`](zoo/rRR.md) — Median relative RR interval distance
 
-- **VLF Power** - Very Low Frequency (0.0-0.04 Hz)
-- **LF Power** - Low Frequency (0.04-0.15 Hz)
-- **HF Power** - High Frequency (0.15-0.4 Hz)
-- **Total Power** - Sum of VLF, LF, HF
-- **VLF/HF Ratio** - Sympathovagal balance indicator
-- **LF/HF Ratio** - ANS activity measure
-- **LF norm** - Normalized LF power
-- **HF norm** - Normalized HF power
+### 2. Frequency Domain (12 features)
 
-### 3. Poincaré Plot (6 features)
-Nonlinear scatter plot analysis:
+Power in the ULF/VLF/LF/HF bands of the RR power spectrum, plus band ratios and peak frequencies:
 
-- **SD1** - Perpendicular std dev (short-term variability)
-- **SD2** - Along-diagonal std dev (long-term variability)
-- **SD1/SD2** - Ratio of short to long-term variability
-- **Area** - Area of ellipse in Poincaré plot
-- **CSI** - Cardiac Sympathetic Index
-- **CVI** - Cardiac Vagal Index
+- [`ulf`](zoo/ulf.md) — Ultra-low frequency power (0–0.003 Hz)
+- [`vlf`](zoo/vlf.md) — Very low frequency power (0.003–0.04 Hz)
+- [`lf`](zoo/lf.md) — Low frequency power (0.04–0.15 Hz)
+- [`hf`](zoo/hf.md) — High frequency power (0.15–0.4 Hz)
+- [`tp`](zoo/tp.md) — Total power (0.003–0.4 Hz)
+- [`lf_peak`](zoo/lf_peak.md) — Peak frequency in the LF band
+- [`hf_peak`](zoo/hf_peak.md) — Peak frequency in the HF band
+- [`lf_hf_ratio`](zoo/lf_hf_ratio.md) — LF/HF power ratio
+- [`lf_relative`](zoo/lf_relative.md) — LF power as proportion of total power
+- [`hf_relative`](zoo/hf_relative.md) — HF power as proportion of total power
+- [`lf_percentage`](zoo/lf_percentage.md) — LF power as percentage of total power
+- [`hf_percentage`](zoo/hf_percentage.md) — HF power as percentage of total power
 
-### 4. Nonlinear Dynamics (8 features)
-Complex system analysis:
+### 3. Geometric (8 features)
 
-- **ApEn** - Approximate Entropy
-- **SampEn** - Sample Entropy
-- **Fuzzy En** - Fuzzy Entropy
-- **Permutation En** - Permutation Entropy
-- **Dispersion En** - Dispersion Entropy
-- **Shannon En** - Shannon Entropy
-- **Tsallis En** - Tsallis Entropy
-- **Renyi En** - Rényi Entropy
+Shape descriptors of the Poincaré / Lorenz return map and the RR histogram — robust to occasional artifacts:
 
-### 5. Fractal/Complexity (5 features)
-Self-similar structure analysis:
+- [`sd1`](zoo/sd1.md) — Poincaré plot short-term variability
+- [`sd2`](zoo/sd2.md) — Poincaré plot long-term variability
+- [`sd2_sd1`](zoo/sd2_sd1.md) — Ratio of SD2 to SD1 (cardiac sympathetic index)
+- [`sd1_sd2_area`](zoo/sd1_sd2_area.md) — Poincaré plot ellipse area
+- [`cvi`](zoo/cvi.md) — Cardiac vagal index
+- [`ccsi`](zoo/ccsi.md) — Corrected cardiac sympathetic index
+- [`triangular_index`](zoo/triangular_index.md) — HRV triangular index
+- [`tinn`](zoo/tinn.md) — Triangular interpolation of the NN interval histogram
 
-- **DFA α₁** - Detrended Fluctuation Analysis (short-term, 4-16ms)
-- **DFA α₂** - Detrended Fluctuation Analysis (long-term, 16-64ms)
-- **Lyapunov Exponent** - Rate of trajectory divergence
-- **Hurst Exponent** - Long-range correlation measure
-- **Lempel-Ziv Complexity** - Algorithmic complexity
+### 4. Nonlinear (13 features)
 
-### 6. Wavelet (4 features)
-Time-frequency analysis:
+Entropy, complexity, and fractal-scaling measures probing the nonlinear structure of cardiac control (need adequate record length):
 
-- **Total Wavelet Energy** - Sum of wavelet coefficients
-- **Wavelet Energy by Band** - VLF, LF, HF bands
-- **Wavelet Entropy** - Randomness in time-frequency distribution
+- [`apen`](zoo/apen.md) — Approximate entropy
+- [`sampen`](zoo/sampen.md) — Sample entropy
+- [`hurst`](zoo/hurst.md) — Hurst exponent
+- [`renyi0`](zoo/renyi0.md) — Rényi entropy of order 0
+- [`renyi1`](zoo/renyi1.md) — Rényi entropy of order 1 (Shannon)
+- [`renyi2`](zoo/renyi2.md) — Rényi entropy of order 2
+- [`shan_en`](zoo/shan_en.md) — Shannon entropy of the IBI histogram
+- [`svd_en`](zoo/svd_en.md) — Singular value decomposition entropy
+- [`fuzzyen`](zoo/fuzzyen.md) — Fuzzy entropy
+- [`spec_en`](zoo/spec_en.md) — Spectral entropy
+- [`perm_en`](zoo/perm_en.md) — Permutation entropy
+- [`mse`](zoo/mse.md) — Multiscale entropy complexity index
+- [`dfa2`](zoo/dfa2.md) — Detrended fluctuation analysis long-term scaling exponent (α₂)
 
-### 7. Acceleration (2 features)
-Beat acceleration analysis:
-
-- **Mean acceleration** - Average first derivative
-- **Acceleration entropy** - Entropy of beat acceleration
-
-### 8. Geometric (3 features)
-Histogram-based measures:
-
-- **TINN** - Triangular interpolation of NN histogram
-- **Histogram Width** - Range of histogram
-- **Histogram Peak** - Most frequent NN-interval
-
-### 9. Other (6 features)
-Additional measures:
-
-- **Variability Index** - Overall HRV magnitude
-- **SDSD** - Std dev of successive differences
-- **RR_range** - Difference between max and min RR
-- **Spectral Edge Frequency** - Frequency containing 95% power
-- **Spectral Centroid** - Center of mass of spectrum
-- **Spectral Spread** - Spread around spectral centroid
+!!! note "DFA α₁"
+    The short-term DFA exponent α₁ is available as the `dfa1` *representation* (`HeartRateLab.Features.function_registry["dfa1"](m)`), a building block rather than a registry feature — it does not appear in `extract_feature_set` output.
 
 ## Feature Extraction
 
 ### Basic Usage
+
+`extract_feature_set` returns a one-row `DataFrame` with one column per feature. The `features` keyword selects a preset set (`:default`, `:fast`, `:all`, `:nonlinear`) or an explicit vector of feature names:
 
 ```julia
 using HeartRateLab
@@ -100,13 +94,17 @@ using HeartRateLab
 # Load data
 ibis = read_txt("data.txt")
 
-# Extract all features
+# Default set (time, frequency, geometric — excludes nonlinear and ulf)
 features = extract_feature_set(ibis)
 
-# Extract by domain
-time_domain = extract_feature_set(ibis; domains=[:time])
-freq_domain = extract_feature_set(ibis; domains=[:frequency])
-nonlinear_domain = extract_feature_set(ibis; domains=[:nonlinear])
+# All 53 features (adds the expensive nonlinear set)
+features_all = extract_feature_set(ibis; features=:all)
+
+# Only the nonlinear features
+features_nl = extract_feature_set(ibis; features=:nonlinear)
+
+# Custom subset by name
+features_custom = extract_feature_set(ibis; features=["mean", "sdnn", "rmssd", "lf", "hf"])
 ```
 
 ### Signal Length Requirements
@@ -118,9 +116,9 @@ Different features require minimum signal lengths:
 valid = valid_features(length(ibis))
 
 # Features table
-# Signal length 10:  11 features
-# Signal length 50:  25 features
-# Signal length 100: 32 features
+# Signal length 10:  14 features
+# Signal length 50:  30 features
+# Signal length 100: 41 features
 # Signal length 128: 53 features (all)
 ```
 
