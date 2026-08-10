@@ -5,33 +5,43 @@ using DataFrames
 ibis = read_txt(&quot;data.txt&quot;)
 
 # Extract preset feature sets (each returns a one-row DataFrame)
-default_features = extract_feature_set(ibis)                       # time, frequency, geometric
-all_features = extract_feature_set(ibis; features=:all)            # all 53 (adds nonlinear)
+default_features = extract_feature_set(ibis)                        # fast features
+all_features = extract_feature_set(ibis; features=:all)             # all 53 (adds nonlinear)
 nonlinear_features = extract_feature_set(ibis; features=:nonlinear) # entropy/fractal measures only
 custom_features = extract_feature_set(ibis; features=[&quot;mean&quot;, &quot;sdnn&quot;, &quot;rmssd&quot;])
 
 println(&quot;Default set: $(ncol(default_features)) features&quot;)
 println(&quot;All features: $(ncol(all_features)) features&quot;)
 println(&quot;Nonlinear features: $(ncol(nonlinear_features)) features&quot;)
-println(&quot;Custom subset: $(ncol(custom_features)) features&quot;)</code></pre><h3 id="Handle-Signal-Length-Constraints"><a class="docs-heading-anchor" href="#Handle-Signal-Length-Constraints">Handle Signal Length Constraints</a><a id="Handle-Signal-Length-Constraints-1"></a><a class="docs-heading-anchor-permalink" href="#Handle-Signal-Length-Constraints" title="Permalink"></a></h3><pre><code class="language-julia hljs"># Not all features work with short signals
+println(&quot;Custom subset: $(ncol(custom_features)) features&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">. . .
+<span class="sgr33"><span class="sgr1">┌ Warning: </span></span>Recording duration is less than 24 hours. ULF power may not be reliable.
+<span class="sgr33"><span class="sgr1">└ </span></span><span class="sgr90">@ HeartRateLab.Features ~/work/HeartRateLab.jl/HeartRateLab.jl/src/Features.jl:655</span>
+Default set: 39 features
+All features: 53 features
+Nonlinear features: 13 features
+Custom subset: 3 features</code></pre><h3 id="Handle-Signal-Length-Constraints"><a class="docs-heading-anchor" href="#Handle-Signal-Length-Constraints">Handle Signal Length Constraints</a><a id="Handle-Signal-Length-Constraints-1"></a><a class="docs-heading-anchor-permalink" href="#Handle-Signal-Length-Constraints" title="Permalink"></a></h3><pre><code class="language-julia hljs"># Not all features work with short signals
 short_ibis = ibis[1:20]
 long_ibis = ibis
 
 # Check valid features
-valid_short = valid_features(length(short_ibis))  # ~11 features
-valid_long = valid_features(length(long_ibis))   # ~53 features
+valid_short = valid_features(length(short_ibis))
+valid_long = valid_features(length(long_ibis))
 
 println(&quot;Features for $(length(short_ibis)) beats: $(length(valid_short))&quot;)
 println(&quot;Features for $(length(long_ibis)) beats: $(length(valid_long))&quot;)
 
 # Compute only valid features
-features_short = extract_feature_set(short_ibis)
-features_long = extract_feature_set(long_ibis)</code></pre><h3 id="Windowed-Analysis"><a class="docs-heading-anchor" href="#Windowed-Analysis">Windowed Analysis</a><a id="Windowed-Analysis-1"></a><a class="docs-heading-anchor-permalink" href="#Windowed-Analysis" title="Permalink"></a></h3><pre><code class="language-julia hljs"># Compute features in sliding windows
+features_short = extract_feature_set(short_ibis; features=valid_short)
+features_long = extract_feature_set(long_ibis; features=valid_long)
+
+println(&quot;Computed $(ncol(features_short)) features (short) and $(ncol(features_long)) features (long)&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Features for 20 beats: 27
+Features for 600 beats: 53
+Computed 27 features (short) and 53 features (long)</code></pre><h3 id="Windowed-Analysis"><a class="docs-heading-anchor" href="#Windowed-Analysis">Windowed Analysis</a><a id="Windowed-Analysis-1"></a><a class="docs-heading-anchor-permalink" href="#Windowed-Analysis" title="Permalink"></a></h3><pre><code class="language-julia hljs"># Compute features in sliding windows
 window_size = 100
 overlap = 50
 n_windows = div(length(ibis) - window_size, window_size - overlap) + 1
 
-all_window_features = []
+all_window_features = DataFrame[]
 
 for i in 1:n_windows
     start_idx = 1 + (i-1) * (window_size - overlap)
@@ -40,19 +50,17 @@ for i in 1:n_windows
     if end_idx &lt;= length(ibis)
         window_ibis = ibis[start_idx:end_idx]
         features = extract_feature_set(window_ibis)
-        features[&quot;window&quot;] = i
-        features[&quot;time_start&quot;] = start_idx / 1000  # Convert to seconds
+        features[!, :window] .= i
+        features[!, :beat_start] .= start_idx
         push!(all_window_features, features)
     end
 end
 
-println(&quot;Analyzed $n_windows windows of $window_size beats&quot;)
-
-# Plot feature evolution
+window_df = vcat(all_window_features...)
+println(&quot;Analyzed $(nrow(window_df)) windows of $window_size beats&quot;)
+first(window_df[:, [:window, :beat_start, :rmssd, :sdnn]], 5)</code></pre><div><div style = "float: left;"><span>5×4 DataFrame</span></div><div style = "clear: both;"></div></div><div class = "data-frame" style = "overflow-x: scroll;"><table class = "data-frame" style = "margin-bottom: 6px;"><thead><tr class = "header"><th class = "rowNumber" style = "font-weight: bold; text-align: right;">Row</th><th style = "text-align: left;">window</th><th style = "text-align: left;">beat_start</th><th style = "text-align: left;">rmssd</th><th style = "text-align: left;">sdnn</th></tr><tr class = "subheader headerLastRow"><th class = "rowNumber" style = "font-weight: bold; text-align: right;"></th><th title = "Int64" style = "text-align: left;">Int64</th><th title = "Int64" style = "text-align: left;">Int64</th><th title = "Float64" style = "text-align: left;">Float64</th><th title = "Float64" style = "text-align: left;">Float64</th></tr></thead><tbody><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">1</td><td style = "text-align: right;">1</td><td style = "text-align: right;">1</td><td style = "text-align: right;">44.7201</td><td style = "text-align: right;">35.2699</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">2</td><td style = "text-align: right;">2</td><td style = "text-align: right;">51</td><td style = "text-align: right;">45.4163</td><td style = "text-align: right;">37.039</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">3</td><td style = "text-align: right;">3</td><td style = "text-align: right;">101</td><td style = "text-align: right;">45.8694</td><td style = "text-align: right;">37.0946</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">4</td><td style = "text-align: right;">4</td><td style = "text-align: right;">151</td><td style = "text-align: right;">47.0358</td><td style = "text-align: right;">37.08</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">5</td><td style = "text-align: right;">5</td><td style = "text-align: right;">201</td><td style = "text-align: right;">49.5127</td><td style = "text-align: right;">40.0197</td></tr></tbody></table></div><p><em>(not executed in the docs build — requires a display)</em></p><pre><code class="language-julia hljs"># Plot feature evolution
 using GLMakie
-windows = [f[&quot;window&quot;] for f in all_window_features]
-rmssd = [f[&quot;rmssd&quot;] for f in all_window_features]
-lines(windows, rmssd; title=&quot;RMSSD Evolution&quot;)</code></pre><h2 id="Tutorial-2:-Model-Fitting-and-Comparison"><a class="docs-heading-anchor" href="#Tutorial-2:-Model-Fitting-and-Comparison">Tutorial 2: Model Fitting and Comparison</a><a id="Tutorial-2:-Model-Fitting-and-Comparison-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial-2:-Model-Fitting-and-Comparison" title="Permalink"></a></h2><p>Learn to fit mechanistic models and evaluate reproduction quality.</p><h3 id="Fit-Multiple-Models"><a class="docs-heading-anchor" href="#Fit-Multiple-Models">Fit Multiple Models</a><a id="Fit-Multiple-Models-1"></a><a class="docs-heading-anchor-permalink" href="#Fit-Multiple-Models" title="Permalink"></a></h3><pre><code class="language-julia hljs">using HeartRateLab, DifferentialEquations, GLMakie
+lines(window_df.window, window_df.rmssd)</code></pre><h2 id="Tutorial-2:-Model-Fitting-and-Comparison"><a class="docs-heading-anchor" href="#Tutorial-2:-Model-Fitting-and-Comparison">Tutorial 2: Model Fitting and Comparison</a><a id="Tutorial-2:-Model-Fitting-and-Comparison-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial-2:-Model-Fitting-and-Comparison" title="Permalink"></a></h2><p>Learn to fit mechanistic models and evaluate reproduction quality.</p><h3 id="Fit-Multiple-Models"><a class="docs-heading-anchor" href="#Fit-Multiple-Models">Fit Multiple Models</a><a id="Fit-Multiple-Models-1"></a><a class="docs-heading-anchor-permalink" href="#Fit-Multiple-Models" title="Permalink"></a></h3><p><em>(not executed in the docs build — model fitting is too slow and the figures require a display)</em></p><pre><code class="language-julia hljs">using HeartRateLab, DifferentialEquations, GLMakie
 
 ibis = read_txt(&quot;data.txt&quot;)
 
@@ -123,7 +131,7 @@ fig_heatmap = plot_model_heatmap(errors, collect(keys(real_features)))
 display(fig_lif)
 display(fig_vdp)
 display(fig_lorenz)
-display(fig_heatmap)</code></pre><h2 id="Tutorial-3:-Data-Driven-Analysis-with-DMD"><a class="docs-heading-anchor" href="#Tutorial-3:-Data-Driven-Analysis-with-DMD">Tutorial 3: Data-Driven Analysis with DMD</a><a id="Tutorial-3:-Data-Driven-Analysis-with-DMD-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial-3:-Data-Driven-Analysis-with-DMD" title="Permalink"></a></h2><p>Use Dynamic Mode Decomposition for data-driven modeling.</p><h3 id="Fit-and-Reconstruct"><a class="docs-heading-anchor" href="#Fit-and-Reconstruct">Fit and Reconstruct</a><a id="Fit-and-Reconstruct-1"></a><a class="docs-heading-anchor-permalink" href="#Fit-and-Reconstruct" title="Permalink"></a></h3><pre><code class="language-julia hljs">using HeartRateLab, LinearAlgebra, GLMakie
+display(fig_heatmap)</code></pre><h2 id="Tutorial-3:-Data-Driven-Analysis-with-DMD"><a class="docs-heading-anchor" href="#Tutorial-3:-Data-Driven-Analysis-with-DMD">Tutorial 3: Data-Driven Analysis with DMD</a><a id="Tutorial-3:-Data-Driven-Analysis-with-DMD-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial-3:-Data-Driven-Analysis-with-DMD" title="Permalink"></a></h2><p>Use Dynamic Mode Decomposition for data-driven modeling.</p><h3 id="Fit-and-Reconstruct"><a class="docs-heading-anchor" href="#Fit-and-Reconstruct">Fit and Reconstruct</a><a id="Fit-and-Reconstruct-1"></a><a class="docs-heading-anchor-permalink" href="#Fit-and-Reconstruct" title="Permalink"></a></h3><p><em>(not executed in the docs build — model fitting)</em></p><pre><code class="language-julia hljs">using HeartRateLab, LinearAlgebra, GLMakie
 
 ibis = read_txt(&quot;data.txt&quot;)
 
@@ -156,7 +164,7 @@ fig3 = plot_comparison(ibis, recon_high; model_name=&quot;DMD (rank=10)&quot;)
 
 display(fig1)
 display(fig2)
-display(fig3)</code></pre><h2 id="Tutorial-4:-Publication-Quality-Figures"><a class="docs-heading-anchor" href="#Tutorial-4:-Publication-Quality-Figures">Tutorial 4: Publication-Quality Figures</a><a id="Tutorial-4:-Publication-Quality-Figures-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial-4:-Publication-Quality-Figures" title="Permalink"></a></h2><p>Create figures suitable for research papers.</p><h3 id="Single-Plot"><a class="docs-heading-anchor" href="#Single-Plot">Single Plot</a><a id="Single-Plot-1"></a><a class="docs-heading-anchor-permalink" href="#Single-Plot" title="Permalink"></a></h3><pre><code class="language-julia hljs">using HeartRateLab, GLMakie
+display(fig3)</code></pre><h2 id="Tutorial-4:-Publication-Quality-Figures"><a class="docs-heading-anchor" href="#Tutorial-4:-Publication-Quality-Figures">Tutorial 4: Publication-Quality Figures</a><a id="Tutorial-4:-Publication-Quality-Figures-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial-4:-Publication-Quality-Figures" title="Permalink"></a></h2><p>Create figures suitable for research papers.</p><h3 id="Single-Plot"><a class="docs-heading-anchor" href="#Single-Plot">Single Plot</a><a id="Single-Plot-1"></a><a class="docs-heading-anchor-permalink" href="#Single-Plot" title="Permalink"></a></h3><p><em>(not executed in the docs build — requires a display)</em></p><pre><code class="language-julia hljs">using HeartRateLab, GLMakie
 
 ibis = read_txt(&quot;data.txt&quot;)
 
@@ -219,7 +227,7 @@ ax4 = Axis(fig[2, 2]; title=&quot;D. Power Spectrum&quot;, xlabel=&quot;Frequenc
 # Add spectrum plots (simplified)
 
 # Save figure
-save(&quot;publication_figure.pdf&quot;, fig; pt_per_unit=1)</code></pre><h2 id="Tutorial-5:-Batch-Processing-and-Statistics"><a class="docs-heading-anchor" href="#Tutorial-5:-Batch-Processing-and-Statistics">Tutorial 5: Batch Processing and Statistics</a><a id="Tutorial-5:-Batch-Processing-and-Statistics-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial-5:-Batch-Processing-and-Statistics" title="Permalink"></a></h2><p>Process multiple subjects and compute group statistics.</p><pre><code class="language-julia hljs">using HeartRateLab
+save(&quot;publication_figure.pdf&quot;, fig; pt_per_unit=1)</code></pre><h2 id="Tutorial-5:-Batch-Processing-and-Statistics"><a class="docs-heading-anchor" href="#Tutorial-5:-Batch-Processing-and-Statistics">Tutorial 5: Batch Processing and Statistics</a><a id="Tutorial-5:-Batch-Processing-and-Statistics-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial-5:-Batch-Processing-and-Statistics" title="Permalink"></a></h2><p>Process multiple subjects and compute group statistics.</p><p><em>(not executed in the docs build — requires multi-subject recordings not shipped with the docs)</em></p><pre><code class="language-julia hljs">using HeartRateLab
 using CSV, DataFrames, Statistics
 
 # List of subjects
@@ -289,10 +297,10 @@ end
 # Use it
 features, status = safe_extract_features(&quot;data.txt&quot;)
 if status == &quot;success&quot;
-    println(&quot;Extracted $(length(features)) features&quot;)
+    println(&quot;Extracted $(ncol(features)) features&quot;)
 else
     println(&quot;Error: $status&quot;)
-end</code></pre><h3 id="Parallel-Processing"><a class="docs-heading-anchor" href="#Parallel-Processing">Parallel Processing</a><a id="Parallel-Processing-1"></a><a class="docs-heading-anchor-permalink" href="#Parallel-Processing" title="Permalink"></a></h3><pre><code class="language-julia hljs">using Distributed
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Extracted 39 features</code></pre><h3 id="Parallel-Processing"><a class="docs-heading-anchor" href="#Parallel-Processing">Parallel Processing</a><a id="Parallel-Processing-1"></a><a class="docs-heading-anchor-permalink" href="#Parallel-Processing" title="Permalink"></a></h3><pre><code class="language-julia hljs">using Distributed
 
 # Add workers (uses all available cores)
 addprocs()
@@ -314,4 +322,4 @@ end
 
 # Collect results
 successful = [r for r in results if r[2] == &quot;success&quot;]
-println(&quot;Processed $(length(successful))/$(length(files)) files successfully&quot;)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../usecases/effect-distributions/">« What do reported effects look like?</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Monday 10 August 2026 17:09">Monday 10 August 2026</span>. Using Julia version 1.11.9.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+println(&quot;Processed $(length(successful))/$(length(files)) files successfully&quot;)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../usecases/effect-distributions/">« What do reported effects look like?</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Monday 10 August 2026 17:59">Monday 10 August 2026</span>. Using Julia version 1.11.9.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
