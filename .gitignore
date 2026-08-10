@@ -43,10 +43,6 @@ test/tools/forecasting/out/*.log
 /docs/sessions/
 /memory/
 
-# Package repos don't commit resolved manifests
-/Manifest.toml
-/docs/slides/Manifest.toml
-
 # Regenerable rendered output (nix run .#render / quarto)
 /docs/flagship_demo.html
 /docs/slides/HeartRateLab.html
