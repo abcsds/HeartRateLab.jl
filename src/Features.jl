@@ -648,8 +648,9 @@ end
     Minimum length: 128
     """
     if config["freq_method"] == :lomb_scargle
-        # @warn "No ultra low frequency in Lomb-Scargle. Returning NaN."
-        return NaN # No ultra low frequency in Lomb-Scargle # TODO: why?
+        # The Lomb-Scargle grid does not resolve the ULF band (< 0.003 Hz needs
+        # multi-hour recordings); use freq_method = :welch for ULF power.
+        return NaN
     elseif config["freq_method"] == :welch
         function_registry["max_t"](n) < 86000 && @warn "Recording duration is less than 24 hours. ULF power may not be reliable."
         return get_power(function_registry["pgram"](n), 0.0, 0.003)
@@ -1153,8 +1154,9 @@ end
     """
         renyi0(n::HRMeasurement)
     See `renyi(n::HRMeasurement, order::Int=0)`.
+    Domains: nonlinear
     Distribution: Normal
-    
+
     Minimum length: 100
     """
     return function_registry["renyi"](n, 0)
@@ -1163,8 +1165,9 @@ end
     """
         renyi1(n::HRMeasurement)
     See `renyi(n::HRMeasurement, order::Int=1)`.
+    Domains: nonlinear
     Distribution: Normal
-    
+
     Minimum length: 100
     """
     return function_registry["renyi"](n, 1)
@@ -1173,8 +1176,9 @@ end
     """
         renyi2(n::HRMeasurement)
     See `renyi(n::HRMeasurement, order::Int=2)`.
+    Domains: nonlinear
     Distribution: Normal
-    
+
     Minimum length: 100
     """
     return function_registry["renyi"](n, 2)
@@ -1439,7 +1443,7 @@ const NONLINEAR_FEATURES = [
     "spec_en", "perm_en",      # Spectral & permutation entropy (EntropyHub)
     "mse",                     # Multiscale entropy complexity index (EntropyHub)
     "hurst",                   # Hurst exponent (R/S analysis)
-    "dfa1", "dfa2",            # Detrended Fluctuation Analysis exponents
+    "dfa2",                    # Detrended Fluctuation Analysis long-range exponent
     "renyi0", "renyi1", "renyi2",  # Rényi entropies of order 0, 1, 2
 ]
 
@@ -1448,7 +1452,7 @@ const NONLINEAR_FEATURES = [
 
 All registered features **except** the computationally expensive nonlinear ones
 (entropy family `apen`/`sampen`/`fuzzyen`/`shan_en`/`svd_en`/`spec_en`/`perm_en`/`mse`,
-plus `hurst`, `dfa1`, `dfa2`, `renyi0`, `renyi1`, `renyi2`).
+plus `hurst`, `dfa2`, `renyi0`, `renyi1`, `renyi2`).
 Runs in O(n) or O(n log n) and is safe for arbitrarily long recordings.
 """
 const FAST_FEATURES  = sort(setdiff(String.(keys(feature_registry)), NONLINEAR_FEATURES))
@@ -1525,7 +1529,7 @@ end
 Return a vector of feature names from the registry that are valid for a signal of `n_beats` inter-beat-intervals.
 
 A feature is valid if its `minimum_length` requirement is ≤ `n_beats`. This is essential for
-model evaluation, as generated synthetic IBI series may be short and cannot support all 44 features.
+model evaluation, as generated synthetic IBI series may be short and cannot support all 53 features.
 
 # Arguments
 - `n_beats::Int`: Number of inter-beat-intervals (signal length)
