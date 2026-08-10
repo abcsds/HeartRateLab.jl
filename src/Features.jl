@@ -20,7 +20,7 @@ import Base: range
 import StatsBase, StatsBase.mean, StatsBase.std, StatsBase.median
 using Memoization
 using MacroTools
-import DFA
+import ..DFA   # vendored module (src/vendor/DFA.jl)
 import EntropyHub
 import LinearAlgebra
 using Hurst: hurst_exponent

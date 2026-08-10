@@ -80,7 +80,7 @@ import ..Frequency
 using ..Frequency: lomb_scargle, welch, get_power
 
 # DFA and EntropyHub for the fractal-scaling and complexity branch visualizations (d-07)
-import DFA
+import ..DFA   # vendored module (src/vendor/DFA.jl)
 import EntropyHub
 
 # Distributions.jl — needed for quantile-based dispersion bands in normative plots

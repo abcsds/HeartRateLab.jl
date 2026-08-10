@@ -5,7 +5,6 @@ version = "0.1.0"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
-DFA = "2556a7c9-976d-46bb-b923-66b4a6f0a5bd"
 DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DataInterpolations = "82cc6244-b520-54b8-b5a6-8a565e85f1d0"
@@ -40,7 +39,6 @@ HeartRateLabVisualizationExt = ["GLMakie"]
 
 [compat]
 CSV = "0.10"
-DFA = "1.0.0"
 DSP = "0.6"
 DataFrames = "1"
 DataInterpolations = "4"
@@ -51,9 +49,9 @@ EntropyHub = "2"
 GLMakie = "0.11"
 Hurst = "0.1"
 HypothesisTests = "0.11"
+LSL = "0.3"
 LinearAlgebra = "1.11.0"
 LombScargle = "1"
-LSL = "0.3"
 MCMCChains = "5.7.1"
 MacroTools = "0.5"
 Memoization = "0.2"
@@ -75,7 +73,4 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
 render = ["IJulia"]
-# GLMakie is a weakdep for core (so `using HeartRateLab` loads with no GPU/display)
-# but a test dependency so the visualization extension can be loaded and rendered
-# under Xvfb during `Pkg.test()`.
 test = ["Test", "GLMakie"]

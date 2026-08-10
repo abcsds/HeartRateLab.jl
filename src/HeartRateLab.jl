@@ -3,6 +3,7 @@ module HeartRateLab
 using Base.Filesystem: mktemp
 using XDF: XDF
 
+include("vendor/DFA.jl")   # vendored DFA module (see file header)
 include("input.jl")
 include("preprocessing.jl")
 include("Frequency.jl")
