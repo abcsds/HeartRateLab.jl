@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tutorials · HeartRateLab.jl</title><meta name="title" content="Tutorials · HeartRateLab.jl"/><meta property="og:title" content="Tutorials · HeartRateLab.jl"/><meta property="twitter:title" content="Tutorials · HeartRateLab.jl"/><meta name="description" content="Documentation for HeartRateLab.jl."/><meta property="og:description" content="Documentation for HeartRateLab.jl."/><meta property="twitter:description" content="Documentation for HeartRateLab.jl."/><meta property="og:url" content="https://abcsds.github.io/HeartRateLab.jl/tutorials/"/><meta property="twitter:url" content="https://abcsds.github.io/HeartRateLab.jl/tutorials/"/><link rel="canonical" href="https://abcsds.github.io/HeartRateLab.jl/tutorials/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script><script src="../assets/plausible.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">HeartRateLab.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../getting_started/">Getting Started</a></li><li><a class="tocitem" href="../features/">Features</a></li><li><span class="tocitem">HRV Variable Zoo</span><ul><li><a class="tocitem" href="../zoo/">Overview</a></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox"/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Time domain</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../zoo/mean/">mean</a></li><li><a class="tocitem" href="../zoo/sdnn/">sdnn</a></li><li><a class="tocitem" href="../zoo/median/">median</a></li><li><a class="tocitem" href="../zoo/max/">max</a></li><li><a class="tocitem" href="../zoo/min/">min</a></li><li><a class="tocitem" href="../zoo/mean_hr/">mean_hr</a></li><li><a class="tocitem" href="../zoo/std_hr/">std_hr</a></li><li><a class="tocitem" href="../zoo/max_hr/">max_hr</a></li><li><a class="tocitem" href="../zoo/min_hr/">min_hr</a></li><li><a class="tocitem" href="../zoo/median_hr/">median_hr</a></li><li><a class="tocitem" href="../zoo/range_hr/">range_hr</a></li><li><a class="tocitem" href="../zoo/sdsd/">sdsd</a></li><li><a class="tocitem" href="../zoo/range/">range</a></li><li><a class="tocitem" href="../zoo/rmssd/">rmssd</a></li><li><a class="tocitem" href="../zoo/sdann/">sdann</a></li><li><a class="tocitem" href="../zoo/pnn50/">pnn50</a></li><li><a class="tocitem" href="../zoo/pnn20/">pnn20</a></li><li><a class="tocitem" href="../zoo/cvsd/">cvsd</a></li><li><a class="tocitem" href="../zoo/cvnni/">cvnni</a></li><li><a class="tocitem" href="../zoo/rRR/">rRR</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox"/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Frequency domain</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../zoo/ulf/">ulf</a></li><li><a class="tocitem" href="../zoo/vlf/">vlf</a></li><li><a class="tocitem" href="../zoo/lf/">lf</a></li><li><a class="tocitem" href="../zoo/hf/">hf</a></li><li><a class="tocitem" href="../zoo/tp/">tp</a></li><li><a class="tocitem" href="../zoo/lf_peak/">lf_peak</a></li><li><a class="tocitem" href="../zoo/hf_peak/">hf_peak</a></li><li><a class="tocitem" href="../zoo/lf_hf_ratio/">lf<em>hf</em>ratio</a></li><li><a class="tocitem" href="../zoo/lf_relative/">lf_relative</a></li><li><a class="tocitem" href="../zoo/hf_relative/">hf_relative</a></li><li><a class="tocitem" href="../zoo/lf_percentage/">lf_percentage</a></li><li><a class="tocitem" href="../zoo/hf_percentage/">hf_percentage</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Geometric</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../zoo/sd1/">sd1</a></li><li><a class="tocitem" href="../zoo/sd2/">sd2</a></li><li><a class="tocitem" href="../zoo/sd2_sd1/">sd2_sd1</a></li><li><a class="tocitem" href="../zoo/sd1_sd2_area/">sd1<em>sd2</em>area</a></li><li><a class="tocitem" href="../zoo/cvi/">cvi</a></li><li><a class="tocitem" href="../zoo/ccsi/">ccsi</a></li><li><a class="tocitem" href="../zoo/triangular_index/">triangular_index</a></li><li><a class="tocitem" href="../zoo/tinn/">tinn</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-5" type="checkbox"/><label class="tocitem" for="menuitem-4-5"><span class="docs-label">Nonlinear</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../zoo/apen/">apen</a></li><li><a class="tocitem" href="../zoo/sampen/">sampen</a></li><li><a class="tocitem" href="../zoo/hurst/">hurst</a></li><li><a class="tocitem" href="../zoo/renyi0/">renyi0</a></li><li><a class="tocitem" href="../zoo/renyi1/">renyi1</a></li><li><a class="tocitem" href="../zoo/renyi2/">renyi2</a></li><li><a class="tocitem" href="../zoo/shan_en/">shan_en</a></li><li><a class="tocitem" href="../zoo/svd_en/">svd_en</a></li><li><a class="tocitem" href="../zoo/fuzzyen/">fuzzyen</a></li><li><a class="tocitem" href="../zoo/spec_en/">spec_en</a></li><li><a class="tocitem" href="../zoo/perm_en/">perm_en</a></li><li><a class="tocitem" href="../zoo/mse/">mse</a></li><li><a class="tocitem" href="../zoo/dfa2/">dfa2</a></li></ul></li><li><a class="tocitem" href="../zoo/references/">References</a></li></ul></li><li><span class="tocitem">Models</span><ul><li><a class="tocitem" href="../models/">Overview</a></li><li><a class="tocitem" href="../models/framework/">Framework</a></li><li><a class="tocitem" href="../models/lif/">LIF</a></li><li><a class="tocitem" href="../models/vanderpol/">Van der Pol</a></li><li><a class="tocitem" href="../models/lorenz/">Lorenz</a></li><li><a class="tocitem" href="../models/dmd/">DMD</a></li><li><a class="tocitem" href="../models/extending/">Extending</a></li></ul></li><li><a class="tocitem" href="../visualization/">Visualization</a></li><li><span class="tocitem">Use Cases</span><ul><li><a class="tocitem" href="../usecases/">Overview</a></li><li><a class="tocitem" href="../usecases/normative/">Is my data normal?</a></li><li><a class="tocitem" href="../usecases/meditation/">Meditation &amp; resonant breathing</a></li><li><a class="tocitem" href="../usecases/effect-distributions/">What do reported effects look like?</a></li></ul></li><li class="is-active"><a class="tocitem" href>Tutorials</a><ul class="internal"><li><a class="tocitem" href="#Tutorial-1:-Feature-Extraction-Deep-Dive"><span>Tutorial 1: Feature Extraction Deep Dive</span></a></li><li><a class="tocitem" href="#Tutorial-2:-Model-Fitting-and-Comparison"><span>Tutorial 2: Model Fitting and Comparison</span></a></li><li><a class="tocitem" href="#Tutorial-3:-Data-Driven-Analysis-with-DMD"><span>Tutorial 3: Data-Driven Analysis with DMD</span></a></li><li><a class="tocitem" href="#Tutorial-4:-Publication-Quality-Figures"><span>Tutorial 4: Publication-Quality Figures</span></a></li><li><a class="tocitem" href="#Tutorial-5:-Batch-Processing-and-Statistics"><span>Tutorial 5: Batch Processing and Statistics</span></a></li><li><a class="tocitem" href="#Common-Patterns"><span>Common Patterns</span></a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Tutorials</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Tutorials</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/abcsds/HeartRateLab.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/abcsds/HeartRateLab.jl/blob/main/docs/src/tutorials.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Tutorials-and-Examples"><a class="docs-heading-anchor" href="#Tutorials-and-Examples">Tutorials and Examples</a><a id="Tutorials-and-Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorials-and-Examples" title="Permalink"></a></h1><h2 id="Tutorial-1:-Feature-Extraction-Deep-Dive"><a class="docs-heading-anchor" href="#Tutorial-1:-Feature-Extraction-Deep-Dive">Tutorial 1: Feature Extraction Deep Dive</a><a id="Tutorial-1:-Feature-Extraction-Deep-Dive-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial-1:-Feature-Extraction-Deep-Dive" title="Permalink"></a></h2><p>Learn to extract, filter, and analyze HRV features.</p><h3 id="Extract-Feature-Sets"><a class="docs-heading-anchor" href="#Extract-Feature-Sets">Extract Feature Sets</a><a id="Extract-Feature-Sets-1"></a><a class="docs-heading-anchor-permalink" href="#Extract-Feature-Sets" title="Permalink"></a></h3><pre><code class="language-julia hljs">using HeartRateLab
+using DataFrames
+
+ibis = read_txt(&quot;data.txt&quot;)
+
+# Extract preset feature sets (each returns a one-row DataFrame)
+default_features = extract_feature_set(ibis)                       # time, frequency, geometric
+all_features = extract_feature_set(ibis; features=:all)            # all 53 (adds nonlinear)
+nonlinear_features = extract_feature_set(ibis; features=:nonlinear) # entropy/fractal measures only
+custom_features = extract_feature_set(ibis; features=[&quot;mean&quot;, &quot;sdnn&quot;, &quot;rmssd&quot;])
+
+println(&quot;Default set: $(ncol(default_features)) features&quot;)
+println(&quot;All features: $(ncol(all_features)) features&quot;)
+println(&quot;Nonlinear features: $(ncol(nonlinear_features)) features&quot;)
+println(&quot;Custom subset: $(ncol(custom_features)) features&quot;)</code></pre><h3 id="Handle-Signal-Length-Constraints"><a class="docs-heading-anchor" href="#Handle-Signal-Length-Constraints">Handle Signal Length Constraints</a><a id="Handle-Signal-Length-Constraints-1"></a><a class="docs-heading-anchor-permalink" href="#Handle-Signal-Length-Constraints" title="Permalink"></a></h3><pre><code class="language-julia hljs"># Not all features work with short signals
+short_ibis = ibis[1:20]
+long_ibis = ibis
+
+# Check valid features
+valid_short = valid_features(length(short_ibis))  # ~11 features
+valid_long = valid_features(length(long_ibis))   # ~53 features
+
+println(&quot;Features for $(length(short_ibis)) beats: $(length(valid_short))&quot;)
+println(&quot;Features for $(length(long_ibis)) beats: $(length(valid_long))&quot;)
+
+# Compute only valid features
+features_short = extract_feature_set(short_ibis)
+features_long = extract_feature_set(long_ibis)</code></pre><h3 id="Windowed-Analysis"><a class="docs-heading-anchor" href="#Windowed-Analysis">Windowed Analysis</a><a id="Windowed-Analysis-1"></a><a class="docs-heading-anchor-permalink" href="#Windowed-Analysis" title="Permalink"></a></h3><pre><code class="language-julia hljs"># Compute features in sliding windows
+window_size = 100
+overlap = 50
+n_windows = div(length(ibis) - window_size, window_size - overlap) + 1
+
+all_window_features = []
+
+for i in 1:n_windows
+    start_idx = 1 + (i-1) * (window_size - overlap)
+    end_idx = start_idx + window_size - 1
+
+    if end_idx &lt;= length(ibis)
+        window_ibis = ibis[start_idx:end_idx]
+        features = extract_feature_set(window_ibis)
+        features[&quot;window&quot;] = i
+        features[&quot;time_start&quot;] = start_idx / 1000  # Convert to seconds
+        push!(all_window_features, features)
+    end
+end
+
+println(&quot;Analyzed $n_windows windows of $window_size beats&quot;)
+
+# Plot feature evolution
+using GLMakie
+windows = [f[&quot;window&quot;] for f in all_window_features]
+rmssd = [f[&quot;rmssd&quot;] for f in all_window_features]
+lines(windows, rmssd; title=&quot;RMSSD Evolution&quot;)</code></pre><h2 id="Tutorial-2:-Model-Fitting-and-Comparison"><a class="docs-heading-anchor" href="#Tutorial-2:-Model-Fitting-and-Comparison">Tutorial 2: Model Fitting and Comparison</a><a id="Tutorial-2:-Model-Fitting-and-Comparison-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial-2:-Model-Fitting-and-Comparison" title="Permalink"></a></h2><p>Learn to fit mechanistic models and evaluate reproduction quality.</p><h3 id="Fit-Multiple-Models"><a class="docs-heading-anchor" href="#Fit-Multiple-Models">Fit Multiple Models</a><a id="Fit-Multiple-Models-1"></a><a class="docs-heading-anchor-permalink" href="#Fit-Multiple-Models" title="Permalink"></a></h3><pre><code class="language-julia hljs">using HeartRateLab, DifferentialEquations, GLMakie
+
+ibis = read_txt(&quot;data.txt&quot;)
+
+# Create models
+lif = LIF()
+vdp = VanDerPol()
+lorenz = Lorenz()
+
+# Fit each model (gradient-based optimization)
+println(&quot;Fitting models...&quot;)
+t1 = time()
+
+lif_result = fit(lif, ibis; method=:gradient, max_iter=500)
+vdp_result = fit(vdp, ibis; method=:gradient, max_iter=500)
+lorenz_result = fit(lorenz, ibis; method=:gradient, max_iter=500)
+
+elapsed = time() - t1
+println(&quot;Fitting complete: $(round(elapsed, digits=2))s&quot;)
+
+# Check convergence
+for (name, result) in [(&quot;LIF&quot;, lif_result), (&quot;Van der Pol&quot;, vdp_result), (&quot;Lorenz&quot;, lorenz_result)]
+    conv = result.diagnostics[&quot;converged&quot;]
+    loss = result.diagnostics[&quot;loss_final&quot;]
+    iters = result.diagnostics[&quot;iterations&quot;]
+    println(&quot;$name: converged=$conv, loss=$loss, iters=$iters&quot;)
+end</code></pre><h3 id="Evaluate-Reproduction-Quality"><a class="docs-heading-anchor" href="#Evaluate-Reproduction-Quality">Evaluate Reproduction Quality</a><a id="Evaluate-Reproduction-Quality-1"></a><a class="docs-heading-anchor-permalink" href="#Evaluate-Reproduction-Quality" title="Permalink"></a></h3><pre><code class="language-julia hljs"># Generate synthetic data from each model
+lif_synth = simulate(lif_result.model, lif_result.params, length(ibis))
+vdp_synth = simulate(vdp_result.model, vdp_result.params, length(ibis))
+lorenz_synth = simulate(lorenz_result.model, lorenz_result.params, length(ibis))
+
+# Extract features for comparison
+real_features = extract_feature_set(ibis)
+lif_features = extract_feature_set(lif_synth)
+vdp_features = extract_feature_set(vdp_synth)
+lorenz_features = extract_feature_set(lorenz_synth)
+
+# Compute errors (relative L2 norm)
+function feature_error(real::Dict, synth::Dict)
+    errors = []
+    for key in keys(real)
+        if !isnan(real[key]) &amp;&amp; !isnan(synth[key])
+            rel_error = abs(real[key] - synth[key]) / (abs(real[key]) + 1e-8)
+            push!(errors, rel_error)
+        end
+    end
+    return mean(errors)
+end
+
+errors = Dict(
+    &quot;LIF&quot; =&gt; feature_error(real_features, lif_features),
+    &quot;Van der Pol&quot; =&gt; feature_error(real_features, vdp_features),
+    &quot;Lorenz&quot; =&gt; feature_error(real_features, lorenz_features)
+)
+
+println(&quot;\nFeature Reproduction Errors:&quot;)
+for (name, error) in errors
+    quality = max(0, 1 - error)
+    println(&quot;$name: $(round(quality; digits=3))&quot;)
+end</code></pre><h3 id="Visualize-Comparisons"><a class="docs-heading-anchor" href="#Visualize-Comparisons">Visualize Comparisons</a><a id="Visualize-Comparisons-1"></a><a class="docs-heading-anchor-permalink" href="#Visualize-Comparisons" title="Permalink"></a></h3><pre><code class="language-julia hljs"># Create comparison plots
+fig_lif = plot_comparison(ibis, lif_synth; model_name=&quot;LIF&quot;)
+fig_vdp = plot_comparison(ibis, vdp_synth; model_name=&quot;Van der Pol&quot;)
+fig_lorenz = plot_comparison(ibis, lorenz_synth; model_name=&quot;Lorenz&quot;)
+
+# Create heatmap
+fig_heatmap = plot_model_heatmap(errors, collect(keys(real_features)))
+
+# Display all
+display(fig_lif)
+display(fig_vdp)
+display(fig_lorenz)
+display(fig_heatmap)</code></pre><h2 id="Tutorial-3:-Data-Driven-Analysis-with-DMD"><a class="docs-heading-anchor" href="#Tutorial-3:-Data-Driven-Analysis-with-DMD">Tutorial 3: Data-Driven Analysis with DMD</a><a id="Tutorial-3:-Data-Driven-Analysis-with-DMD-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial-3:-Data-Driven-Analysis-with-DMD" title="Permalink"></a></h2><p>Use Dynamic Mode Decomposition for data-driven modeling.</p><h3 id="Fit-and-Reconstruct"><a class="docs-heading-anchor" href="#Fit-and-Reconstruct">Fit and Reconstruct</a><a id="Fit-and-Reconstruct-1"></a><a class="docs-heading-anchor-permalink" href="#Fit-and-Reconstruct" title="Permalink"></a></h3><pre><code class="language-julia hljs">using HeartRateLab, LinearAlgebra, GLMakie
+
+ibis = read_txt(&quot;data.txt&quot;)
+
+# Fit DMD with different ranks
+dmd_low = DMD(rank=3)
+dmd_mid = DMD(rank=5)
+dmd_high = DMD(rank=10)
+
+result_low = fit(dmd_low, ibis)
+result_mid = fit(dmd_mid, ibis)
+result_high = fit(dmd_high, ibis)
+
+# Reconstruct
+recon_low = simulate(result_low, nothing, length(ibis))
+recon_mid = simulate(result_mid, nothing, length(ibis))
+recon_high = simulate(result_high, nothing, length(ibis))
+
+# Compare reconstruction errors
+function rmse(real::Vector, synth::Vector)
+    return sqrt(mean((real .- synth).^2))
+end
+
+println(&quot;Reconstruction RMSE:&quot;)
+println(&quot;Rank 3: $(round(rmse(ibis, recon_low); digits=2)) ms&quot;)
+println(&quot;Rank 5: $(round(rmse(ibis, recon_mid); digits=2)) ms&quot;)
+println(&quot;Rank 10: $(round(rmse(ibis, recon_high); digits=2)) ms&quot;)</code></pre><h3 id="Visualize-Modes"><a class="docs-heading-anchor" href="#Visualize-Modes">Visualize Modes</a><a id="Visualize-Modes-1"></a><a class="docs-heading-anchor-permalink" href="#Visualize-Modes" title="Permalink"></a></h3><pre><code class="language-julia hljs"># Higher rank → more accurate reconstruction
+fig1 = plot_comparison(ibis, recon_low; model_name=&quot;DMD (rank=3)&quot;)
+fig2 = plot_comparison(ibis, recon_mid; model_name=&quot;DMD (rank=5)&quot;)
+fig3 = plot_comparison(ibis, recon_high; model_name=&quot;DMD (rank=10)&quot;)
+
+display(fig1)
+display(fig2)
+display(fig3)</code></pre><h2 id="Tutorial-4:-Publication-Quality-Figures"><a class="docs-heading-anchor" href="#Tutorial-4:-Publication-Quality-Figures">Tutorial 4: Publication-Quality Figures</a><a id="Tutorial-4:-Publication-Quality-Figures-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial-4:-Publication-Quality-Figures" title="Permalink"></a></h2><p>Create figures suitable for research papers.</p><h3 id="Single-Plot"><a class="docs-heading-anchor" href="#Single-Plot">Single Plot</a><a id="Single-Plot-1"></a><a class="docs-heading-anchor-permalink" href="#Single-Plot" title="Permalink"></a></h3><pre><code class="language-julia hljs">using HeartRateLab, GLMakie
+
+ibis = read_txt(&quot;data.txt&quot;)
+
+# Create large figure with custom styling
+fig = Figure(size=(1200, 400), figure_padding=50)
+
+# Add plot to figure
+ax = Axis(fig[1, 1];
+    xlabel=&quot;Beat Index&quot;,
+    ylabel=&quot;IBI (ms)&quot;,
+    title=&quot;Heart Rate Variability&quot;,
+    titlesize=20,
+    xlabelsize=16,
+    ylabelsize=16)
+
+# Plot data
+lines!(ax, 1:min(length(ibis), 500), ibis[1:min(length(ibis), 500)];
+    linewidth=2, color=:blue, label=&quot;Real data&quot;)
+
+axislegend(ax; position=:rt)
+
+# Save publication-quality figure
+save(&quot;figure_ibi.png&quot;, fig; px_per_unit=2)
+save(&quot;figure_ibi.pdf&quot;, fig)</code></pre><h3 id="Multi-Panel-Figure"><a class="docs-heading-anchor" href="#Multi-Panel-Figure">Multi-Panel Figure</a><a id="Multi-Panel-Figure-1"></a><a class="docs-heading-anchor-permalink" href="#Multi-Panel-Figure" title="Permalink"></a></h3><pre><code class="language-julia hljs">using HeartRateLab, DifferentialEquations, GLMakie
+
+ibis = read_txt(&quot;data.txt&quot;)
+
+# Fit model
+lif = LIF()
+result = fit(lif, ibis; method=:gradient)
+synthetic = simulate(result.model, result.params, length(ibis))
+
+# Create 2×2 figure
+fig = Figure(size=(1600, 1200))
+
+# Top-left: IBI time series
+ax1 = Axis(fig[1, 1]; title=&quot;A. IBI Time Series&quot;, xlabel=&quot;Beat&quot;, ylabel=&quot;IBI (ms)&quot;)
+lines!(ax1, 1:min(length(ibis), 500), ibis[1:min(length(ibis), 500)];
+    linewidth=2, label=&quot;Real&quot;, color=:blue)
+lines!(ax1, 1:min(length(ibis), 500), synthetic[1:min(length(ibis), 500)];
+    linewidth=2, label=&quot;LIF&quot;, color=:red, linestyle=:dash)
+axislegend(ax1)
+
+# Top-right: Poincaré plot
+ax2 = Axis(fig[1, 2]; title=&quot;B. Poincaré Plot&quot;, xlabel=&quot;IBI[n]&quot;, ylabel=&quot;IBI[n+1]&quot;,
+    aspect=DataAspect())
+scatter!(ax2, ibis[1:end-1], ibis[2:end]; label=&quot;Real&quot;, alpha=0.6, markersize=5)
+scatter!(ax2, synthetic[1:end-1], synthetic[2:end]; label=&quot;LIF&quot;, alpha=0.6, markersize=5)
+axislegend(ax2)
+
+# Bottom-left: Distribution
+ax3 = Axis(fig[2, 1]; title=&quot;C. IBI Distribution&quot;, xlabel=&quot;IBI (ms)&quot;, ylabel=&quot;Count&quot;)
+hist!(ax3, ibis; bins=30, label=&quot;Real&quot;, alpha=0.5)
+hist!(ax3, synthetic; bins=30, label=&quot;LIF&quot;, alpha=0.5)
+axislegend(ax3)
+
+# Bottom-right: Spectrum
+ax4 = Axis(fig[2, 2]; title=&quot;D. Power Spectrum&quot;, xlabel=&quot;Frequency (Hz)&quot;, ylabel=&quot;Power (dB)&quot;,
+    yscale=log10, xscale=log10)
+# Add spectrum plots (simplified)
+
+# Save figure
+save(&quot;publication_figure.pdf&quot;, fig; pt_per_unit=1)</code></pre><h2 id="Tutorial-5:-Batch-Processing-and-Statistics"><a class="docs-heading-anchor" href="#Tutorial-5:-Batch-Processing-and-Statistics">Tutorial 5: Batch Processing and Statistics</a><a id="Tutorial-5:-Batch-Processing-and-Statistics-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial-5:-Batch-Processing-and-Statistics" title="Permalink"></a></h2><p>Process multiple subjects and compute group statistics.</p><pre><code class="language-julia hljs">using HeartRateLab
+using CSV, DataFrames, Statistics
+
+# List of subjects
+subjects = [
+    (&quot;healthy_001.txt&quot;, &quot;healthy&quot;),
+    (&quot;healthy_002.txt&quot;, &quot;healthy&quot;),
+    (&quot;patient_001.txt&quot;, &quot;patient&quot;),
+    (&quot;patient_002.txt&quot;, &quot;patient&quot;),
+]
+
+# Extract features for each
+results = []
+
+for (filename, group) in subjects
+    ibis = read_txt(filename)
+    features = extract_feature_set(ibis)
+    features[&quot;subject&quot;] = split(filename, &quot;.&quot;)[1]
+    features[&quot;group&quot;] = group
+    push!(results, features)
+    println(&quot;✓ $(split(filename, &quot;.&quot;)[1]) ($group)&quot;)
+end
+
+# Convert to DataFrame
+df = DataFrame(results)
+
+# Compute group statistics
+println(&quot;\n=== Group Statistics ===&quot;)
+
+healthy_df = filter(:group =&gt; ==(healthy), df)
+patient_df = filter(:group =&gt; ==(patient), df)
+
+println(&quot;\nHealthy (n=$(nrow(healthy_df))):&quot;)
+println(&quot;Mean RMSSD: $(round(mean(healthy_df.rmssd); digits=2)) ms&quot;)
+println(&quot;Mean HF Power: $(round(mean(healthy_df.hf_power); digits=2))&quot;)
+
+println(&quot;\nPatient (n=$(nrow(patient_df))):&quot;)
+println(&quot;Mean RMSSD: $(round(mean(patient_df.rmssd); digits=2)) ms&quot;)
+println(&quot;Mean HF Power: $(round(mean(patient_df.hf_power); digits=2))&quot;)
+
+# Statistical test (example: t-test)
+using HypothesisTests
+t_result = ttest(healthy_df.rmssd, patient_df.rmssd)
+println(&quot;\nRMSSD t-test p-value: $(round(pvalue(t_result); digits=4))&quot;)
+
+# Save results
+CSV.write(&quot;group_analysis.csv&quot;, df)</code></pre><h2 id="Common-Patterns"><a class="docs-heading-anchor" href="#Common-Patterns">Common Patterns</a><a id="Common-Patterns-1"></a><a class="docs-heading-anchor-permalink" href="#Common-Patterns" title="Permalink"></a></h2><h3 id="Error-Handling"><a class="docs-heading-anchor" href="#Error-Handling">Error Handling</a><a id="Error-Handling-1"></a><a class="docs-heading-anchor-permalink" href="#Error-Handling" title="Permalink"></a></h3><pre><code class="language-julia hljs">function safe_extract_features(filename::String)
+    try
+        ibis = read_txt(filename)
+
+        # Validate data
+        if length(ibis) &lt; 20
+            return nothing, &quot;Insufficient data ($(length(ibis)) beats)&quot;
+        end
+
+        if any(isnan.(ibis)) || any(ibis .&lt;= 0)
+            return nothing, &quot;Invalid IBIs detected&quot;
+        end
+
+        features = extract_feature_set(ibis)
+        return features, &quot;success&quot;
+
+    catch e
+        return nothing, &quot;Error: $e&quot;
+    end
+end
+
+# Use it
+features, status = safe_extract_features(&quot;data.txt&quot;)
+if status == &quot;success&quot;
+    println(&quot;Extracted $(length(features)) features&quot;)
+else
+    println(&quot;Error: $status&quot;)
+end</code></pre><h3 id="Parallel-Processing"><a class="docs-heading-anchor" href="#Parallel-Processing">Parallel Processing</a><a id="Parallel-Processing-1"></a><a class="docs-heading-anchor-permalink" href="#Parallel-Processing" title="Permalink"></a></h3><pre><code class="language-julia hljs">using Distributed
+
+# Add workers (uses all available cores)
+addprocs()
+
+@everywhere using HeartRateLab
+
+files = [&quot;subject_001.txt&quot;, &quot;subject_002.txt&quot;, ...]
+
+# Process in parallel
+results = pmap(files) do file
+    try
+        ibis = read_txt(file)
+        features = extract_feature_set(ibis)
+        return (file, &quot;success&quot;, features)
+    catch e
+        return (file, &quot;error&quot;, nothing)
+    end
+end
+
+# Collect results
+successful = [r for r in results if r[2] == &quot;success&quot;]
+println(&quot;Processed $(length(successful))/$(length(files)) files successfully&quot;)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../usecases/effect-distributions/">« What do reported effects look like?</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Monday 10 August 2026 16:36">Monday 10 August 2026</span>. Using Julia version 1.11.9.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
