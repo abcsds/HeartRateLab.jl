@@ -1,1 +1,1 @@
-JULIA_PROJECT=./docs/slides
+JULIA_PROJECT=@.

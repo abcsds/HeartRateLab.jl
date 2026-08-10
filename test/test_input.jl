@@ -8,10 +8,6 @@ cd(@__DIR__)
     # Test the Input module
     @testset "read_xdf" begin
         # Test reading XDF files
-        # infile = "./data/minimal.xdf")
-        # infile = "~/Everything/code/example-files/twochannel_string_marker.xdf")
-        # infile = "~/Documents/HRV/sub-P001/ses-S001/eeg/sub-P001_ses-S001_task-Default_run-001_eeg.xdf")
-
         infile = "testdata/example.xdf"
         data = HeartRateLab.read_xdf(infile)
         @test length(data) == 4193
