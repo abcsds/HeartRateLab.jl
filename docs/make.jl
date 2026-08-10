@@ -37,7 +37,7 @@ makedocs(;
     format=Documenter.HTML(;
         canonical="https://abcsds.github.io/HeartRateLab.jl",
         edit_link="main",
-        assets=String[],
+        assets=String["assets/plausible.js"],
     ),
     pages=[
         "Home" => "index.md",
