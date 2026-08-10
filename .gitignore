@@ -71,3 +71,6 @@ docs/slides/aux/
 # regenerate others with test/tools/collect_normative_datasets.jl)
 test/testdata/*/windowed_w10_s5_features.csv
 test/testdata/*/windowed_w60_s30_features.csv
+
+# Poster: publishes only after it is presented (task-17, end of JuliaCon week)
+/docs/poster/
