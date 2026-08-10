@@ -37,3 +37,17 @@ docs/*_files/
 /Slides.email.txt
 /docs/slides/computational-graph copy.svg
 test/tools/forecasting/out/*.log
+
+# Local agent/session state (never publish)
+/.claude/
+/docs/sessions/
+/memory/
+
+# Python bytecode from slide-figure scripts
+__pycache__/
+
+# LaTeX build artifacts (poster/slides)
+*.aux
+*.vrb
+docs/poster/*.log
+docs/slides/aux/
