@@ -62,3 +62,8 @@ __pycache__/
 *.vrb
 docs/poster/*.log
 docs/slides/aux/
+
+# Generated normative windowed tiers — private branch only (w360_s120 ships;
+# regenerate others with test/tools/collect_normative_datasets.jl)
+test/testdata/*/windowed_w10_s5_features.csv
+test/testdata/*/windowed_w60_s30_features.csv
