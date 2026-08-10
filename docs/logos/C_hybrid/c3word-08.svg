@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <!-- Heart Badge lockup: a two-tone geometric heart icon; the wordmark rides
+       on a continuous ECG baseline with one R-peak bump under "Rate" --
+       an ECG literally underlining the word. -->
+  <path d="M110,90 C107,84 101,77 93,72 C73,58 50,68 50,90 C50,120 110,155 110,155 Z"
+        fill="#9558B2"/>
+  <path d="M110,90 C113,84 119,77 127,72 C147,58 170,68 170,90 C170,120 110,155 110,155 Z"
+        fill="#389826"/>
+  <circle cx="110" cy="80" r="9" fill="#CB3C33"/>
+  <text x="220" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700"
+        font-size="70" textLength="390" lengthAdjust="spacingAndGlyphs"
+        fill="#1A1A1A">HeartRateLab</text>
+  <path d="M220,163 H360 L372,148 L384,178 L396,163 H610"
+        fill="none" stroke="#1A1A1A" stroke-width="6"
+        stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

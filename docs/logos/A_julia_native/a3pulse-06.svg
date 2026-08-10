@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Notch: a bold QRS notch carved from the red dot's crown, in negative space -->
+  <defs>
+    <mask id="notch6" maskUnits="userSpaceOnUse" x="0" y="0" width="320" height="320">
+      <rect x="0" y="0" width="320" height="320" fill="#ffffff"/>
+      <path d="M101,150 L115,150 L108,192 Z" fill="#000000"/>
+    </mask>
+  </defs>
+  <circle cx="160" cy="108" r="42" fill="#9558B2"/>
+  <circle cx="212" cy="196" r="42" fill="#389826"/>
+  <g mask="url(#notch6)">
+    <circle cx="108" cy="196" r="42" fill="#CB3C33"/>
+  </g>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <!-- Type treatment: the three dots as a small accent cluster over the "a" in "Heart" -->
+  <text x="105" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="80" textLength="430" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+  <circle cx="183" cy="60" r="7" fill="#9558B2"/>
+  <circle cx="207" cy="60" r="7" fill="#CB3C33"/>
+  <circle cx="195" cy="44" r="7" fill="#389826"/>
+</svg>

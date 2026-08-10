@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Motion-trail triad: each Julia dot carries a comet tail, all curling the same way like bodies in orbit -->
+  <path d="M 160,92 A 78,78 0 0 0 100,140" fill="none" stroke="#9558B2" stroke-width="26" stroke-linecap="round" opacity="0.28"/>
+  <path d="M 239.7,209 A 78,78 0 0 0 213,124" fill="none" stroke="#389826" stroke-width="26" stroke-linecap="round" opacity="0.28"/>
+  <path d="M 80.3,209 A 78,78 0 0 0 143,241" fill="none" stroke="#CB3C33" stroke-width="26" stroke-linecap="round" opacity="0.28"/>
+  <circle cx="160" cy="92" r="36" fill="#9558B2"/>
+  <circle cx="239.7" cy="209" r="36" fill="#389826"/>
+  <circle cx="80.3" cy="209" r="36" fill="#CB3C33"/>
+</svg>

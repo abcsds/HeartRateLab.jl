@@ -22,10 +22,55 @@ using Memoization
 using MacroTools
 import DFA
 import EntropyHub
+import LinearAlgebra
 using Hurst: hurst_exponent
+import Distributions
 
 # config = Dict{String,Any}("freq_method" => :lomb_scargle, "fs" => 10)
 config = Dict{String,Any}("freq_method" => :welch, "fs" => 10)
+
+# ─── DFA (detrended fluctuation analysis) configuration ──────────────────────
+# The DFA algorithm is identical across every validated HRV tool (neurokit2,
+# Kubios, PhysioNet CST, Francis, Peng, nolds, RHRV); they differ only in the
+# α1/α2 box-size (n) ranges and how densely n is sampled. These keys make those
+# choices configurable without editing source. See docs/dfa-parameters-research.md
+# and docs/dfa.md for the full survey and citations.
+#
+#   config["dfa_alpha1_range"]  (nmin, nmax) box sizes for the short-term α1 fit.
+#   config["dfa_alpha2_range"]  (nmin, nmax) box sizes for the long-term  α2 fit.
+#   config["dfa_grid"]          :integer  → every integer n in the range (dense,
+#                                           Francis/Kubios; statistically sound,
+#                                           DEFAULT); the slope is OLS on log10 F(n)
+#                                           with each n fitted via DFA.jl's single-box
+#                                           method (order-1 detrend, non-overlapping).
+#                               :geometric→ geometric grid via DFA.jl's dispatcher
+#                                           with boxratio = config["dfa_boxratio"]
+#                                           (the legacy 3-point [4,8,16]/[16,32,64]
+#                                           behaviour when boxratio = 2).
+#   config["dfa_boxratio"]      geometric grid ratio used only when dfa_grid==:geometric.
+#
+# DEFAULT = Peng/Francis 4–16 / 16–64 on a dense all-integer grid.
+#   Peng CK et al. Chaos 1995;5(1):82–87. doi:10.1063/1.166141
+#   Francis DP et al. J Physiol 2002;542:619–629. doi:10.1113/jphysiol.2001.013389
+# To follow the neurokit2 / Iyengar convention instead (clinical, sub-respiratory
+# α1; agreement with neurokit2 hrv), set, for a series of length N:
+#   HeartRateLab.Features.config["dfa_alpha1_range"] = (4, 11)
+#   HeartRateLab.Features.config["dfa_alpha2_range"] = (12, N ÷ 10)
+# (Iyengar N et al. Am J Physiol 1996;271:R1078–R1084. doi:10.1152/ajpregu.1996.271.4.R1078)
+config["dfa_alpha1_range"] = (4, 16)
+config["dfa_alpha2_range"] = (16, 64)
+config["dfa_grid"] = :integer
+config["dfa_boxratio"] = 2
+
+# ─── Distribution family lookup ────────────────────────────────────────────────
+# Maps docstring names → Distributions.jl types, used by @register to store
+# the analytical distribution family for each scalar feature.
+const DISTRIBUTION_MAP = Dict{String, Any}(
+    "Normal"    => Distributions.Normal,
+    "Gamma"     => Distributions.Gamma,
+    "Beta"      => Distributions.Beta,
+    "LogNormal" => Distributions.LogNormal,
+)
 
 struct HRMeasurement
     data::Array{T,1} where {T<:Real} # Inter-Beat-Intervals (IBIs) in milliseconds
@@ -45,14 +90,23 @@ struct HRFeature
     func::Function
     alias::Array{String}
     domains::Array{String}
+    minimum_length::Int
+    distribution::Any  # Distribution family from Distributions.jl (e.g., Normal, Gamma, Beta)
 end
 function HRFeature(
-    name::String, func::Function; alias::Array{String}, domains::Array{String}
+    name::String, func::Function;
+    alias::Array{String}, domains::Array{String},
+    minimum_length::Int=10, distribution=nothing,
 )
-    return HRFeature(name, func, alias, domains)
+    return HRFeature(name, func, alias, domains, minimum_length, distribution)
 end
 feature_registry = Dict{String,HRFeature}()
 representation_registry = Dict{String,HRFeature}()
+
+# ─── Normative prior registry ──────────────────────────────────────────────────
+# Maps feature name → fitted Distributions.jl instance (e.g., Normal(780.0, 143.7))
+# Populated at module load from docs/normative_priors.csv if it exists.
+const prior_registry = Dict{String, Any}()
 function_registry = Dict{String,Function}()
 """
     @register documented_function
@@ -77,7 +131,7 @@ macro register(expr::Expr)
             $(f)() = nothing
         end
     end
-    domains, aliases, representation = parse_docstring(docstr)
+    domains, aliases, representation, minimum_length, distribution = parse_docstring(docstr)
 
     # Return the memoized function definition
     # with standard documentation conventions
@@ -85,9 +139,6 @@ macro register(expr::Expr)
     function_name ∈ keys(function_registry) &&
         @warn("Function $(function_name) is already registered. Overwriting.")
     res = quote
-        """
-        $($docstr)
-        """
         function_registry[$(function_name)] = @memoize function $(f)($(args...))
             (occursin("HRMeasurement", repr($args[1]))) ||  # Ensure the first argument is an HRMeasurement
                 throw(ArgumentError("The first argument must be an HRMeasurement."))
@@ -96,14 +147,14 @@ macro register(expr::Expr)
         end
         if !($representation)
             feature_registry[$(function_name)] = HRFeature(
-                $(function_name), $(f), $(aliases), $(domains)
+                $(function_name), $(f), $(aliases), $(domains), $(minimum_length), $(distribution)
             )
             # for a in $(aliases) # Register aliases
             #     feature_registry[a] = feature_registry[$(function_name)]
             # end
         else
             representation_registry[$(function_name)] = HRFeature(
-                $(function_name), $(f), $(aliases), $(domains)
+                $(function_name), $(f), $(aliases), $(domains), $(minimum_length), $(distribution)
             )
             for a in $(aliases) # Register aliases
                 representation_registry[a] = representation_registry[$(function_name)]
@@ -112,11 +163,13 @@ macro register(expr::Expr)
     end
     return esc(res) # Ensure the expression is evaluated in the correct context
 end
-# Extract "Domains", "Aliases", and "Representation" from the docstring
+# Extract "Domains", "Aliases", "Representation", and "Minimum length" from the docstring
 function parse_docstring(doc)
     domains = []
     aliases = []
     representation = false
+    minimum_length = 10  # Default value
+    distribution = nothing  # Distribution family (from Distributions.jl)
     # Use regular expressions to find the word "Domains" and "Aliases" at the start of a line
     for line in split(doc, '\n')
         # if matches(r"^\s*Domains:", line) # Halucination, don't use this
@@ -134,11 +187,22 @@ function parse_docstring(doc)
             aliases = String.(strip.(split(aliases, ',')))
         elseif occursin("Representation:", line)
             occursin("true", line) ? representation = true : continue
+        elseif occursin("Distribution:", line)
+            # Extract the analytical distribution family name
+            dist_name = strip(split(line, ':')[2])
+            distribution = get(DISTRIBUTION_MAP, dist_name, nothing)
+            if distribution === nothing && !isempty(dist_name)
+                @warn "Unknown distribution family: $dist_name (valid: $(join(keys(DISTRIBUTION_MAP), ", ")))"
+            end
+        elseif occursin("Minimum length:", line)
+            # Extract the minimum length value
+            length_str = strip(split(line, ':')[2])
+            minimum_length = tryparse(Int, length_str) !== nothing ? parse(Int, length_str) : 10
         else
             continue
         end
     end
-    return domains, aliases, representation
+    return domains, aliases, representation, minimum_length, distribution
 end
 
 # Level 1 Direct staticstics
@@ -150,6 +214,9 @@ end
         - `n`: An array of Inter-Beat-Intervals in milliseconds.
     Domains: time, statistics
     Aliases: average, mean_rr, mean_nn
+    Distribution: Normal
+    
+    Minimum length: 10
     """
     return StatsBase.mean(n.data)
 end
@@ -160,6 +227,9 @@ end
     Calculate the standard deviation of the array `n`. This is the `sdnn`.
     Domains: time, statistics
     Aliases: std
+    Distribution: Gamma
+    
+    Minimum length: 10
     """
     return StatsBase.std(n.data)
 end
@@ -171,6 +241,9 @@ sdnn(n::Array{T,1}) where {T<:Real} = function_registry["sdnn"](HRMeasurement(n)
     Calculate the median value of the array `n`.
     Domains: time, statistics
     Aliases: median
+    Distribution: Normal
+    
+    Minimum length: 10
     """
     return StatsBase.median(n.data)
 end
@@ -181,6 +254,9 @@ end
     Calculate the maximum value of the array `n`. This is the largest Inter-Beat-Interval (IBI) in milliseconds.
     Domains: time, statistics
     Aliases: max, maximum_rr, maximum_nn
+    Distribution: Normal
+    
+    Minimum length: 10
     """
     return Base.maximum(n.data)
 end
@@ -191,6 +267,9 @@ end
     Calculate the minimum of the array `n`. This is the smallest Inter-Beat-Interval (IBI) in milliseconds.
     Domains: time, statistics
     Aliases: min, minimum_rr, minimum_nn
+    Distribution: Normal
+    
+    Minimum length: 10
     """
     return Base.minimum(n.data)
 end
@@ -207,6 +286,8 @@ end
     Domains: time
     Aliases: dnn, difference_of_sequential_beats, numeric_differentiation
     Representation: true
+    
+    Minimum length: 10
     """
     # return n[2:end] .- n[1:end-1]
     return Base.diff(n.data)
@@ -223,6 +304,8 @@ end
     Domains: statistics
     Aliases: n, measurement_length, number_of_measurements, measurement_size
     Representation: true
+    
+    Minimum length: 10
     """
     return Base.length(n.data)
 end
@@ -238,6 +321,8 @@ end
     Domains: time
     Aliases: recording_duration
     Representation: true
+    
+    Minimum length: 10
     """
     return Base.cumsum(n.data)[end] # Record duration in ms
 end
@@ -253,6 +338,9 @@ end
         The average heart rate in BPM.
     Domains: time, statistics
     Aliases: mean_hr, average_hr
+    Distribution: Normal
+    
+    Minimum length: 10
     """
     return ms2bpm(function_registry["mean"](n))
 end
@@ -266,6 +354,9 @@ end
         The standard deviation of the heart rate in BPM.
     Domains: time, statistics
     Aliases: std_hr
+    Distribution: Gamma
+    
+    Minimum length: 10
     """
     return ms2bpm(function_registry["sdnn"](n))
 end
@@ -279,6 +370,9 @@ end
         The maximum heart rate in BPM.
     Domains: time, statistics
     Aliases: max_hr, maximum_hr
+    Distribution: Normal
+    
+    Minimum length: 10
     """
     return ms2bpm(function_registry["max"](n))
 end
@@ -292,8 +386,45 @@ end
         The minimum heart rate in BPM.
     Domains: time, statistics
     Aliases: min_hr, minimum_hr
+    Distribution: Normal
+    
+    Minimum length: 10
     """
     return ms2bpm(function_registry["min"](n))
+end
+@register function median_hr(n::HRMeasurement)
+    """
+        median_hr(n::HRMeasurement)
+    Calculate the median heart rate in BPM from the Inter-Beat-Intervals (IBIs).
+    Arguments:
+        - `n`: An array of Inter-Beat-Intervals in milliseconds.
+    Returns:
+        The median heart rate in BPM.
+    Domains: time, statistics
+    Aliases: median_hr
+    Distribution: Normal
+
+    Minimum length: 10
+    """
+    # median is preserved under the monotonic ms2bpm transform
+    return ms2bpm(function_registry["median"](n))
+end
+@register function range_hr(n::HRMeasurement)
+    """
+        range_hr(n::HRMeasurement)
+    Calculate the range (max − min) of the instantaneous heart rate in BPM.
+    Arguments:
+        - `n`: An array of Inter-Beat-Intervals in milliseconds.
+    Returns:
+        The heart-rate range in BPM.
+    Domains: time, statistics
+    Aliases: range_hr, hr_range
+    Distribution: Gamma
+
+    Minimum length: 10
+    """
+    hr = ms2bpm.(n.data)
+    return maximum(hr) - minimum(hr)
 end
 # Level 3 Time domain features
 @register function sdsd(n::HRMeasurement)
@@ -306,6 +437,9 @@ end
         The standard deviation of the successive differences.
     Domains: time, statistics
     Aliases: sdsd
+    Distribution: Gamma
+    
+    Minimum length: 20
     """
     return function_registry["sdnn"](function_registry["diff"](n))
 end
@@ -319,6 +453,9 @@ end
         The range of the IBIs.
     Domains: time, statistics
     Aliases: range
+    Distribution: Gamma
+    
+    Minimum length: 10
     """
     return function_registry["max"](n) - function_registry["min"](n)
 end
@@ -332,8 +469,11 @@ end
         The RMSSD value.
     Domains: time, statistics
     Aliases: rmssd
+    Distribution: Gamma
+    
+    Minimum length: 20
     """
-    return sqrt(sum(function_registry["diff"](n) .^ 2))
+    return sqrt(sum(function_registry["diff"](n) .^ 2)) / sqrt(function_registry["length"](n) - 1)
 end
 @register function sdann(n::HRMeasurement)
     """
@@ -345,6 +485,9 @@ end
         The standard deviation of the average IBIs in 5-minute windows.
     Domains: time, statistics
     Aliases: sdann
+    Distribution: Gamma
+    
+    Minimum length: 50
     """
     return StatsBase.std(
         windowed(
@@ -355,28 +498,42 @@ end
 @register function pnn50(n::HRMeasurement)
     """
         pnn50(n::HRMeasurement)
-    Calculate the proportion of successive differences of the Inter-Beat-Intervals (IBIs) that are greater than 50 ms.
+    Calculate the proportion of |successive differences| of the Inter-Beat-Intervals
+    (IBIs) that exceed 50 ms (NN50 count divided by the number of successive
+    differences, N-1). The standard definition uses the ABSOLUTE difference
+    (Task Force 1996; matches neurokit2 / hrv-analysis).
     Arguments:
         - `n`: An array of Inter-Beat-Intervals in milliseconds.
     Returns:
-        The proportion of successive differences greater than 50 ms.
+        The proportion of absolute successive differences greater than 50 ms.
     Domains: time, statistics
     Aliases: pnn50
+    Distribution: Beta
+
+    Minimum length: 50
     """
-    return sum(function_registry["diff"](n) .> 50) / function_registry["length"](n)
+    d = function_registry["diff"](n)
+    return count(x -> abs(x) > 50, d) / length(d)
 end
 @register function pnn20(n::HRMeasurement)
     """
         pnn20(n::HRMeasurement)
-    Calculate the proportion of successive differences of the Inter-Beat-Intervals (IBIs) that are greater than 20 ms.
+    Calculate the proportion of |successive differences| of the Inter-Beat-Intervals
+    (IBIs) that exceed 20 ms (NN20 count divided by the number of successive
+    differences, N-1). The standard definition uses the ABSOLUTE difference
+    (Task Force 1996; matches neurokit2 / hrv-analysis).
     Arguments:
         - `n`: An array of Inter-Beat-Intervals in milliseconds.
     Returns:
-        The proportion of successive differences greater than 20 ms.
+        The proportion of absolute successive differences greater than 20 ms.
     Domains: time, statistics
     Aliases: pnn20
+    Distribution: Beta
+
+    Minimum length: 50
     """
-    return sum(function_registry["diff"](n) .> 20) / function_registry["length"](n)
+    d = function_registry["diff"](n)
+    return count(x -> abs(x) > 20, d) / length(d)
 end
 @register function cvsd(n::HRMeasurement)
     """
@@ -388,8 +545,27 @@ end
         The coefficient of variation of the successive differences.
     Domains: time, statistics
     Aliases: cvsd
+    Distribution: Gamma
+    
+    Minimum length: 20
     """
     return function_registry["sdsd"](n) / function_registry["mean"](n)
+end
+@register function cvnni(n::HRMeasurement)
+    """
+        cvnni(n::HRMeasurement)
+    Calculate the coefficient of variation of the NN intervals (SDNN / mean).
+    Arguments:
+        - `n`: An array of Inter-Beat-Intervals in milliseconds.
+    Returns:
+        The coefficient of variation of the NN intervals.
+    Domains: time, statistics
+    Aliases: cvnni, cv_nni, coefficient_of_variation
+    Distribution: Normal
+
+    Minimum length: 10
+    """
+    return function_registry["sdnn"](n) / function_registry["mean"](n)
 end
 @register function rRR(n::HRMeasurement)
     """
@@ -403,6 +579,9 @@ end
         The RMSSD value.
     Domains: time, statistics
     Aliases: rRR
+    Distribution: Gamma
+    
+    Minimum length: 10
     """
     n = n.data
     rr = 2 .* function_registry["diff"](n) ./ (n[1:end-1] .+ n[2:end])
@@ -426,6 +605,8 @@ config["freq_method"] ∉ [:lomb_scargle, :welch] &&
     Domains: frequency
     Aliases: periodogram, power_spectrum
     Representation: true
+    
+    Minimum length: 128
     """
     config["freq_method"] ∉ [:lomb_scargle, :welch] && throw(ArgumentError("Unsupported method: $(config["freq_method"])"))
     if config["freq_method"] == :lomb_scargle
@@ -447,6 +628,8 @@ end
     Domains: time
     Aliases: max_time, recording_duration_s
     Representation: true
+    
+    Minimum length: 128
     """
     return function_registry["duration"](n) / 1000 # Record duration in seconds
 end
@@ -460,13 +643,17 @@ end
         The ultra low frequency power.
     Domains: frequency
     Aliases: ultra_low_frequency
+    Distribution: Gamma
+    
+    Minimum length: 128
     """
     if config["freq_method"] == :lomb_scargle
-        # @warn "No ultra low frequency in Lomb-Scargle. Returning NaN."
-        return NaN # No ultra low frequency in Lomb-Scargle # TODO: why?
+        # The Lomb-Scargle grid does not resolve the ULF band (< 0.003 Hz needs
+        # multi-hour recordings); use freq_method = :welch for ULF power.
+        return NaN
     elseif config["freq_method"] == :welch
         function_registry["max_t"](n) < 86000 && @warn "Recording duration is less than 24 hours. ULF power may not be reliable."
-        return get_power(function_registry["pgram"](n), 0.003, 0.04)
+        return get_power(function_registry["pgram"](n), 0.0, 0.003)
     else
         @warn "Unsupported frequency method: $(config["freq_method"]). Returning NaN."
         return NaN
@@ -482,6 +669,9 @@ end
         The very low frequency power.
     Domains: frequency
     Aliases: very_low_frequency
+    Distribution: Gamma
+    
+    Minimum length: 128
     """
     return get_power(function_registry["pgram"](n), 0.003, 0.04)
 end
@@ -495,6 +685,9 @@ end
         The low frequency power.
     Domains: frequency
     Aliases: low_frequency
+    Distribution: Gamma
+    
+    Minimum length: 128
     """
     return get_power(function_registry["pgram"](n), 0.04, 0.15)
 end
@@ -508,6 +701,9 @@ end
         The high frequency power.
     Domains: frequency
     Aliases: high_frequency
+    Distribution: Gamma
+    
+    Minimum length: 128
     """
     return get_power(function_registry["pgram"](n), 0.15, 0.4)
 end
@@ -521,6 +717,9 @@ end
         The total power of the IBIs.
     Domains: frequency
     Aliases: total_power
+    Distribution: Gamma
+    
+    Minimum length: 128
     """
     return get_power(function_registry["pgram"](n), 0.003, 0.4)
 end
@@ -534,6 +733,9 @@ end
         The peak frequency in the low frequency band.
     Domains: frequency
     Aliases: lf_peak
+    Distribution: Normal
+    
+    Minimum length: 128
     """
     return find_peak(function_registry["pgram"](n), 0.04, 0.15)
 end
@@ -547,6 +749,9 @@ end
         The peak frequency in the high frequency band.
     Domains: frequency
     Aliases: hf_peak
+    Distribution: Normal
+    
+    Minimum length: 128
     """
     return find_peak(function_registry["pgram"](n), 0.15, 0.4)
 end
@@ -561,6 +766,9 @@ end
         The ratio of low frequency power to high frequency power.
     Domains: frequency
     Aliases: lf_hf_ratio
+    Distribution: LogNormal
+    
+    Minimum length: 128
     """
     return function_registry["lf"](n) / function_registry["hf"](n)
 end
@@ -574,6 +782,9 @@ end
         The relative low frequency power.
     Domains: frequency
     Aliases: lf_relative_power
+    Distribution: Beta
+    
+    Minimum length: 128
     """
     lf = function_registry["lf"](n)
     tp = function_registry["tp"](n)
@@ -589,6 +800,9 @@ end
         The relative high frequency power.
     Domains: frequency
     Aliases: hf_relative_power
+    Distribution: Beta
+    
+    Minimum length: 128
     """
     hf = function_registry["hf"](n)
     tp = function_registry["tp"](n)
@@ -605,6 +819,9 @@ end
         The low frequency power as a percentage.
     Domains: frequency
     Aliases: lf_%
+    Distribution: Gamma
+
+    Minimum length: 128
     """
     return function_registry["lf_relative"](n) * 100
 end
@@ -618,6 +835,9 @@ end
         The high frequency power as a percentage.
     Domains: frequency
     Aliases: hf_%
+    Distribution: Gamma
+
+    Minimum length: 128
     """
     return function_registry["hf_relative"](n) * 100
 end
@@ -633,6 +853,8 @@ end
     Domains: geometric
     Aliases: poincare_x, poincare_x_axis
     Representation: true
+    
+    Minimum length: 20
     """
     return [n.data[i] for i in 1:length(n.data)-1]
 end
@@ -647,6 +869,8 @@ end
     Domains: geometric
     Aliases: poincare_y, poincare_y_axis
     Representation: true
+    
+    Minimum length: 20
     """
     return [n.data[i+1] for i in 1:length(n.data)-1]
 end
@@ -660,6 +884,9 @@ end
         The standard deviation of the points in the Poincare plot along the line perpendicular to the line of identity.
     Domains: geometric
     Aliases: sd1, sd1_width
+    Distribution: Gamma
+    
+    Minimum length: 20
     """
     x = function_registry["px"](n)
     y = function_registry["py"](n)
@@ -675,6 +902,9 @@ end
         The standard deviation of the points in the Poincare plot along the line of identity.
     Domains: geometric
     Aliases: sd2, sd2_length
+    Distribution: Gamma
+    
+    Minimum length: 20
     """
     x = function_registry["px"](n)
     y = function_registry["py"](n)
@@ -690,6 +920,9 @@ end
         The ratio of sd2 to sd1.
     Domains: geometric
     Aliases: sd2_sd1_ratio, csi, cardiac_sympathetic_index
+    Distribution: LogNormal
+    
+    Minimum length: 20
     """
     return function_registry["sd2"](n) / function_registry["sd1"](n)
 end
@@ -703,6 +936,9 @@ end
         The area of the Poincare plot defined by sd1 and sd2.
     Domains: geometric
     Aliases: poincare_area
+    Distribution: LogNormal
+    
+    Minimum length: 20
     """
     return π * function_registry["sd1"](n) * function_registry["sd2"](n)
 end
@@ -716,6 +952,9 @@ end
         The cardiac vagal index.
     Domains: geometric
     Aliases: cardiac_vagal_index
+    Distribution: Normal
+    
+    Minimum length: 20
     """
     return log10(function_registry["sd2"](n) * function_registry["sd1"](n) * 16)
 end
@@ -728,7 +967,10 @@ end
     Returns:
         The corrected cardiac sympathetic index.
     Domains: geometric
-    Aliases: corrected_cardiac_sympathetic_index, corrected_csi
+    Aliases: corrected_cardiac_sympathetic_index, corrected_csi, modified_csi, csi_mod
+    Distribution: LogNormal
+    
+    Minimum length: 20
     """
     return (4 * function_registry["sd2"](n) ^ 2) / function_registry["sd1"](n)
 end
@@ -743,6 +985,8 @@ end
     Domains: geometric
     Aliases: histogram
     Representation: true
+    
+    Minimum length: 20
     """
     h = StatsBase.fit(StatsBase.Histogram, n.data, range(300, 2000, step=8))
     return h
@@ -757,6 +1001,9 @@ end
         The triangular index.
     Domains: geometric
     Aliases: triangular_index
+    Distribution: Gamma
+    
+    Minimum length: 20
     """
     histogram_weights = function_registry["histogram"](n).weights
     return function_registry["length"](n) / maximum(histogram_weights)
@@ -772,6 +1019,9 @@ end
         The TINN index.
     Domains: geometric
     Aliases: triangular_interpolation_of_nn_intervals
+    Distribution: Gamma
+    
+    Minimum length: 20
     """
     h = function_registry["histogram"](n)
     iX = argmax(h.weights)
@@ -832,9 +1082,17 @@ end
         The approximate entropy of the IBIs.
     Domains: nonlinear
     Aliases: approximate_entropy, apen
+    Distribution: Normal
+
+    Minimum length: 100
     """
+    # EntropyHub.ApEn returns m+1 estimates (embedding dimensions 0..m); the
+    # canonical approximate entropy at embedding m is the last element. (The tolerance
+    # r is an ABSOLUTE distance in ms here, HRL's documented convention; tools that use
+    # r = 0.2·SDNN will report a different value for the same series — a convention
+    # difference, not a disagreement.)
     apens, _ = EntropyHub.ApEn(n.data, m=m, r=r)
-    return log(apens[end-1] / apens[end])
+    return apens[end]
 end
 @register function sampen(n::HRMeasurement, m::Int64=2, r::Number=6)
     """
@@ -848,10 +1106,15 @@ end
         The sample entropy of the IBIs.
     Domains: nonlinear
     Aliases: sample_entropy, sampen
+    Distribution: Normal
+
+    Minimum length: 100
     """
-    sampen1, _ = EntropyHub.SampEn(n.data, m=m, r=r)
-    sampen2, _ = EntropyHub.SampEn(n.data, m=+1, r=r)
-    return log(sampen1[end] / sampen2[end])
+    # EntropyHub.SampEn returns m+1 estimates (embedding dimensions 0..m); the
+    # canonical sample entropy at embedding m is the last element. (Same absolute-r
+    # convention note as `apen`.)
+    sampens, _ = EntropyHub.SampEn(n.data, m=m, r=r)
+    return sampens[end]
 end
 @register function hurst(n::HRMeasurement)
     """
@@ -863,6 +1126,9 @@ end
         The Hurst exponent of the IBIs.
     Domains: nonlinear
     Aliases: hurst_exponent, hurst
+    Distribution: Beta
+    
+    Minimum length: 100
     """
     τ_range = 1:min(10, length(n.data)) # 
     H, SD = hurst_exponent(n.data, τ_range)
@@ -888,6 +1154,10 @@ end
     """
         renyi0(n::HRMeasurement)
     See `renyi(n::HRMeasurement, order::Int=0)`.
+    Domains: nonlinear
+    Distribution: Normal
+
+    Minimum length: 100
     """
     return function_registry["renyi"](n, 0)
 end
@@ -895,6 +1165,10 @@ end
     """
         renyi1(n::HRMeasurement)
     See `renyi(n::HRMeasurement, order::Int=1)`.
+    Domains: nonlinear
+    Distribution: Normal
+
+    Minimum length: 100
     """
     return function_registry["renyi"](n, 1)
 end
@@ -902,36 +1176,214 @@ end
     """
         renyi2(n::HRMeasurement)
     See `renyi(n::HRMeasurement, order::Int=2)`.
+    Domains: nonlinear
+    Distribution: Normal
+
+    Minimum length: 100
     """
     return function_registry["renyi"](n, 2)
 end
-@register function dfa(n::HRMeasurement)
+@register function shan_en(n::HRMeasurement)
     """
-        dfa(n::HRMeasurement)
-    Calculate the detrended fluctuation analysis of the Inter-Beat-Intervals (IBIs).
+        shan_en(n::HRMeasurement)
+    Calculate the Shannon entropy of the Inter-Beat-Interval histogram.
     Arguments:
         - `n`: An array of Inter-Beat-Intervals in milliseconds.
     Returns:
-        The detrended fluctuation analysis of the IBIs.
+        The Shannon entropy (nats) of the binned RR distribution.
+    Domains: nonlinear
+    Aliases: shannon_entropy, shan_en
+    Distribution: Normal
+
+    Minimum length: 20
+    """
+    w = function_registry["histogram"](n).weights
+    p = w ./ sum(w)
+    p = p[p .> 0]
+    return -sum(p .* log.(p))
+end
+@register function svd_en(n::HRMeasurement, m::Int64=2, tau::Int64=1)
+    """
+        svd_en(n::HRMeasurement, m=2, tau=1)
+    Calculate the Singular Value Decomposition (SVD) entropy of the IBIs: the Shannon
+    entropy of the normalized singular-value spectrum of the delay-embedded series.
+    Arguments:
+        - `n`: An array of Inter-Beat-Intervals in milliseconds.
+        - `m`: Embedding dimension (default 2).
+        - `tau`: Embedding delay (default 1).
+    Returns:
+        The normalized SVD entropy in [0, 1].
+    Domains: nonlinear
+    Aliases: svd_entropy, svd_en
+    Distribution: Normal
+
+    Minimum length: 100
+    """
+    x = n.data
+    M = length(x) - (m - 1) * tau
+    Y = reduce(hcat, [x[(1:M) .+ (i - 1) * tau] for i in 1:m])
+    s = LinearAlgebra.svdvals(Y)
+    s = s ./ sum(s)
+    s = s[s .> 0]
+    return -sum(s .* log.(s)) / log(m)
+end
+@register function fuzzyen(n::HRMeasurement, m::Int64=2)
+    """
+        fuzzyen(n::HRMeasurement, m=2)
+    Calculate the fuzzy entropy of the Inter-Beat-Intervals (IBIs).
+    Arguments:
+        - `n`: An array of Inter-Beat-Intervals in milliseconds.
+        - `m`: The embedding dimension (default 2).
+    Returns:
+        The fuzzy entropy of the IBIs.
+    Domains: nonlinear
+    Aliases: fuzzy_entropy, fuzzyen
+    Distribution: Normal
+
+    Minimum length: 100
+    """
+    # standard fuzzy-membership tolerance ~0.2·SD (data is in ms; default r=0.2 is mis-scaled)
+    r = (0.2 * StatsBase.std(n.data), 2.0)
+    Fuzz, _, _ = EntropyHub.FuzzEn(n.data, m=m, r=r)
+    return Fuzz[end]
+end
+@register function spec_en(n::HRMeasurement)
+    """
+        spec_en(n::HRMeasurement)
+    Calculate the spectral entropy of the Inter-Beat-Intervals (IBIs): the Shannon
+    entropy of the normalized power spectral density.
+    Arguments:
+        - `n`: An array of Inter-Beat-Intervals in milliseconds.
+    Returns:
+        The spectral entropy of the IBIs.
+    Domains: nonlinear, frequency
+    Aliases: spectral_entropy, spec_en
+    Distribution: Normal
+
+    Minimum length: 20
+    """
+    Spec, _ = EntropyHub.SpecEn(n.data)
+    return Spec
+end
+@register function perm_en(n::HRMeasurement, m::Int64=3, tau::Int64=1)
+    """
+        perm_en(n::HRMeasurement, m=3, tau=1)
+    Calculate the permutation entropy of the Inter-Beat-Intervals (IBIs).
+    Arguments:
+        - `n`: An array of Inter-Beat-Intervals in milliseconds.
+        - `m`: The embedding (order) dimension (default 3).
+        - `tau`: The embedding delay (default 1).
+    Returns:
+        The permutation entropy of the IBIs.
+    Domains: nonlinear
+    Aliases: permutation_entropy, perm_en
+    Distribution: Normal
+
+    Minimum length: 100
+    """
+    Perm, _, _ = EntropyHub.PermEn(n.data, m=m, tau=tau)
+    return Perm[end]
+end
+@register function mse(n::HRMeasurement, m::Int64=2, r::Number=6, scales::Int64=3)
+    """
+        mse(n::HRMeasurement, m=2, r=6, scales=3)
+    Calculate the Multiscale Entropy (MSE) complexity index of the IBIs: the summed
+    sample entropy across coarse-grained time scales.
+    Arguments:
+        - `n`: An array of Inter-Beat-Intervals in milliseconds.
+        - `m`: The embedding dimension (default 2).
+        - `r`: The radius distance threshold (default 6).
+        - `scales`: The number of temporal scales (default 3).
+    Returns:
+        The MSE complexity index (sum over scales).
+    Domains: nonlinear
+    Aliases: multiscale_entropy, mse
+    Distribution: Normal
+
+    Minimum length: 100
+    """
+    Mobj = EntropyHub.MSobject(EntropyHub.SampEn, m=m, r=r)
+    _, CI = EntropyHub.MSEn(n.data, Mobj, Scales=scales)
+    return CI
+end
+# ─── DFA scaling-exponent helper ─────────────────────────────────────────────
+# Fit a single DFA scaling exponent α = slope of log10 F(n) vs log10 n over the
+# box-size range (nmin, nmax). The DFA *algorithm* is identical across all
+# validated HRV tools — integrate the mean-removed series, split into boxes of
+# size n, per-box order-1 (linear) detrend, RMS the residuals → F(n), OLS-regress
+# log F(n) on log n. Tools differ only in (a) the α1/α2 n-ranges and (b) grid
+# density. See docs/dfa-parameters-research.md and docs/dfa.md.
+#
+# `grid`:
+#   :integer   — every integer n in nmin:nmax (Francis/Kubios dense grid; 13 boxes
+#                for 4–16, 49 for 16–64). DFA.jl's geometric dispatcher cannot
+#                express an all-integer grid, so we loop its single-box method
+#                `DFA.dfa(x, n; order=1, overlap=0.0)` over each n and OLS-fit the
+#                slope. Statistically sound; this is the DEFAULT.
+#   :geometric — DFA.jl's dispatcher with the given boxratio; boxratio=2 reproduces
+#                the legacy 3-point grid ([4,8,16] / [16,32,64], PhysioNet CST style).
+function _dfa_alpha(x, nmin::Integer, nmax::Integer; grid::Symbol=:integer, boxratio::Real=2)
+    if grid === :integer
+        ns = collect(nmin:nmax)
+        length(ns) < 2 && error("DFA needs at least 2 box sizes; got range ($nmin, $nmax)")
+        fluc = [DFA.dfa(x, k; order=1, overlap=0.0) for k in ns]
+        return DFA.polyfit(log10.(Float64.(ns)), log10.(fluc))[2]
+    elseif grid === :geometric
+        scales, fluc = DFA.dfa(x; boxmax=Int(nmax), boxmin=Int(nmin), boxratio=boxratio, overlap=0.0)
+        return DFA.polyfit(log10.(Float64.(scales)), log10.(fluc))[2]
+    else
+        throw(ArgumentError("Unsupported config[\"dfa_grid\"]: $grid (use :integer or :geometric)"))
+    end
+end
+
+@register function dfa(n::HRMeasurement)
+    """
+        dfa(n::HRMeasurement)
+    Calculate the detrended fluctuation analysis (DFA) scaling exponents (α1, α2)
+    of the Inter-Beat-Intervals (IBIs).
+    Arguments:
+        - `n`: An array of Inter-Beat-Intervals in milliseconds.
+    Returns:
+        A tuple `(α1, α2)`: the short- and long-term DFA scaling exponents.
     Domains: nonlinear
     Aliases: detrended_fluctuation_analysis, dfa
     Representation: true
+
+    The α1/α2 box-size ranges and the grid are configurable via
+    `HeartRateLab.Features.config` (keys `dfa_alpha1_range`, `dfa_alpha2_range`,
+    `dfa_grid`, `dfa_boxratio`); see docs/dfa.md.
+
+    Minimum length: 100
     """
-    scales, fluc = DFA.dfa(n.data, boxmax=64, boxmin=4, boxratio=2, overlap=0.0)
-    log_scales = log10.(scales)
-    log_fluc = log10.(fluc)
-    intercept, α1 = DFA.polyfit(log_scales, log_fluc) # TODO: Viz
-        
-    scales, fluc = DFA.dfa(n.data, boxmax=16, boxmin=4, boxratio=2, overlap=0.0)
-    log_scales = log10.(scales)
-    log_fluc = log10.(fluc)
-    intercept, α2 = DFA.polyfit(log_scales, log_fluc) # TODO: Viz
+    # DFA scaling windows default to the Peng/Francis convention: α1 over 4≤n≤16,
+    # α2 over 16≤n≤64, with the short/long crossover fixed at n=16. The two ranges
+    # do NOT overlap (α2's nmin is 16, not 4) so α2 is a genuine long-term exponent.
+    # The default grid is :integer — every integer n in each range (Francis/Kubios:
+    # 13 boxes for α1, 49 for α2), which is statistically sound and removes the old
+    # "slope from 3 points" criticism of the legacy geometric grid.
+    # Refs:
+    #   Peng CK, Havlin S, Stanley HE, Goldberger AL. Chaos 1995;5(1):82–87.
+    #     doi:10.1063/1.166141  — origin of the n=16 crossover and α1/α2 decomposition.
+    #   Francis DP et al. J Physiol 2002;542:619–629. doi:10.1113/jphysiol.2001.013389
+    #     — verbatim "α1 over n=4 to 16 and α2 between n=16 and 64"; all-integer grid.
+    #   Vest AN et al. Physiol Meas 2018;39:105004. doi:10.1088/1361-6579/aae021
+    #     — PhysioNet Cardiovascular Signal Toolbox: minBox=4, midBox=16, α2 16≤n≤N/4(=64).
+    # NB a competing clinical convention uses α1=4–11, α2=12–N/10 (Iyengar 1996;
+    # neurokit2). Set config["dfa_alpha1_range"]/["dfa_alpha2_range"] to switch.
+    grid = config["dfa_grid"]
+    boxratio = config["dfa_boxratio"]
+    n1min, n1max = config["dfa_alpha1_range"]
+    n2min, n2max = config["dfa_alpha2_range"]
+    α1 = _dfa_alpha(n.data, n1min, n1max; grid=grid, boxratio=boxratio)
+    α2 = _dfa_alpha(n.data, n2min, n2max; grid=grid, boxratio=boxratio)
     return α1, α2
 end
 @register function dfa1(n::HRMeasurement)
     """
         dfa1(n::HRMeasurement)
-    Calculate the first exponent of the detrended fluctuation analysis: α1.
+    Calculate the short-term detrended-fluctuation-analysis exponent α1
+    (default Peng/Francis box sizes n=4–16; configurable via
+    `config["dfa_alpha1_range"]`/`config["dfa_grid"]` — see docs/dfa.md).
     Arguments:
         - `n`: An array of Inter-Beat-Intervals in milliseconds.
     Returns:
@@ -939,37 +1391,118 @@ end
     Domains: nonlinear
     Aliases: dfa1, dfa_exponent_1
     Representation: true
+    
+    Minimum length: 100
     """
     return function_registry["dfa"](n)[1]
 end
 @register function dfa2(n::HRMeasurement)
     """
         dfa2(n::HRMeasurement)
-    Calculate the second exponent of the detrended fluctuation analysis: α2.
+    Calculate the long-term detrended-fluctuation-analysis exponent α2
+    (default Peng/Francis box sizes n=16–64; configurable via
+    `config["dfa_alpha2_range"]`/`config["dfa_grid"]` — see docs/dfa.md).
+    α2 is physiologically meaningful only on long records (≥ several hours);
+    on short ~5-min segments it is degenerate.
     Arguments:
         - `n`: An array of Inter-Beat-Intervals in milliseconds.
     Returns:
         α2
     Domains: nonlinear
     Aliases: dfa2, dfa_exponent_2
+    Distribution: Normal
+    
+    Minimum length: 100
     """
     return function_registry["dfa"](n)[2]
 end
 
+# ─── Feature Sets ──────────────────────────────────────────────────────────────
+#
+# Features are grouped by computational cost so callers can choose the right
+# trade-off between richness and wall-clock time.
+#
+#   NONLINEAR_FEATURES  — O(n²) or worse: entropy, DFA, Hurst, Rényi.
+#                         These dominate runtime on long recordings (>5 000 beats)
+#                         and can cause OOM on very long ones (>50 000 beats).
+#
+#   FAST_FEATURES       — All features *except* the nonlinear set.
+#                         Safe to run on any recording length; O(n) or O(n log n).
+#                         This is the **default** for `extract_feature_set`.
+#
+#   ALL_FEATURES        — The complete set: FAST_FEATURES ∪ NONLINEAR_FEATURES.
+#
+# Use `features=ALL_FEATURES` (or `features=:all`) for the full 53-feature
+# extraction when the recording is short enough, or when you have time.
+
+"""Features with O(n²) or higher complexity (entropy, DFA, Hurst, Rényi).  Expensive on long recordings."""
+const NONLINEAR_FEATURES = [
+    "apen", "sampen",          # Approximate & sample entropy (EntropyHub, O(n²))
+    "fuzzyen",                 # Fuzzy entropy (EntropyHub, O(n²))
+    "shan_en", "svd_en",       # Shannon (histogram) & SVD entropy
+    "spec_en", "perm_en",      # Spectral & permutation entropy (EntropyHub)
+    "mse",                     # Multiscale entropy complexity index (EntropyHub)
+    "hurst",                   # Hurst exponent (R/S analysis)
+    "dfa2",                    # Detrended Fluctuation Analysis long-range exponent
+    "renyi0", "renyi1", "renyi2",  # Rényi entropies of order 0, 1, 2
+]
+
+"""
+    FAST_FEATURES
+
+All registered features **except** the computationally expensive nonlinear ones
+(entropy family `apen`/`sampen`/`fuzzyen`/`shan_en`/`svd_en`/`spec_en`/`perm_en`/`mse`,
+plus `hurst`, `dfa2`, `renyi0`, `renyi1`, `renyi2`).
+Runs in O(n) or O(n log n) and is safe for arbitrarily long recordings.
+"""
+const FAST_FEATURES  = sort(setdiff(String.(keys(feature_registry)), NONLINEAR_FEATURES))
+
+"""
+    DEFAULT_FEATURES
+
+The recommended default feature set.  Same as `FAST_FEATURES` but also excludes
+`ulf` (ultra-low frequency power), which requires ≥ 24-hour recordings to be
+meaningful.
+
+This is the **default** for `extract_feature_set` and `windowed_feature_set`.
+"""
+const DEFAULT_FEATURES = sort(setdiff(FAST_FEATURES, ["ulf"]))
+
+"""
+    ALL_FEATURES
+
+The complete feature set (53 features).  Includes the nonlinear features that
+are O(n²) or worse.  Use only on recordings shorter than ~5 000 beats, or when
+you can afford the compute.
+"""
+const ALL_FEATURES   = sort(String.(keys(feature_registry)))
+
+""" Resolve a feature-set selector to a concrete `Vector{String}`. """
+function _resolve_features(features)::Vector{String}
+    if features isa Symbol
+        features === :default && return DEFAULT_FEATURES
+        features === :fast && return FAST_FEATURES
+        features === :all  && return ALL_FEATURES
+        features === :nonlinear && return NONLINEAR_FEATURES
+        throw(ArgumentError("Unknown feature set symbol :$features.  Use :default, :fast, :all, or :nonlinear."))
+    end
+    return collect(String, features)
+end
+
 function extract_feature_set(
     n::AbstractArray{Float64,1};
-    features::AbstractArray{String}=String.(keys(feature_registry)),
+    features::Union{Symbol, AbstractArray{String}}=:default,
     config::Dict{String,Any}=config,
 )
+    feat_names = _resolve_features(features)
     n = HRMeasurement(n)
     # Extract the features
     result = Dict{String,Any}()
-    for f in features # TODO: parallel processing
+    for f in feat_names # TODO: parallel processing
         f ∈ keys(feature_registry) || throw(ArgumentError("Invalid feature: $f"))
         feature = function_registry[f](n)
         result[f] = feature
     end
-    # cols = Symbol.(keys(result))
     return DataFrame(result) # Convert the result to a DataFrame
 end
 
@@ -978,15 +1511,191 @@ function windowed_feature_set(
     window_size::Int=60, # Heart beats
     stride::Int=1,
     time::Symbol=:beats,
-    features::AbstractArray{String}=String.(keys(feature_registry)),
+    features::Union{Symbol, AbstractArray{String}}=:default,
     config::Dict{String,Any}=config,
 )
+    feat_names = _resolve_features(features)
     res = windowed(
         n; window_size=window_size, stride=stride, time=time,
-        f=(x -> extract_feature_set(Array(x); features=features, config=config)),
+        f=(x -> extract_feature_set(Array(x); features=feat_names, config=config)),
     )
-    println("Extracted $(length(res)) windows with $(length(features)) features each.")
+    println("Extracted $(length(res)) windows with $(length(feat_names)) features each.")
     return vcat(res...) # Concatenate the windows into a single DataFrame
+end
+
+"""
+    valid_features(n_beats::Int) -> Vector{String}
+
+Return a vector of feature names from the registry that are valid for a signal of `n_beats` inter-beat-intervals.
+
+A feature is valid if its `minimum_length` requirement is ≤ `n_beats`. This is essential for
+model evaluation, as generated synthetic IBI series may be short and cannot support all 53 features.
+
+# Arguments
+- `n_beats::Int`: Number of inter-beat-intervals (signal length)
+
+# Returns
+- `Vector{String}`: Names of features that can be computed for this signal length
+
+# Example
+```julia
+valid_features(50)   # Features valid for 50-beat signals
+valid_features(500)  # Features valid for 500-beat signals
+```
+"""
+function valid_features(n_beats::Int)::Vector{String}
+    valid = String[]
+    for (fname, feature) in feature_registry
+        if feature.minimum_length <= n_beats
+            push!(valid, fname)
+        end
+    end
+    return sort(valid)
+end
+
+# ─── Normative prior loading ───────────────────────────────────────────────────
+
+"""
+    load_normative_priors!(csv_path::String)
+
+Load fitted normative distribution parameters from a CSV file and populate
+the `prior_registry`.  Each row must have columns: `feature`, `family`,
+`param1_name`, `param1_value`, `param2_name`, `param2_value`, `status`.
+
+Only rows with `status == "ok"` are loaded.  The resulting entry is a concrete
+`Distributions.jl` instance (e.g., `Normal(780.0, 143.7)`) that can be used
+directly for PDF evaluation, sampling, or as a Bayesian prior.
+
+# Example
+```julia
+load_normative_priors!(joinpath(@__DIR__, "..", "docs", "normative_priors.csv"))
+prior_registry["rmssd"]  # => Gamma(1.234, 26.7)
+```
+"""
+function load_normative_priors!(csv_path::String)
+    isfile(csv_path) || error("Normative priors CSV not found: $csv_path")
+    return _load_priors_csv_fallback(csv_path)
+end
+
+# Internal: fallback CSV parser (no CSV.jl dependency)
+# Handles quoted fields containing commas.
+function _parse_csv_line(line::AbstractString)::Vector{String}
+    fields = String[]
+    current = IOBuffer()
+    in_quotes = false
+    for c in line
+        if c == '"'
+            in_quotes = !in_quotes
+        elseif c == ',' && !in_quotes
+            push!(fields, String(take!(current)))
+        else
+            write(current, c)
+        end
+    end
+    push!(fields, String(take!(current)))
+    return fields
+end
+
+function _load_priors_csv_fallback(csv_path::String)
+    lines = readlines(csv_path)
+    isempty(lines) && return 0
+    header = _parse_csv_line(lines[1])
+    idx = Dict(strip(col) => i for (i, col) in enumerate(header))
+    # Require essential columns
+    for required in ("feature", "family", "param1_name", "param1_value",
+                     "param2_name", "param2_value", "status")
+        haskey(idx, required) || error("Missing column '$required' in $csv_path")
+    end
+    n_loaded = 0
+    for line in lines[2:end]
+        fields = _parse_csv_line(line)
+        length(fields) < length(header) && continue
+        strip(fields[idx["status"]]) != "ok" && continue
+        dist = _reconstruct_distribution(
+            strip(fields[idx["family"]]),
+            strip(fields[idx["param1_name"]]), tryparse(Float64, strip(fields[idx["param1_value"]])),
+            strip(fields[idx["param2_name"]]), tryparse(Float64, strip(fields[idx["param2_value"]]))
+        )
+        if dist !== nothing
+            prior_registry[strip(fields[idx["feature"]])] = dist
+            n_loaded += 1
+        end
+    end
+    @info "Loaded $n_loaded normative priors from $csv_path"
+    return n_loaded
+end
+
+"""
+    _reconstruct_distribution(family, p1_name, p1_val, p2_name, p2_val)
+
+Reconstruct a `Distributions.jl` instance from the CSV row fields.
+"""
+function _reconstruct_distribution(family::AbstractString,
+                                    p1_name, p1_val,
+                                    p2_name, p2_val)
+    p1 = p1_val isa Number ? Float64(p1_val) : tryparse(Float64, string(p1_val))
+    p2 = p2_val isa Number ? Float64(p2_val) : tryparse(Float64, string(p2_val))
+    (p1 === nothing || isnan(p1)) && return nothing
+    (p2 === nothing || isnan(p2)) && return nothing
+    family_str = strip(String(family))
+    if family_str == "Normal"
+        return Distributions.Normal(p1, p2)
+    elseif family_str == "Gamma"
+        return Distributions.Gamma(p1, p2)
+    elseif family_str == "Beta"
+        return Distributions.Beta(p1, p2)
+    elseif family_str == "LogNormal"
+        return Distributions.LogNormal(p1, p2)
+    else
+        @warn "Unknown distribution family in priors CSV: $family_str"
+        return nothing
+    end
+end
+
+"""
+    normative_prior(feature_name::String) -> Distribution or nothing
+
+Return the fitted normative prior distribution for a feature, or `nothing`
+if no prior has been loaded for that feature.
+
+# Example
+```julia
+d = normative_prior("rmssd")
+if d !== nothing
+    println("RMSSD ~ ", typeof(d), params(d))
+    println("95% CI: ", quantile(d, 0.025), " – ", quantile(d, 0.975))
+end
+```
+"""
+function normative_prior(feature_name::String)
+    return get(prior_registry, feature_name, nothing)
+end
+
+"""
+    prior_call_string(feature_name::String) -> String
+
+Return a string representation of the Distributions.jl constructor call for the
+normative prior of `feature_name`.  Returns `"nothing"` if no prior exists.
+
+# Example
+```julia
+prior_call_string("rmssd")  # => "Gamma(1.234, 26.7)"
+```
+"""
+function prior_call_string(feature_name::String)::String
+    d = normative_prior(feature_name)
+    d === nothing && return "nothing"
+    return string(d)
+end
+
+# ─── Auto-load normative priors at module init ─────────────────────────────────
+const _PRIORS_CSV_PATH = joinpath(@__DIR__, "..", "docs", "normative_priors.csv")
+if isfile(_PRIORS_CSV_PATH)
+    try
+        _load_priors_csv_fallback(_PRIORS_CSV_PATH)
+    catch e
+        @warn "Failed to auto-load normative priors" exception=e
+    end
 end
 
 end # Features

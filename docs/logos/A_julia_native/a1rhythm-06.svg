@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Rising Rhythm: heart rate accelerating — beat height climbs as tick spacing compresses -->
+  <path d="M70,220 L160,168 L250,108" fill="none" stroke="#1A1A1A" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="70"  cy="220" r="17" fill="#9558B2"/>
+  <circle cx="160" cy="168" r="17" fill="#CB3C33"/>
+  <circle cx="250" cy="108" r="17" fill="#389826"/>
+
+  <g stroke="#1A1A1A" stroke-width="4" opacity="0.45" stroke-linecap="round">
+    <line x1="50"  y1="262" x2="50"  y2="276"/>
+    <line x1="90"  y1="262" x2="90"  y2="276"/>
+    <line x1="124" y1="262" x2="124" y2="276"/>
+    <line x1="152" y1="262" x2="152" y2="276"/>
+    <line x1="175" y1="262" x2="175" y2="276"/>
+    <line x1="194" y1="262" x2="194" y2="276"/>
+    <line x1="210" y1="262" x2="210" y2="276"/>
+  </g>
+  <line x1="40" y1="269" x2="260" y2="269" stroke="#1A1A1A" stroke-width="2.5" opacity="0.25"/>
+</svg>

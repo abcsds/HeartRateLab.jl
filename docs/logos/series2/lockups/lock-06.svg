@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 300">
+  <!-- Stacked: triad on a plain timeline above the wordmark, tight tracking below -->
+  <line x1="55" y1="110" x2="320" y2="110" stroke="#1A1A1A" stroke-width="3" opacity="0.35" stroke-linecap="round"/>
+  <circle cx="90" cy="110" r="26" fill="#9558B2"/>
+  <circle cx="180" cy="110" r="26" fill="#CB3C33"/>
+  <circle cx="285" cy="110" r="26" fill="#389826"/>
+  <text x="25" y="230" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="60" textLength="310" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+</svg>

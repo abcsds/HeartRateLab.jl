@@ -85,6 +85,8 @@ function find_peak(pgram::T, min, max) where {T<:Union{LombScargle.LombScargle.P
     power = pgram.power
     index = findall(x->x>=min && x<max, freq)
     isempty(index) && return NaN
-    return freq[argmax(power[index])]
+    # index[argmax(power[index])] gives the correct index in the original arrays
+    peak_idx = index[argmax(power[index])]
+    return freq[peak_idx]
 end
 end # Frequency

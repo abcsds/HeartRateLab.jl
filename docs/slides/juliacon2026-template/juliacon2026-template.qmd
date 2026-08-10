@@ -1,0 +1,187 @@
+---
+title: "Using The HeartRateLab.jl for Normative Evaluation of Heart Rate Variability"
+subtitle: "A JuliaCon 2026 talk template"
+author: "Alberto Barradas (abcsds)"
+institute: "JuliaCon Global 2026 — Mainz, Germany"
+date: "2026-08-10"
+format:
+  revealjs:
+    theme: [default, juliacon2026.scss]
+    slide-number: c/t
+    center: true
+    # Quarto defaults to `linear`, which flattens vertical stacks into the
+    # horizontal flow (down-slides slide in from the RIGHT). `vertical` maps to
+    # reveal's `navigationMode: 'default'` — real 2D navigation where ↓/↑ walk a
+    # stack and →/← jump between stacks.
+    navigation-mode: vertical
+    controls: true
+    progress: true
+    history: true
+    preview-links: auto
+    footer: "abcsds/HeartRateLab.jl"
+    width: 1920
+    height: 1080
+    margin: 0.08
+    chalkboard:
+      buttons: true
+    # Full-bleed JuliaCon 2026 violet gradient for the auto title slide. Reveal's
+    # NATIVE background layer covers the whole viewport (including the 8% margin),
+    # so the slide is edge-to-edge with no white frame. Palette sampled from the
+    # official JuliaCon 2026 Mainz banner (dark violet #120118 → #2b0836 glow).
+    title-slide-attributes:
+      data-background-gradient: "linear-gradient(160deg, #2b0836 0%, #1a0526 52%, #120118 100%)"
+---
+
+## How to use this template {.section-slide background-gradient="linear-gradient(160deg, #2b0836 0%, #1a0526 52%, #120118 100%)"}
+
+This deck is a **reference sheet**, not a talk. Each slide demonstrates one
+pattern from `juliacon2026.scss`. Copy the pattern you need into
+`docs/slides/HeartRateLab.qmd` — see `README.md` in this folder for the merge
+steps.
+
+The section slides use a **JuliaCon 2026 violet gradient** (palette sampled from
+the official Mainz banner), painted **edge-to-edge** by reveal's native background
+layer — no white frame.
+
+## Two-column layout
+
+Standard Quarto/reveal `.columns` — no extra CSS needed, it inherits the theme.
+
+:::: {.columns}
+::: {.column width="50%"}
+### Left column
+- Bullet one
+- Bullet two
+- Bullet three
+:::
+::: {.column width="50%"}
+### Right column
+```julia
+using HeartRateLab
+m = read_txt("recording.txt")
+features = extract_feature_set(m)
+```
+:::
+::::
+
+## Callouts — reuse Quarto's native syntax
+
+The four callout colors are remapped to the brand so you don't need any new
+syntax — just the usual `::: {.callout-*}` fenced divs.
+
+::: {.callout-note}
+## Why context matters
+`.callout-note` → Julia blue. Good for framing / method notes.
+:::
+
+::: {.callout-tip}
+## Typical range
+`.callout-tip` → Julia green. Good for "within normal range" results.
+:::
+
+::: {.callout-important}
+## Notably atypical
+`.callout-important` → Julia red. Good for flagging elevated z-scores.
+:::
+
+## Figure + caption
+
+<!-- Swap for a real chunk once merged into a Julia-executed deck, e.g.:
+using CairoMakie; lines(1:10, rand(10))
+-->
+
+![Swap this for a real HRL plot (e.g. a report figure from `docs/reports/`).](../../poster/figs/hero_participant_vs_normative.png){fig-align="center" height="620"}
+
+Figure captions render small and muted automatically (`.caption` rule).
+
+## Stat highlights — echoes the poster's z-score forest
+
+Use the `.jc-stat` span classes inline to call out a number the way the
+poster's z-score table does:
+
+- LF/HF ratio: [+2.64σ]{.jc-stat .jc-stat-elevated} — notably atypical
+- SDNN: [+1.12σ]{.jc-stat .jc-stat-borderline} — slightly atypical
+- RMSSD: [+0.03σ]{.jc-stat .jc-stat-typical} — typical
+
+## Code block styling
+
+```julia
+using HeartRateLab
+m = read_txt(joinpath("test", "testdata", "example.txt"))
+rmssd(m)
+```
+
+Static highlighting only — no Julia kernel required to render this template.
+Once merged into a Julia-executed deck (like `HeartRateLab.qmd`, which sets
+`jupyter: julia-1.11`), switch back to `` ```{julia} `` for live output.
+
+> A blockquote looks like this — green left rule, purple italic text.
+
+## Table
+
+| Feature | Family | z-equiv |
+|---|---|---|
+| LF/HF | LogNormal | **+2.64** |
+| SDNN | Gamma | +1.12 |
+| RMSSD | Gamma | +0.03 |
+
+# Section dividers & down-slides {.section-slide background-gradient="linear-gradient(160deg, #2b0836 0%, #1a0526 52%, #120118 100%)"}
+
+A `#` heading is **both** a full-bleed section divider **and the top of a
+vertical stack**. Every `##` after it becomes a *down-slide* — press
+<kbd>↓</kbd> (or <kbd>Space</kbd>) to descend. Try it now: there are three
+down-slides below this one.
+
+::: {.callout-note}
+## How Quarto builds vertical stacks
+`#` = new horizontal slide (stack top) · `##` after it = nested down-slides.
+This nesting is automatic — no special class needed. Control the arrow-key
+behaviour with `navigation-mode: linear` (right/space only, verticals flattened)
+or leave the default (↓/↑ walk a stack, →/← jump between stacks).
+:::
+
+## Down-slide 1 of 3 ↓
+
+This is the **first vertical child** of the section above.
+
+- Reached by pressing <kbd>↓</kbd> from the divider, or <kbd>Space</kbd> to
+  auto-advance through the whole stack.
+- The slide number reads `c/t` (current / total) in the corner — vertical
+  position is tracked too.
+
+## Down-slide 2 of 3 ↓
+
+Down-slides are ordinary content slides — they inherit the white theme, the
+green heading pip, callouts, code blocks, everything.
+
+::: {.callout-tip}
+## Good use for a stack
+Park optional detail / backup material as down-slides under a headline slide:
+the audience sees the headline, and you drill down only if asked.
+:::
+
+## Down-slide 3 of 3 ↓
+
+Last one in the stack. Pressing <kbd>→</kbd> (or <kbd>Space</kbd>) from here
+jumps back up to the horizontal track and on to the closing slide.
+
+```julia
+# down-slides are authored as plain `##` headings under a `#` — nothing else
+using HeartRateLab
+m = read_txt("recording.txt")
+```
+
+# Thank you {.section-slide .jc-center background-gradient="linear-gradient(160deg, #2b0836 0%, #1a0526 52%, #120118 100%)"}
+
+::: {.juliacon-badge}
+<span class="jc-dots">
+  <span class="d-green"></span><span class="d-blue"></span>
+  <span class="d-red"></span><span class="d-purple"></span>
+</span>
+<span class="jc-word"><span class="jc-julia">julia</span><span class="jc-con">con</span></span>
+Global · 2026
+:::
+
+Alberto Barradas (abcsds) · Mainz, Germany · August 10–15, 2026
+
+![](img/qr-repo.png){height="260"}  github.com/abcsds/HeartRateLab.jl

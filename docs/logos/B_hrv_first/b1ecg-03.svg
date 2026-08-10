@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Pulse Tile: rounded-square app-icon tile with a bold white ECG trace -->
+  <rect x="44" y="44" width="232" height="232" rx="44" fill="#9558B2"/>
+  <path d="M80,170 L110,170 Q120,155 130,170 L142,170 L150,185 L172,100 L190,225 L202,170 L214,170 Q228,140 240,170"
+        fill="none" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

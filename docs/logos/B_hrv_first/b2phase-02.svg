@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- SD Compass: SD2 (long axis) and SD1 (short axis) as a caliper cross on the Poincaré diagonal -->
+  <g transform="rotate(-45 160 160)">
+    <ellipse cx="160" cy="160" rx="120" ry="46" fill="none" stroke="#1A1A1A" stroke-width="3" stroke-opacity="0.15"/>
+    <!-- SD2: long axis -->
+    <line x1="64" y1="160" x2="256" y2="160" stroke="#389826" stroke-width="10" stroke-linecap="round"/>
+    <polygon points="274,160 254,150 254,170" fill="#389826"/>
+    <polygon points="46,160 66,150 66,170" fill="#389826"/>
+    <!-- SD1: short axis -->
+    <line x1="160" y1="122" x2="160" y2="198" stroke="#9558B2" stroke-width="10" stroke-linecap="round"/>
+    <polygon points="160,104 150,122 170,122" fill="#9558B2"/>
+    <polygon points="160,216 150,198 170,198" fill="#9558B2"/>
+    <!-- mean NN -->
+    <circle cx="160" cy="160" r="12" fill="#CB3C33"/>
+  </g>
+</svg>

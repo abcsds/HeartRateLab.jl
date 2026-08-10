@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Poincare backdrop behind the classic upright Julia triad: axes, diagonal identity line, faint SD1/SD2 cloud -->
+  <path d="M56,264 L56,64" fill="none" stroke="#1A1A1A" stroke-width="4" opacity="0.35" stroke-linecap="round"/>
+  <path d="M56,264 L272,264" fill="none" stroke="#1A1A1A" stroke-width="4" opacity="0.35" stroke-linecap="round"/>
+  <path d="M64,256 L262,90" fill="none" stroke="#1A1A1A" stroke-width="3" stroke-dasharray="2 10" opacity="0.4" stroke-linecap="round"/>
+  <ellipse cx="163" cy="173" rx="100" ry="46" fill="#9558B2" opacity="0.08" transform="rotate(-40 163 173)"/>
+  <ellipse cx="163" cy="173" rx="100" ry="46" fill="none" stroke="#9558B2" stroke-width="3" opacity="0.3" transform="rotate(-40 163 173)"/>
+  <circle cx="160" cy="108" r="38" fill="#9558B2"/>
+  <circle cx="110" cy="198" r="38" fill="#CB3C33"/>
+  <circle cx="210" cy="198" r="38" fill="#389826"/>
+</svg>

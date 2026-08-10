@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Pulse Emitter: an R-peak spike broadcasting outward as concentric rhythm waves -->
+  <path d="M190,56 A120,120 0 0 1 190,264" fill="none" stroke="#4063D8" stroke-width="8" stroke-linecap="round"/>
+  <path d="M172,86 A85,85 0 0 1 172,234" fill="none" stroke="#389826" stroke-width="9" stroke-linecap="round"/>
+  <path d="M155,117 A50,50 0 0 1 155,203" fill="none" stroke="#9558B2" stroke-width="10" stroke-linecap="round"/>
+  <path d="M105,210 L125,210 L138,80 L155,235 L170,195"
+        fill="none" stroke="#CB3C33" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

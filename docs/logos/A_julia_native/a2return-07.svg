@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Minimal true Poincare return map: axes + identity diagonal + a lean SD1/SD2 cloud, only 3 points, colored as the Julia triad -->
+  <path d="M52,268 L52,60" fill="none" stroke="#1A1A1A" stroke-width="4" opacity="0.4" stroke-linecap="round"/>
+  <path d="M52,268 L268,268" fill="none" stroke="#1A1A1A" stroke-width="4" opacity="0.4" stroke-linecap="round"/>
+  <path d="M64,256 L258,78" fill="none" stroke="#1A1A1A" stroke-width="3" stroke-dasharray="1 11" opacity="0.45" stroke-linecap="round"/>
+  <ellipse cx="161" cy="167" rx="118" ry="42" fill="none" stroke="#4063D8" stroke-width="3" opacity="0.4" transform="rotate(-44 161 167)"/>
+  <circle cx="112" cy="214" r="30" fill="#CB3C33"/>
+  <circle cx="163" cy="167" r="30" fill="#9558B2"/>
+  <circle cx="214" cy="120" r="30" fill="#389826"/>
+</svg>

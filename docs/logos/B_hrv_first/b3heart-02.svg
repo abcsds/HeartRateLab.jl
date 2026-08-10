@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Loop Beat Heart: a single continuous stroke traces the heart contour, two colors meeting at the beat -->
+  <g transform="translate(60,68) scale(6.25)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16,5.6 C14.7,2.7 11.8,0 8.4,0 C3.8,0 0,3.8 0,8.4 C0,15.6 7.8,21.4 16,29.2"
+          stroke="#9558B2" stroke-width="2.3"/>
+    <path d="M16,29.2 C24.2,21.4 32,15.6 32,8.4 C32,3.8 28.2,0 23.6,0 C20.2,0 17.3,2.7 16,5.6"
+          stroke="#389826" stroke-width="2.3"/>
+  </g>
+  <circle cx="160" cy="250.5" r="9" fill="#CB3C33"/>
+</svg>

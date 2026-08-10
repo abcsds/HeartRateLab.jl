@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <!-- Triad Pulse lockup: the classic Julia three-dot triangle sits directly on
+       an ECG baseline (three dots as beats + ECG underline), paired with the
+       full wordmark. -->
+  <path d="M20,178 H70 L84,152 L98,204 L112,178 H200"
+        fill="none" stroke="#1A1A1A" stroke-width="8"
+        stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="110" cy="68" r="27" fill="#9558B2"/>
+  <circle cx="74" cy="126" r="25" fill="#CB3C33"/>
+  <circle cx="146" cy="126" r="25" fill="#389826"/>
+  <text x="220" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700"
+        font-size="70" textLength="390" lengthAdjust="spacingAndGlyphs"
+        fill="#1A1A1A">HeartRateLab</text>
+</svg>

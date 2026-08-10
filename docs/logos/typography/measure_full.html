@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:JMB;src:url('fonts/JuliaMono-Bold.ttf')}
+</style></head><body><pre id="out">PENDING</pre>
+<script>
+const FS=1000, WORD="HeartRateLab";
+const cv=document.createElement('canvas'),ctx=cv.getContext('2d');
+const R=x=>Math.round(x*100)/100;
+(async()=>{ await document.fonts.load(`${FS}px JMB`); await document.fonts.ready;
+ ctx.font=`${FS}px JMB`; ctx.textBaseline='alphabetic';
+ const penX=i=>ctx.measureText(WORD.substring(0,i)).width;
+ const letters=[];
+ for(let i=0;i<WORD.length;i++){const px=penX(i),m=ctx.measureText(WORD[i]);
+   const inkL=px-m.actualBoundingBoxLeft,inkR=px+m.actualBoundingBoxRight;
+   letters.push({c:WORD[i],i,px:R(px),adv:R(m.width),inkL:R(inkL),inkR:R(inkR),
+     center:R((inkL+inkR)/2),inkW:R(inkR-inkL),
+     inkTop:R(-m.actualBoundingBoxAscent),inkBot:R(m.actualBoundingBoxDescent)});}
+ const cap=R(ctx.measureText('H').actualBoundingBoxAscent);
+ const xh=R(ctx.measureText('x').actualBoundingBoxAscent);
+ const asc=R(ctx.measureText('b').actualBoundingBoxAscent);
+ const desc=R(ctx.measureText('p').actualBoundingBoxDescent);
+ const advChar=R(ctx.measureText('H').width), advWidth=R(ctx.measureText(WORD).width);
+ const wL=letters[0].inkL, wR=letters[letters.length-1].inkR;
+ const H=letters[0],Rr=letters[5],L=letters[9];
+ const gHR=R(Rr.center-H.center),gRL=R(L.center-Rr.center);
+ document.getElementById('out').textContent=JSON.stringify({font:"JuliaMono Bold",em:FS,
+   cap,xh,asc,desc,advChar,advWidth,wL,wR,letters,
+   H:H.center,R:Rr.center,L:L.center,gHR,gRL,ratio:R(gHR/gRL)});
+ document.title='DONE';
+})();
+</script></body></html>

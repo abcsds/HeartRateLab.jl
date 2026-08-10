@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Ring Rhythm: three outline dots, a pulse line threads the gap between them -->
+  <circle cx="160" cy="104" r="40" fill="none" stroke="#9558B2" stroke-width="9"/>
+  <circle cx="108" cy="200" r="40" fill="none" stroke="#CB3C33" stroke-width="9"/>
+  <circle cx="212" cy="200" r="40" fill="none" stroke="#389826" stroke-width="9"/>
+  <path d="M138,168 L150,168 L158,140 L168,188 L176,168 L188,168"
+        fill="none" stroke="#4063D8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- "H (heart) L" lockup: a geometric heart stands in for the middle of the
+       name, seeded with a tiny Poincare-plot dot cloud along its diagonal. -->
+  <text x="26" y="218" font-family="Arial, Helvetica, sans-serif" font-weight="700"
+        font-size="168" fill="#1A1A1A">H</text>
+  <text x="294" y="218" text-anchor="end" font-family="Arial, Helvetica, sans-serif"
+        font-weight="700" font-size="168" fill="#1A1A1A">L</text>
+  <path d="M160,196 C160,196 112,158 112,124 C112,101 133,90 150,105
+           C154,109 158,115 160,120 C162,115 166,109 170,105
+           C187,90 208,101 208,124 C208,158 160,196 160,196 Z"
+        fill="#CB3C33"/>
+  <circle cx="132" cy="150" r="7" fill="#9558B2"/>
+  <circle cx="145" cy="138" r="6" fill="#389826"/>
+  <circle cx="158" cy="128" r="7" fill="#4063D8"/>
+  <circle cx="171" cy="118" r="6" fill="#9558B2"/>
+  <circle cx="184" cy="140" r="5" fill="#389826"/>
+</svg>

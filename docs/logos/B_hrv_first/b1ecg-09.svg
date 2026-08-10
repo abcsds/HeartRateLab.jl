@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- QRS Chevron: the complex rebuilt from pure angular strokes, tri-color, no curves -->
+  <path d="M55,190 L90,190 L100,165 L110,190 L120,190 L128,205"
+        fill="none" stroke="#9558B2" stroke-width="16" stroke-linecap="round" stroke-linejoin="miter"/>
+  <path d="M128,205 L152,75 L176,235 L190,190"
+        fill="none" stroke="#CB3C33" stroke-width="16" stroke-linecap="round" stroke-linejoin="miter"/>
+  <path d="M190,190 L200,190 L212,155 L224,190 L260,190"
+        fill="none" stroke="#389826" stroke-width="16" stroke-linecap="round" stroke-linejoin="miter"/>
+</svg>

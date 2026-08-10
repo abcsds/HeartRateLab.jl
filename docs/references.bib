@@ -1,0 +1,755 @@
+% ============================================================================
+% HeartRateLab.jl — Seminal-reference bibliography for the HRV feature zoo
+% ----------------------------------------------------------------------------
+% One entry per measure that HeartRateLab computes (src/Features.jl register macro).
+% Each entry is the FIRST/seminal paper that INTRODUCED the measure (not a
+% review that merely uses it). Metadata (authors, year, venue, DOI) was
+% verified against PubMed / publisher pages / Semantic Scholar in 2026-07.
+% Feature -> key mapping lives in docs/src/zoo/_citations.md.
+%
+% Provenance notes:
+%  * `taskforce1996` is the canonical Circulation printing of the 1996 HRV
+%    standard; `docs/slides/references.bib` also carries the Annals of
+%    Noninvasive Electrocardiology reprint as `malik1996` (same document).
+%  * `vollmer2015`, `bigger1996`, `taskforce1996` are already vetted in our
+%    own lit review (memory note hrl-rr-ibi-modeling-literature-review /
+%    docs/forecasting/) and reconciled here.
+% ============================================================================
+
+% ─── Standard time- & frequency-domain panel ───────────────────────────────
+@article{taskforce1996,
+  title   = {Heart rate variability: Standards of measurement, physiological interpretation, and clinical use},
+  author  = {{Task Force, European Society of Cardiology / North American Society of Pacing \& Electrophysiology}},
+  journal = {Circulation},
+  volume  = {93},
+  number  = {5},
+  pages   = {1043--1065},
+  year    = {1996},
+  doi     = {10.1161/01.CIR.93.5.1043},
+  publisher = {American Heart Association}
+}
+
+@article{akselrod1981,
+  title   = {Power spectrum analysis of heart rate fluctuation: a quantitative probe of beat-to-beat cardiovascular control},
+  author  = {Akselrod, Solange and Gordon, David and Ubel, F. Andrew and Shannon, Daniel C. and Barger, A. Clifford and Cohen, Richard J.},
+  journal = {Science},
+  volume  = {213},
+  number  = {4504},
+  pages   = {220--222},
+  year    = {1981},
+  doi     = {10.1126/science.6166045},
+  publisher = {American Association for the Advancement of Science}
+}
+
+@article{kleiger1987,
+  title   = {Decreased heart rate variability and its association with increased mortality after acute myocardial infarction},
+  author  = {Kleiger, Robert E. and Miller, J. Philip and Bigger, J. Thomas and Moss, Arthur J.},
+  journal = {The American Journal of Cardiology},
+  volume  = {59},
+  number  = {4},
+  pages   = {256--262},
+  year    = {1987},
+  doi     = {10.1016/0002-9149(87)90795-8},
+  publisher = {Elsevier}
+}
+
+@article{ewing1984,
+  title   = {New method for assessing cardiac parasympathetic activity using 24 hour electrocardiograms},
+  author  = {Ewing, D. J. and Neilson, J. M. and Travis, P.},
+  journal = {British Heart Journal},
+  volume  = {52},
+  number  = {4},
+  pages   = {396--402},
+  year    = {1984},
+  doi     = {10.1136/hrt.52.4.396},
+  publisher = {BMJ Publishing Group}
+}
+
+@article{mietus2002,
+  title   = {The p{NN}x files: re-examining a widely used heart rate variability measure},
+  author  = {Mietus, J. E. and Peng, C.-K. and Henry, I. and Goldsmith, R. L. and Goldberger, A. L.},
+  journal = {Heart},
+  volume  = {88},
+  number  = {4},
+  pages   = {378--380},
+  year    = {2002},
+  doi     = {10.1136/heart.88.4.378},
+  publisher = {BMJ Publishing Group}
+}
+
+@article{bigger1996,
+  title   = {Power law behavior of {RR}-interval variability in healthy middle-aged persons, patients with recent acute myocardial infarction, and patients with heart transplants},
+  author  = {Bigger, J. Thomas and Steinman, Richard C. and Rolnitzky, Linda M. and Fleiss, Joseph L. and Albrecht, Paul and Cohen, Richard J.},
+  journal = {Circulation},
+  volume  = {93},
+  number  = {11},
+  pages   = {2142--2151},
+  year    = {1996},
+  doi     = {10.1161/01.CIR.93.11.2142},
+  publisher = {American Heart Association}
+}
+
+@article{wolf1978,
+  title   = {Sinus arrhythmia in acute myocardial infarction},
+  author  = {Wolf, M. M. and Varigos, G. A. and Hunt, D. and Sloman, J. G.},
+  journal = {Medical Journal of Australia},
+  volume  = {2},
+  number  = {2},
+  pages   = {52--53},
+  year    = {1978},
+  doi     = {10.5694/j.1326-5377.1978.tb131339.x},
+  publisher = {Wiley (AMPCo)}
+}
+
+@article{vollmer2015,
+  title   = {A robust, simple and reliable measure of heart rate variability using relative {RR} intervals},
+  author  = {Vollmer, Marcus},
+  journal = {2015 Computing in Cardiology Conference (CinC)},
+  pages   = {609--612},
+  year    = {2015},
+  doi     = {10.1109/CIC.2015.7410984},
+  publisher = {IEEE}
+}
+
+@article{pagani1986,
+  title   = {Power spectral analysis of heart rate and arterial pressure variabilities as a marker of sympatho-vagal interaction in man and conscious dog},
+  author  = {Pagani, M. and Lombardi, F. and Guzzetti, S. and Rimoldi, O. and Furlan, R. and Pizzinelli, P. and Sandrone, G. and Malfatto, G. and Dell'Orto, S. and Piccaluga, E. and Turiel, M. and Baselli, G. and Cerutti, S. and Malliani, A.},
+  journal = {Circulation Research},
+  volume  = {59},
+  number  = {2},
+  pages   = {178--193},
+  year    = {1986},
+  doi     = {10.1161/01.RES.59.2.178},
+  publisher = {American Heart Association}
+}
+
+% ─── Spectral estimation (periodogram machinery) ────────────────────────────
+@article{lomb1976,
+  title   = {Least-squares frequency analysis of unequally spaced data},
+  author  = {Lomb, N. R.},
+  journal = {Astrophysics and Space Science},
+  volume  = {39},
+  number  = {2},
+  pages   = {447--462},
+  year    = {1976},
+  doi     = {10.1007/BF00648343},
+  publisher = {Springer}
+}
+
+@article{scargle1982,
+  title   = {Studies in astronomical time series analysis. II. Statistical aspects of spectral analysis of unevenly spaced data},
+  author  = {Scargle, J. D.},
+  journal = {The Astrophysical Journal},
+  volume  = {263},
+  pages   = {835--853},
+  year    = {1982},
+  doi     = {10.1086/160554},
+  publisher = {IOP Publishing}
+}
+
+@inproceedings{moody1993,
+  title     = {Spectral analysis of heart rate without resampling},
+  author    = {Moody, George B.},
+  booktitle = {Proceedings of Computers in Cardiology},
+  pages     = {715--718},
+  year      = {1993},
+  doi       = {10.1109/CIC.1993.378302},
+  publisher = {IEEE}
+}
+
+@article{welch1967,
+  title   = {The use of fast Fourier transform for the estimation of power spectra: a method based on time averaging over short, modified periodograms},
+  author  = {Welch, Peter D.},
+  journal = {IEEE Transactions on Audio and Electroacoustics},
+  volume  = {15},
+  number  = {2},
+  pages   = {70--73},
+  year    = {1967},
+  doi     = {10.1109/TAU.1967.1161901},
+  publisher = {IEEE}
+}
+
+% ─── Poincaré / Lorenz-plot nonlinear geometry ──────────────────────────────
+@article{tulppo1996,
+  title   = {Quantitative beat-to-beat analysis of heart rate dynamics during exercise},
+  author  = {Tulppo, M. P. and M{\"a}kikallio, T. H. and Takala, T. E. and Sepp{\"a}nen, T. and Huikuri, H. V.},
+  journal = {American Journal of Physiology-Heart and Circulatory Physiology},
+  volume  = {271},
+  number  = {1},
+  pages   = {H244--H252},
+  year    = {1996},
+  doi     = {10.1152/ajpheart.1996.271.1.H244},
+  publisher = {American Physiological Society}
+}
+
+@article{brennan2001,
+  title   = {Do existing measures of Poincar{\'e} plot geometry reflect nonlinear features of heart rate variability?},
+  author  = {Brennan, Michael and Palaniswami, Marimuthu and Kamen, Peter},
+  journal = {IEEE Transactions on Biomedical Engineering},
+  volume  = {48},
+  number  = {11},
+  pages   = {1342--1347},
+  year    = {2001},
+  doi     = {10.1109/10.959330},
+  publisher = {IEEE}
+}
+
+@article{toichi1997,
+  title   = {A new method of assessing cardiac autonomic function and its comparison with spectral analysis and coefficient of variation of {R-R} interval},
+  author  = {Toichi, M. and Sugiura, T. and Murai, T. and Sengoku, A.},
+  journal = {Journal of the Autonomic Nervous System},
+  volume  = {62},
+  number  = {1-2},
+  pages   = {79--84},
+  year    = {1997},
+  doi     = {10.1016/S0165-1838(96)00112-9},
+  publisher = {Elsevier}
+}
+
+@inproceedings{jeppesen2014,
+  title     = {Using Lorenz plot and Cardiac Sympathetic Index of heart rate variability for detecting seizures for patients with epilepsy},
+  author    = {Jeppesen, Jesper and Beniczky, Sandor and Johansen, Peter and Sidenius, Per and Fuglsang-Frederiksen, Anders},
+  booktitle = {2014 36th Annual International Conference of the IEEE Engineering in Medicine and Biology Society (EMBC)},
+  pages     = {4563--4566},
+  year      = {2014},
+  doi       = {10.1109/EMBC.2014.6944639},
+  publisher = {IEEE}
+}
+
+@article{malik1989,
+  title   = {Heart rate variability in relation to prognosis after myocardial infarction: selection of optimal processing techniques},
+  author  = {Malik, M. and Farrell, T. and Cripps, T. and Camm, A. J.},
+  journal = {European Heart Journal},
+  volume  = {10},
+  number  = {12},
+  pages   = {1060--1074},
+  year    = {1989},
+  doi     = {10.1093/oxfordjournals.eurheartj.a059428},
+  publisher = {Oxford University Press}
+}
+
+% ─── Entropy / complexity ───────────────────────────────────────────────────
+@article{shannon1948,
+  title   = {A mathematical theory of communication},
+  author  = {Shannon, C. E.},
+  journal = {The Bell System Technical Journal},
+  volume  = {27},
+  number  = {3},
+  pages   = {379--423},
+  year    = {1948},
+  doi     = {10.1002/j.1538-7305.1948.tb01338.x},
+  publisher = {Nokia Bell Labs}
+}
+
+@inproceedings{renyi1961,
+  title     = {On measures of entropy and information},
+  author    = {R{\'e}nyi, Alfr{\'e}d},
+  booktitle = {Proceedings of the Fourth Berkeley Symposium on Mathematical Statistics and Probability, Volume 1: Contributions to the Theory of Statistics},
+  pages     = {547--561},
+  year      = {1961},
+  publisher = {University of California Press}
+}
+
+@article{pincus1991,
+  title   = {Approximate entropy as a measure of system complexity},
+  author  = {Pincus, Steven M.},
+  journal = {Proceedings of the National Academy of Sciences},
+  volume  = {88},
+  number  = {6},
+  pages   = {2297--2301},
+  year    = {1991},
+  doi     = {10.1073/pnas.88.6.2297},
+  publisher = {National Academy of Sciences}
+}
+
+@article{richman2000,
+  title   = {Physiological time-series analysis using approximate entropy and sample entropy},
+  author  = {Richman, Joshua S. and Moorman, J. Randall},
+  journal = {American Journal of Physiology-Heart and Circulatory Physiology},
+  volume  = {278},
+  number  = {6},
+  pages   = {H2039--H2049},
+  year    = {2000},
+  doi     = {10.1152/ajpheart.2000.278.6.H2039},
+  publisher = {American Physiological Society}
+}
+
+@article{chen2007,
+  title   = {Characterization of surface {EMG} signal based on fuzzy entropy},
+  author  = {Chen, Weiting and Wang, Zhizhong and Xie, Hongbo and Yu, Wangxin},
+  journal = {IEEE Transactions on Neural Systems and Rehabilitation Engineering},
+  volume  = {15},
+  number  = {2},
+  pages   = {266--272},
+  year    = {2007},
+  doi     = {10.1109/TNSRE.2007.897025},
+  publisher = {IEEE}
+}
+
+@article{inouye1991,
+  title   = {Quantification of {EEG} irregularity by use of the entropy of the power spectrum},
+  author  = {Inouye, T. and Shinosaki, K. and Sakamoto, H. and Toi, S. and Ukai, S. and Iyama, A. and Katsuda, Y. and Hirano, M.},
+  journal = {Electroencephalography and Clinical Neurophysiology},
+  volume  = {79},
+  number  = {3},
+  pages   = {204--210},
+  year    = {1991},
+  doi     = {10.1016/0013-4694(91)90138-T},
+  publisher = {Elsevier}
+}
+
+@article{roberts1999,
+  title   = {Temporal and spatial complexity measures for electroencephalogram based brain-computer interfacing},
+  author  = {Roberts, S. J. and Penny, W. and Rezek, I.},
+  journal = {Medical \& Biological Engineering \& Computing},
+  volume  = {37},
+  number  = {1},
+  pages   = {93--98},
+  year    = {1999},
+  doi     = {10.1007/BF02513272},
+  publisher = {Springer}
+}
+
+@article{bandt2002,
+  title   = {Permutation entropy: a natural complexity measure for time series},
+  author  = {Bandt, Christoph and Pompe, Bernd},
+  journal = {Physical Review Letters},
+  volume  = {88},
+  number  = {17},
+  pages   = {174102},
+  year    = {2002},
+  doi     = {10.1103/PhysRevLett.88.174102},
+  publisher = {American Physical Society}
+}
+
+@article{costa2002,
+  title   = {Multiscale entropy analysis of complex physiologic time series},
+  author  = {Costa, Madalena and Goldberger, Ary L. and Peng, C.-K.},
+  journal = {Physical Review Letters},
+  volume  = {89},
+  number  = {6},
+  pages   = {068102},
+  year    = {2002},
+  doi     = {10.1103/PhysRevLett.89.068102},
+  publisher = {American Physical Society}
+}
+
+% ─── Fractal / scaling ──────────────────────────────────────────────────────
+@article{peng1994,
+  title   = {Mosaic organization of {DNA} nucleotides},
+  author  = {Peng, C.-K. and Buldyrev, S. V. and Havlin, S. and Simons, M. and Stanley, H. E. and Goldberger, A. L.},
+  journal = {Physical Review E},
+  volume  = {49},
+  number  = {2},
+  pages   = {1685--1689},
+  year    = {1994},
+  doi     = {10.1103/PhysRevE.49.1685},
+  publisher = {American Physical Society}
+}
+
+@article{peng1995,
+  title   = {Quantification of scaling exponents and crossover phenomena in nonstationary heartbeat time series},
+  author  = {Peng, C.-K. and Havlin, Shlomo and Stanley, H. Eugene and Goldberger, Ary L.},
+  journal = {Chaos: An Interdisciplinary Journal of Nonlinear Science},
+  volume  = {5},
+  number  = {1},
+  pages   = {82--87},
+  year    = {1995},
+  doi     = {10.1063/1.166141},
+  publisher = {AIP Publishing}
+}
+
+@article{francis2002,
+  title   = {Physiological basis of fractal complexity properties of heart rate variability in man},
+  author  = {Francis, Darrel P. and Willson, Keith and Georgiadou, Paraskevi and Wensel, Roland and Davies, L. Ceri and Coats, Andrew and Piepoli, Massimo},
+  journal = {The Journal of Physiology},
+  volume  = {542},
+  number  = {2},
+  pages   = {619--629},
+  year    = {2002},
+  doi     = {10.1113/jphysiol.2001.013389},
+  publisher = {Wiley}
+}
+
+@article{iyengar1996,
+  title   = {Age-related alterations in the fractal scaling of cardiac interbeat interval dynamics},
+  author  = {Iyengar, N. and Peng, C. K. and Morin, R. and Goldberger, A. L. and Lipsitz, L. A.},
+  journal = {American Journal of Physiology-Regulatory, Integrative and Comparative Physiology},
+  volume  = {271},
+  number  = {4},
+  pages   = {R1078--R1084},
+  year    = {1996},
+  doi     = {10.1152/ajpregu.1996.271.4.R1078},
+  publisher = {American Physiological Society}
+}
+
+@article{hurst1951,
+  title   = {Long-term storage capacity of reservoirs},
+  author  = {Hurst, Harold Edwin},
+  journal = {Transactions of the American Society of Civil Engineers},
+  volume  = {116},
+  number  = {1},
+  pages   = {770--799},
+  year    = {1951},
+  doi     = {10.1061/TACEAT.0006518},
+  publisher = {American Society of Civil Engineers}
+}
+
+% ============================================================================
+% Applications bibliography — real-world reported effects for the zoo's
+% "Applications by area" sections (docs/zoo_gen/applications.jl,
+% docs/zoo_gen/make_entry.jl). One entry per key review/meta-analysis + a small
+% number of load-bearing/contested primary papers surfaced by the applications
+% research+adversarial-review workflow (2026-07). Study-level effect statistics
+% (harvested per-paper direction/effect-size/p-value) live in
+% docs/zoo_gen/effect_stats.csv, not here — this file stays curated, not
+% exhaustive. Every entry below was independently verified (DOI/PMID resolved,
+% authors/venue cross-checked) by an adversarial review pass.
+% ============================================================================
+
+% ─── Heart-rate level (clinical mortality dose-response + HRmax) ────────────
+@article{zhang2016,
+  title   = {Resting heart rate and all-cause and cardiovascular mortality in the general population: a meta-analysis},
+  author  = {Zhang, Dongdong and Shen, Xin and Qi, Xiuying},
+  journal = {CMAJ},
+  volume  = {188},
+  number  = {3},
+  pages   = {E53--E63},
+  year    = {2016},
+  doi     = {10.1503/cmaj.150535},
+  publisher = {Canadian Medical Association}
+}
+
+@article{aune2017,
+  title   = {Resting heart rate and the risk of cardiovascular disease, total cancer, and all-cause mortality -- a systematic review and dose-response meta-analysis of prospective studies},
+  author  = {Aune, Dagfinn and Sen, Abhijit and {\'O}'Hartaigh, Bri{\'a}in and Janszky, Imre and Romundstad, Pal R. and Tonstad, Serena and Vatten, Lars J.},
+  journal = {Nutrition, Metabolism and Cardiovascular Diseases},
+  volume  = {27},
+  number  = {6},
+  pages   = {504--517},
+  year    = {2017},
+  doi     = {10.1016/j.numecd.2017.04.004},
+  publisher = {Elsevier}
+}
+
+@article{tanaka2001,
+  title   = {Age-predicted maximal heart rate revisited},
+  author  = {Tanaka, Hirofumi and Monahan, Kevin D. and Seals, Douglas R.},
+  journal = {Journal of the American College of Cardiology},
+  volume  = {37},
+  number  = {1},
+  pages   = {153--156},
+  year    = {2001},
+  doi     = {10.1016/S0735-1097(00)01054-8},
+  publisher = {Elsevier}
+}
+
+% ─── Sports / peak-performance (autonomic monitoring, training status) ─────
+@article{bellenger2016,
+  title   = {Monitoring athletic training status through autonomic heart rate regulation: a systematic review and meta-analysis},
+  author  = {Bellenger, Clint R. and Fuller, Jason T. and Thomson, Rebecca L. and Davison, Kade and Robertson, Eileen Y. and Buckley, Jonathan D.},
+  journal = {Sports Medicine},
+  volume  = {46},
+  number  = {10},
+  pages   = {1461--1486},
+  year    = {2016},
+  doi     = {10.1007/s40279-016-0484-2},
+  publisher = {Springer}
+}
+
+@article{gronwald2020,
+  title   = {Correlation properties of heart rate variability during endurance exercise: a systematic review},
+  author  = {Gronwald, Thomas and Hoos, Olaf},
+  journal = {Annals of Noninvasive Electrocardiology},
+  volume  = {25},
+  number  = {1},
+  pages   = {e12697},
+  year    = {2020},
+  doi     = {10.1111/anec.12697},
+  publisher = {Wiley}
+}
+
+@article{cassirame2025,
+  title   = {Detrended fluctuation analysis to determine physiologic thresholds, investigation and evidence from incremental cycling test},
+  author  = {Cassirame, Johan and Eustache, Esther and Garbellotto, Lucas and Chevrolat, Simon and Gimenez, Philippe and Lepr{\^e}tre, Pierre-Marie},
+  journal = {European Journal of Applied Physiology},
+  volume  = {125},
+  pages   = {523--533},
+  year    = {2025},
+  doi     = {10.1007/s00421-024-05614-z},
+  publisher = {Springer}
+}
+
+@article{hoos2025,
+  title   = {Detrended fluctuation analysis of heart rate variability during exercise: time to reconsider the theoretical and methodological background. Comment on Cassirame et al. (2025)},
+  author  = {Hoos, Olaf and Gronwald, Thomas},
+  journal = {European Journal of Applied Physiology},
+  volume  = {125},
+  number  = {9},
+  pages   = {2637--2639},
+  year    = {2025},
+  doi     = {10.1007/s00421-025-05859-2},
+  publisher = {Springer}
+}
+
+% ─── Meditation / contemplation ─────────────────────────────────────────────
+@article{pascoe2017,
+  title   = {Mindfulness mediates the physiological markers of stress: systematic review and meta-analysis},
+  author  = {Pascoe, Michaela C. and Thompson, David R. and Jenkins, Zoe M. and Ski, Chantal F.},
+  journal = {Journal of Psychiatric Research},
+  volume  = {95},
+  pages   = {156--178},
+  year    = {2017},
+  doi     = {10.1016/j.jpsychires.2017.08.004},
+  publisher = {Elsevier}
+}
+
+@article{natarajan2023,
+  title   = {Heart rate variability during mindful breathing meditation},
+  author  = {Natarajan, Aravind},
+  journal = {Frontiers in Physiology},
+  volume  = {13},
+  pages   = {1017350},
+  year    = {2023},
+  doi     = {10.3389/fphys.2022.1017350},
+  publisher = {Frontiers}
+}
+
+@article{radmark2019,
+  title   = {A systematic review and meta-analysis of the impact of mindfulness based interventions on heart rate variability and inflammatory markers},
+  author  = {R{\aa}dmark, Lisa and Sidorchuk, Anna and Osika, Walter and Niemi, Maria},
+  journal = {Journal of Clinical Medicine},
+  volume  = {8},
+  number  = {10},
+  pages   = {1638},
+  year    = {2019},
+  doi     = {10.3390/jcm8101638},
+  publisher = {MDPI}
+}
+
+@article{brown2021,
+  title   = {The effects of mindfulness and meditation on vagally mediated heart rate variability: a meta-analysis},
+  author  = {Brown, Lachlan and Rando, Aleisha A. and Eichel, Kaia and Van Dam, Nicholas T. and Celano, Christopher M. and Huffman, Jeff C. and Morris, Matthew E.},
+  journal = {Psychosomatic Medicine},
+  volume  = {83},
+  number  = {6},
+  pages   = {631--640},
+  year    = {2021},
+  doi     = {10.1097/PSY.0000000000000900},
+  publisher = {Wolters Kluwer}
+}
+
+@article{deka2023,
+  title   = {Nonlinear analysis of heart rate variability signals in meditative state: a review and perspective},
+  author  = {Deka, Bhagaban and Deka, Diganta},
+  journal = {BioMedical Engineering OnLine},
+  volume  = {22},
+  pages   = {35},
+  year    = {2023},
+  doi     = {10.1186/s12938-023-01100-3},
+  publisher = {Springer Nature}
+}
+
+% ─── Clinical: depression / anxiety HRV meta-analyses (short-term vagal, LF/HF) ─
+@article{koch2019,
+  title   = {A meta-analysis of heart rate variability in major depression},
+  author  = {Koch, Christian and Wilhelm, Marco and Salzmann, Stefan and Rief, Winfried and Euteneuer, Frank},
+  journal = {Psychological Medicine},
+  volume  = {49},
+  number  = {12},
+  pages   = {1948--1957},
+  year    = {2019},
+  doi     = {10.1017/S0033291719001351},
+  publisher = {Cambridge University Press}
+}
+
+@article{wu2023,
+  title   = {Heart rate variability status at rest in adult depressed patients: a systematic review and meta-analysis},
+  author  = {Wu, Qianqian and Miao, Xiangyang and Cao, Yingying and Chi, Aiping and Xiao, Tao},
+  journal = {Frontiers in Public Health},
+  volume  = {11},
+  pages   = {1243213},
+  year    = {2023},
+  doi     = {10.3389/fpubh.2023.1243213},
+  publisher = {Frontiers}
+}
+
+@article{chalmers2014,
+  title   = {Anxiety disorders are associated with reduced heart rate variability: a meta-analysis},
+  author  = {Chalmers, John A. and Quintana, Daniel S. and Abbott, Maree J-A. and Kemp, Andrew H.},
+  journal = {Frontiers in Psychiatry},
+  volume  = {5},
+  pages   = {80},
+  year    = {2014},
+  doi     = {10.3389/fpsyt.2014.00080},
+  publisher = {Frontiers}
+}
+
+@article{goldstein2011,
+  title   = {Low-frequency power of heart rate variability is not a measure of cardiac sympathetic tone but may be a measure of modulation of cardiac autonomic outflows by baroreflexes},
+  author  = {Goldstein, David S. and Bentho, Olga and Park, Man Young and Sharabi, Yehonatan},
+  journal = {Experimental Physiology},
+  volume  = {96},
+  number  = {12},
+  pages   = {1255--1261},
+  year    = {2011},
+  doi     = {10.1113/expphysiol.2010.056259},
+  publisher = {Wiley}
+}
+
+@article{billman2013,
+  title   = {The LF/HF ratio does not accurately measure cardiac sympatho-vagal balance},
+  author  = {Billman, George E.},
+  journal = {Frontiers in Physiology},
+  volume  = {4},
+  pages   = {26},
+  year    = {2013},
+  doi     = {10.3389/fphys.2013.00026},
+  publisher = {Frontiers}
+}
+
+% ─── Global variability / mortality (SDNN family, post-MI, general population) ─
+@article{hillebrand2013,
+  title   = {Heart rate variability and first cardiovascular event in populations without known cardiovascular disease: meta-analysis and dose-response meta-regression},
+  author  = {Hillebrand, Stephanie and Gast, Karin B. and de Mutsert, Renee and Swenne, Cees A. and Jukema, J. Wouter and Middeldorp, Saskia and Rosendaal, Frits R. and Dekkers, Olaf M.},
+  journal = {Europace},
+  volume  = {15},
+  number  = {5},
+  pages   = {742--749},
+  year    = {2013},
+  doi     = {10.1093/europace/eus341},
+  publisher = {Oxford University Press}
+}
+
+@article{rueda2024,
+  title   = {Which indices of heart rate variability are the best predictors of mortality after acute myocardial infarction? Meta-analysis of observational studies},
+  author  = {Rueda-Ochoa, Oscar L. and Osorio-Romero, Luisa F. and Sanchez-Mendez, Lizeth Daniela},
+  journal = {Journal of Electrocardiology},
+  volume  = {84},
+  pages   = {42--48},
+  year    = {2024},
+  doi     = {10.1016/j.jelectrocard.2024.03.006},
+  publisher = {Elsevier}
+}
+
+@article{stuckey2014,
+  title   = {Heart rate variability and the metabolic syndrome: a systematic review of the literature},
+  author  = {Stuckey, Melanie I. and Tulppo, Mikko P. and Kiviniemi, Antti M. and Petrella, Robert J.},
+  journal = {Diabetes/Metabolism Research and Reviews},
+  volume  = {30},
+  number  = {8},
+  pages   = {784--793},
+  year    = {2014},
+  doi     = {10.1002/dmrr.2555},
+  publisher = {Wiley}
+}
+
+% ─── ULF/VLF mortality prognostics ──────────────────────────────────────────
+@article{shaffer2017,
+  title   = {An overview of heart rate variability metrics and norms},
+  author  = {Shaffer, Fred and Ginsberg, J. P.},
+  journal = {Frontiers in Public Health},
+  volume  = {5},
+  pages   = {258},
+  year    = {2017},
+  doi     = {10.3389/fpubh.2017.00258},
+  publisher = {Frontiers}
+}
+
+@article{yuda2021,
+  title   = {Redundancy among risk predictors derived from heart rate variability and dynamics: ALLSTAR big data analysis},
+  author  = {Yuda, Emi and Ueda, Naoki and Kisohara, Motoaki and Hayano, Junichiro},
+  journal = {Annals of Noninvasive Electrocardiology},
+  volume  = {26},
+  number  = {1},
+  pages   = {e12790},
+  year    = {2021},
+  doi     = {10.1111/anec.12790},
+  publisher = {Wiley}
+}
+
+% ─── DFA / Hurst mortality + endurance-exercise threshold literature ────────
+@article{sen2018,
+  title   = {Fractal analysis of heart rate variability as a predictor of mortality: a systematic review and meta-analysis},
+  author  = {Sen, Jaideep and McGill, Danielle},
+  journal = {Chaos: An Interdisciplinary Journal of Nonlinear Science},
+  volume  = {28},
+  number  = {7},
+  pages   = {072101},
+  year    = {2018},
+  doi     = {10.1063/1.5038818},
+  publisher = {AIP Publishing}
+}
+
+% ─── Poincaré geometric-index construct-validity disputes ───────────────────
+@article{ciccone2017,
+  title   = {Reminder: RMSSD and SD1 are identical heart rate variability metrics},
+  author  = {Ciccone, Anthony B. and Siedlik, Jacob A. and Wecht, Jill M. and Deckert, Jason A. and Nguyen, Nguyen D. and Weir, Joseph P.},
+  journal = {Muscle \& Nerve},
+  volume  = {56},
+  number  = {4},
+  pages   = {674--678},
+  year    = {2017},
+  doi     = {10.1002/mus.25573},
+  publisher = {Wiley}
+}
+
+@article{rahman2018,
+  title   = {Poincar{\'e} plot indices as measures of sympathetic cardiac regulation: responses to psychological stress and associations with pre-ejection period},
+  author  = {Rahman, Saif and Habel, Matthew and Contrada, Richard J.},
+  journal = {International Journal of Psychophysiology},
+  volume  = {133},
+  pages   = {79--90},
+  year    = {2018},
+  doi     = {10.1016/j.ijpsycho.2018.08.005},
+  publisher = {Elsevier}
+}
+
+% ─── CSI/CVI (Toichi Lorenz-plot family) seizure-discrimination follow-up ───
+@article{jeppesen2016,
+  title   = {Comparing maximum autonomic activity of psychogenic non-epileptic seizures and epileptic seizures using heart rate variability},
+  author  = {Jeppesen, Jesper and Beniczky, Sandor and Johansen, Peter and Sidenius, Per and Fuglsang-Frederiksen, Anders},
+  journal = {Seizure},
+  volume  = {37},
+  pages   = {13--19},
+  year    = {2016},
+  doi     = {10.1016/j.seizure.2016.02.005},
+  publisher = {Elsevier}
+}
+
+% ─── Entropy family (ApEn/SampEn + other entropies) clinical scoping review ─
+@article{yang2026,
+  title   = {Advancing entropy analysis for heart rate variability: clinical insights for aging and diabetes},
+  author  = {Yang, Sheng and Wu, Hao and Liao, Xin and Lin, Yu and Liou, Jyh-Jong},
+  journal = {Frontiers in Physiology},
+  volume  = {17},
+  pages   = {1795118},
+  year    = {2026},
+  doi     = {10.3389/fphys.2026.1795118},
+  publisher = {Frontiers}
+}
+
+% ─── Models: DMD seminal reference ──────────────────────────────────────────
+@article{schmid2010,
+  title   = {Dynamic mode decomposition of numerical and experimental data},
+  author  = {Schmid, Peter J.},
+  journal = {Journal of Fluid Mechanics},
+  volume  = {656},
+  pages   = {5--28},
+  year    = {2010},
+  doi     = {10.1017/S0022112010001217},
+  publisher = {Cambridge University Press}
+}
+
+% ─── PhysioNet "Heart Rate Oscillations during Meditation" dataset paper ───
+@article{peng1999,
+  title   = {Exaggerated heart rate oscillations during two meditation techniques},
+  author  = {Peng, C.-K. and Mietus, J. E. and Liu, Y. and Khalsa, G. and Douglas, P. S. and Benson, H. and Goldberger, A. L.},
+  journal = {International Journal of Cardiology},
+  volume  = {70},
+  number  = {2},
+  pages   = {101--107},
+  year    = {1999},
+  doi     = {10.1016/S0167-5273(99)00066-2},
+  publisher = {Elsevier}
+}

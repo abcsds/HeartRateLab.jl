@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- c2lobe-10: Pulse Turbine — three colored arcs sweep around a beating core -->
+  <path d="M160,58 A102,102 0 0 1 249,213" fill="none" stroke="#9558B2" stroke-width="28" stroke-linecap="round"/>
+  <path d="M160,58 A102,102 0 0 1 249,213" fill="none" stroke="#389826" stroke-width="28" stroke-linecap="round" transform="rotate(120 160 160)"/>
+  <path d="M160,58 A102,102 0 0 1 249,213" fill="none" stroke="#CB3C33" stroke-width="28" stroke-linecap="round" transform="rotate(240 160 160)"/>
+  <circle cx="160" cy="160" r="22" fill="#1A1A1A"/>
+</svg>

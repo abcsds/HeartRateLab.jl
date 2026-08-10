@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Tri-Lead Stack: three stacked rhythm-strip leads in the three core Julia colors -->
+  <path d="M50,95 L76,95 Q84,81 92,95 L102,95 L108,105 L122,57 L134,117 L142,95 L152,95 Q164,73 178,95 L270,95"
+        fill="none" stroke="#9558B2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M50,170 L76,170 Q84,156 92,170 L102,170 L108,180 L122,132 L134,192 L142,170 L152,170 Q164,148 178,170 L270,170"
+        fill="none" stroke="#389826" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M50,245 L76,245 Q84,231 92,245 L102,245 L108,255 L122,207 L134,267 L142,245 L152,245 Q164,223 178,245 L270,245"
+        fill="none" stroke="#CB3C33" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

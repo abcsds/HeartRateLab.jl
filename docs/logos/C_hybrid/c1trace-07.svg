@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Pulse Ring: a thin heart-monitor ring with three radial blips marking the triad, 120 degrees apart -->
+  <circle cx="160" cy="160" r="104" fill="none" stroke="#1A1A1A" stroke-width="4" opacity="0.3"/>
+  <path d="M160,56 L152,80 L168,84 L160,56" fill="none" stroke="#1A1A1A" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M247,212 L226,200 L216,214 L247,212" fill="none" stroke="#1A1A1A" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M73,212 L94,200 L104,214 L73,212" fill="none" stroke="#1A1A1A" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="160" cy="56" r="25" fill="#9558B2"/>
+  <circle cx="247" cy="212" r="25" fill="#CB3C33"/>
+  <circle cx="73" cy="212" r="25" fill="#389826"/>
+</svg>

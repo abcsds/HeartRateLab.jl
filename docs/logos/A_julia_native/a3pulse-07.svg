@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Groove: three fused dots in a row, a PQRST channel cut through as negative space -->
+  <defs>
+    <mask id="groove7" maskUnits="userSpaceOnUse" x="0" y="0" width="320" height="320">
+      <rect x="0" y="0" width="320" height="320" fill="#ffffff"/>
+      <path d="M40,160 L118,160 L134,140 L150,184 L166,132 L182,160 L280,160"
+            fill="none" stroke="#000000" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+    </mask>
+  </defs>
+  <g mask="url(#groove7)">
+    <circle cx="100" cy="160" r="56" fill="#9558B2"/>
+    <circle cx="160" cy="160" r="56" fill="#CB3C33"/>
+    <circle cx="220" cy="160" r="56" fill="#389826"/>
+  </g>
+</svg>

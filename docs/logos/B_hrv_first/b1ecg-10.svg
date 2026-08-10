@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Rhythm Loop: one continuous stroke rises into an R-peak then loops closed into a heart silhouette -->
+  <defs>
+    <linearGradient id="b10g" x1="60" y1="55" x2="260" y2="260" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#9558B2"/>
+      <stop offset="1" stop-color="#CB3C33"/>
+    </linearGradient>
+  </defs>
+  <path d="M160,260
+           C100,230 60,190 60,140
+           C60,95 100,75 128,100
+           L145,145
+           L160,55
+           L175,145
+           L192,100
+           C220,75 260,95 260,140
+           C260,190 220,230 160,260
+           Z"
+        fill="none" stroke="url(#b10g)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Poincaré Cloud: honest SD1/SD2 ellipse of NN(n) vs NN(n+1), scatter along the 45° diagonal -->
+  <g transform="rotate(-45 160 160)">
+    <ellipse cx="160" cy="160" rx="112" ry="40" fill="#9558B2" fill-opacity="0.16"
+             stroke="#9558B2" stroke-width="9" stroke-opacity="0.8"/>
+    <line x1="42" y1="160" x2="278" y2="160" stroke="#1A1A1A" stroke-width="3"
+          stroke-linecap="round" stroke-dasharray="1 15" opacity="0.4"/>
+    <circle cx="78"  cy="140" r="15" fill="#CB3C33"/>
+    <circle cx="105" cy="174" r="15" fill="#389826"/>
+    <circle cx="132" cy="146" r="15" fill="#4063D8"/>
+    <circle cx="159" cy="170" r="15" fill="#9558B2"/>
+    <circle cx="186" cy="142" r="15" fill="#CB3C33"/>
+    <circle cx="213" cy="172" r="15" fill="#389826"/>
+    <circle cx="240" cy="148" r="15" fill="#9558B2"/>
+  </g>
+</svg>

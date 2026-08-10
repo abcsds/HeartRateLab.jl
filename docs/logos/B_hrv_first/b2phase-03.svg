@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Limit Cycle: closed relaxation-oscillator (Van der Pol) trajectory in phase space, with a beat riding the orbit -->
+  <defs>
+    <linearGradient id="lc03" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9558B2"/>
+      <stop offset="1" stop-color="#4063D8"/>
+    </linearGradient>
+  </defs>
+  <rect x="70" y="95" width="180" height="130" rx="65" ry="65"
+        fill="none" stroke="url(#lc03)" stroke-width="14"/>
+  <circle cx="250" cy="160" r="12" fill="#CB3C33"/>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Pulse-orbit hybrid: the limit-cycle ring itself beats, its lower arc breaks into a QRS spike -->
+  <path d="M 84,238
+           A 92,78 0 0 1 122,224
+           L 140,264 L 152,182 L 166,246 L 178,224
+           A 92,78 0 0 1 236,238"
+        fill="none" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" opacity="0.6"/>
+  <path d="M 236,238 A 92,78 0 0 0 160,92 A 92,78 0 0 0 84,238"
+        fill="none" stroke="#1A1A1A" stroke-width="5" opacity="0.6"/>
+  <circle cx="160" cy="92" r="35" fill="#9558B2"/>
+  <circle cx="239.7" cy="209" r="35" fill="#389826"/>
+  <circle cx="80.3" cy="209" r="35" fill="#CB3C33"/>
+</svg>

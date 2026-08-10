@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- c2lobe-07: Petal Heart — three dot-derived teardrop petals overlap into a single heart -->
+  <path d="M0,-58 C42,-58 42,18 0,104 C-42,18 -42,-58 0,-58 Z"
+        fill="#CB3C33" transform="translate(160,142)"/>
+  <path d="M0,-62 C46,-62 46,4 0,74 C-46,4 -46,-62 0,-62 Z"
+        fill="#9558B2" transform="translate(120,120) rotate(-24)"/>
+  <path d="M0,-62 C46,-62 46,4 0,74 C-46,4 -46,-62 0,-62 Z"
+        fill="#389826" transform="translate(200,120) rotate(24)"/>
+</svg>

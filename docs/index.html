@@ -1,0 +1,1528 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HeartRateLab.jl — Logo Explorations</title>
+<style>
+:root{
+  --pt:#9558B2; --gn:#389826; --rd:#CB3C33; --bl:#4063D8;
+  --bg:#f6f6f8; --fg:#1a1a1e; --muted:#6a6a76; --card:#ffffff; --line:#e6e6ec;
+  --stage:#ececf1; --shadow:0 1px 3px rgba(0,0,0,.08),0 8px 24px rgba(0,0,0,.06);
+}
+html[data-theme=dark]{
+  --bg:#141418; --fg:#ececf1; --muted:#9a9aa8; --card:#1d1d23; --line:#2a2a33;
+  --stage:#26262e; --shadow:0 1px 3px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+a{color:var(--bl)}
+header.hero{padding:64px 24px 40px;max-width:1200px;margin:0 auto;}
+.brandline{display:flex;gap:6px;margin-bottom:20px}
+.brandline i{width:26px;height:26px;border-radius:50%;display:block}
+.brandline i:nth-child(1){background:var(--pt)}
+.brandline i:nth-child(2){background:var(--rd)}
+.brandline i:nth-child(3){background:var(--gn)}
+h1{font-size:clamp(30px,5vw,48px);margin:.1em 0;letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:19px;max-width:760px}
+.meta{margin-top:22px;display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:999px;
+  padding:6px 14px;font-size:13px;color:var(--muted)}
+.chip b{color:var(--fg)}
+.toggle{position:fixed;top:16px;right:16px;z-index:9;background:var(--card);
+  border:1px solid var(--line);border-radius:999px;padding:8px 14px;cursor:pointer;
+  font-size:13px;color:var(--fg);box-shadow:var(--shadow)}
+nav.jump{position:sticky;top:0;z-index:8;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:12px 24px}
+nav.jump .in{max-width:1200px;margin:0 auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+nav.jump a{padding:6px 14px;border-radius:999px;border:1px solid var(--line);
+  text-decoration:none;color:var(--fg);font-size:14px;background:var(--card)}
+nav.jump a:hover{border-color:var(--bl)}
+main{max-width:1200px;margin:0 auto;padding:8px 24px 80px}
+section{padding-top:44px}
+.sec-head{border-left:4px solid var(--pt);padding:4px 0 4px 16px;margin:24px 0 20px;position:relative}
+#dir-B .sec-head{border-color:var(--rd)} #dir-C .sec-head{border-color:var(--gn)}
+.sec-tag{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);font-weight:700}
+.sec-head h2{font-size:28px;margin:.15em 0}
+.sec-head p{color:var(--muted);max-width:720px;margin:.2em 0 0}
+.sec-head .count{position:absolute;right:0;top:6px;color:var(--muted);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+.card{margin:0;background:var(--card);border:1px solid var(--line);border-radius:16px;
+  overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.stage{background:var(--stage);aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;padding:26px}
+.stage.wide{aspect-ratio:16/7}
+.stage svg{width:100%;height:100%;max-height:230px;display:block}
+figcaption{padding:16px 18px 18px;display:flex;flex-direction:column;gap:8px}
+.cap-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.cap-head h3{margin:0;font-size:18px}
+.rank{font-size:12px;font-weight:700;color:#fff;background:var(--pt);border-radius:999px;padding:2px 9px}
+.id{color:var(--muted);font-size:12px}
+.badges{display:flex;flex-wrap:wrap;gap:6px}
+.badge{font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.badge.motif{border-color:var(--bl);color:var(--bl)}
+.badge.wm.text{border-color:var(--gn);color:var(--gn)}
+.concept{margin:2px 0;font-size:14px}
+.why,.risk{margin:0;font-size:13px;color:var(--muted)}
+.why strong{color:var(--gn)} .risk strong{color:var(--rd)}
+.dl{margin-top:4px;font-size:13px;text-decoration:none;color:var(--muted);
+  border:1px solid var(--line);border-radius:8px;padding:5px 10px;align-self:flex-start}
+.dl:hover{color:var(--bl);border-color:var(--bl)}
+footer{max-width:1200px;margin:0 auto;padding:0 24px 60px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<button class="toggle" onclick="var h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark'">◐ theme</button>
+<header class="hero">
+  <div class="brandline"><i></i><i></i><i></i></div>
+  <h1>HeartRateLab.jl — Logo Explorations</h1>
+  <p class="sub">60 curated logo concepts for the Julia heart-rate-variability
+  package, across three design directions. Each mark aims to read as
+  <em>heartbeat &amp; rhythm</em> and as a <em>Julia-ecosystem package</em> at a glance.</p>
+  <div class="meta">
+    <span class="chip"><b>Palette</b> Julia purple / green / red / blue</span>
+    <span class="chip"><b>Format</b> hand-built SVG, favicon-safe</span>
+    <span class="chip"><b>Method</b> 9 parallel studios → adversarial critique → curation</span>
+  </div>
+</header>
+<nav class="jump"><div class="in">
+  <strong style="font-size:14px">Jump:</strong>
+  <a href="#dir-A">A · Julia-Native</a>
+  <a href="#dir-B">B · HRV-First</a>
+  <a href="#dir-C">C · Hybrid</a>
+</div></nav>
+<main>
+<section id="dir-A">
+  <div class="sec-head">
+    <span class="sec-tag">Direction A</span>
+    <h2>Julia-Native</h2>
+    <p>Every mark is unmistakably a Julia-family package logo: the three purple / green / red dots are always present, reinterpreted through HRV.</p>
+    <span class="count">20 logos</span>
+  </div>
+  <div class="grid"><figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Heart of Three: a thin heart outline threads through the three Julia dots -->
+  <path d="M160,242 C100,190 62,150 62,112 C62,80 90,58 120,58
+           C142,58 156,72 160,90 C164,72 178,58 200,58
+           C230,58 258,80 258,112 C258,150 220,190 160,242 Z"
+        fill="none" stroke="#1A1A1A" stroke-width="6" stroke-linejoin="round" opacity="0.55"/>
+  <circle cx="95"  cy="80"  r="34" fill="#9558B2"/>
+  <circle cx="225" cy="80"  r="34" fill="#389826"/>
+  <circle cx="160" cy="222" r="28" fill="#CB3C33"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Heart of Three</h3><span class="rank">#1</span></div>
+    <code class="id">a3pulse-03</code>
+    <div class="badges"><span class="badge motif">heart / three-dot</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A thin heart outline is threaded through the three Julia dots — purple &amp; green at the lobes, red at the point — so the heart is drawn *by* the triad, not beside it.</p>
+    <p class="why"><strong>Why:</strong> A whole heart emerges from just three dots and a hairline stroke: minimum ink, maximum recognition.</p>
+    <p class="risk"><strong>Risk:</strong> Departs from the canonical one-up/two-down arrangement; the cut heart can shrink at 32px.</p>
+    <a class="dl" href="logos/A_julia_native/a3pulse-03.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Rhythm Strip Classic: three QRS complexes, R-peaks are the Julia dots -->
+  <path d="M26,232 L72,232 L80,244 L96,152 L108,244 L116,232 Q126,214 136,232
+           L148,244 L160,152 L172,244 L180,232 Q190,214 200,232
+           L212,244 L224,152 L236,244 L244,232 L294,232"
+        fill="none" stroke="#1A1A1A" stroke-width="6"
+        stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="96"  cy="152" r="19" fill="#9558B2"/>
+  <circle cx="160" cy="152" r="19" fill="#CB3C33"/>
+  <circle cx="224" cy="152" r="19" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Rhythm Strip Classic</h3><span class="rank">#2</span></div>
+    <code class="id">a1rhythm-01</code>
+    <div class="badges"><span class="badge motif">ECG / three-dot</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Three P-QRS-T complexes on a running ECG baseline; each R-peak tip is capped by a Julia dot, so the dots literally *are* the heartbeats.</p>
+    <p class="why"><strong>Why:</strong> The most literal fusion of &#x27;Julia dots&#x27; and &#x27;heartbeat&#x27; — reads both ways instantly.</p>
+    <p class="risk"><strong>Risk:</strong> Closest to a generic ECG logo; differentiation rests on the exact dot placement.</p>
+    <a class="dl" href="logos/A_julia_native/a1rhythm-01.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Pulse-orbit hybrid: the limit-cycle ring itself beats, its lower arc breaks into a QRS spike -->
+  <path d="M 84,238
+           A 92,78 0 0 1 122,224
+           L 140,264 L 152,182 L 166,246 L 178,224
+           A 92,78 0 0 1 236,238"
+        fill="none" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" opacity="0.6"/>
+  <path d="M 236,238 A 92,78 0 0 0 160,92 A 92,78 0 0 0 84,238"
+        fill="none" stroke="#1A1A1A" stroke-width="5" opacity="0.6"/>
+  <circle cx="160" cy="92" r="35" fill="#9558B2"/>
+  <circle cx="239.7" cy="209" r="35" fill="#389826"/>
+  <circle cx="80.3" cy="209" r="35" fill="#CB3C33"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Pulse Orbit</h3><span class="rank">#3</span></div>
+    <code class="id">a2return-06</code>
+    <div class="badges"><span class="badge motif">ECG / attractor / three-dot</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A limit-cycle ring doubles as a heartbeat: its lower arc between the red and green dots interrupts into a small QRS spike.</p>
+    <p class="why"><strong>Why:</strong> Single most literal fusion of HRV (the spike) and phase-space (the ring) — reads as both at once.</p>
+    <p class="risk"><strong>Risk:</strong> The QRS spike is small relative to the ring and softens first at 32px.</p>
+    <a class="dl" href="logos/A_julia_native/a2return-06.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Groove: three fused dots in a row, a PQRST channel cut through as negative space -->
+  <defs>
+    <mask id="groove7" maskUnits="userSpaceOnUse" x="0" y="0" width="320" height="320">
+      <rect x="0" y="0" width="320" height="320" fill="#ffffff"/>
+      <path d="M40,160 L118,160 L134,140 L150,184 L166,132 L182,160 L280,160"
+            fill="none" stroke="#000000" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+    </mask>
+  </defs>
+  <g mask="url(#groove7)">
+    <circle cx="100" cy="160" r="56" fill="#9558B2"/>
+    <circle cx="160" cy="160" r="56" fill="#CB3C33"/>
+    <circle cx="220" cy="160" r="56" fill="#389826"/>
+  </g>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Groove</h3><span class="rank">#4</span></div>
+    <code class="id">a3pulse-07</code>
+    <div class="badges"><span class="badge motif">ECG / negative-space / three-dot</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Three dots fused into a row with a full PQRST zigzag channel cut straight through them as bright negative space.</p>
+    <p class="why"><strong>Why:</strong> Strongest, most scientifically honest ECG read in the lane while staying pure negative space.</p>
+    <p class="risk"><strong>Risk:</strong> Row layout departs furthest from the canonical triangle; colors carry the identity.</p>
+    <a class="dl" href="logos/A_julia_native/a3pulse-07.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- IBI Comb: irregular tick spacing = interval variability; three ticks carry the Julia dots -->
+  <line x1="34" y1="230" x2="286" y2="230" stroke="#1A1A1A" stroke-width="3" opacity="0.4" stroke-linecap="round"/>
+
+  <line x1="52"  y1="230" x2="52"  y2="194" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="80"  y1="230" x2="80"  y2="170" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/>
+  <line x1="104" y1="230" x2="104" y2="194" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="164" y1="230" x2="164" y2="170" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/>
+  <line x1="190" y1="230" x2="190" y2="194" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="222" y1="230" x2="222" y2="170" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/>
+  <line x1="258" y1="230" x2="258" y2="194" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+
+  <circle cx="80"  cy="160" r="18" fill="#9558B2"/>
+  <circle cx="164" cy="160" r="18" fill="#CB3C33"/>
+  <circle cx="222" cy="160" r="18" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>IBI Comb</h3><span class="rank">#5</span></div>
+    <code class="id">a1rhythm-05</code>
+    <div class="badges"><span class="badge motif">IBI tick-marks / three-dot</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A row of vertical ticks with deliberately irregular spacing (an RR-interval comb); three thicker ticks are dot-capped.</p>
+    <p class="why"><strong>Why:</strong> Irregular tick spacing is honest shorthand for &#x27;variability&#x27; — the core HRV concept, with near-zero clutter.</p>
+    <p class="risk"><strong>Risk:</strong> Thin gray filler ticks can recede at tiny sizes, leaving 3 dots-on-sticks.</p>
+    <a class="dl" href="logos/A_julia_native/a1rhythm-05.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Limit-cycle ring binding the Julia triad: a closed orbit loop threads through the three dots -->
+  <ellipse cx="160" cy="170" rx="92" ry="78" fill="none" stroke="#1A1A1A" stroke-width="5" opacity="0.55"/>
+  <!-- directional arrowhead on the orbit, upper-right, indicating motion -->
+  <path d="M 231,122 L 244,110 L 250,127 Z" fill="#1A1A1A" opacity="0.55"/>
+  <circle cx="160" cy="92" r="36" fill="#9558B2"/>
+  <circle cx="239.7" cy="209" r="36" fill="#389826"/>
+  <circle cx="80.3" cy="209" r="36" fill="#CB3C33"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Limit-Cycle Ring</h3><span class="rank">#6</span></div>
+    <code class="id">a2return-01</code>
+    <div class="badges"><span class="badge motif">attractor / three-dot</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A thin closed orbit threads through the three dots as if they were bodies riding a stable limit cycle; an arrowhead marks travel.</p>
+    <p class="why"><strong>Why:</strong> One continuous stroke reads instantly as &#x27;orbit&#x27;, and the triad sits exactly where the Julia mark expects it.</p>
+    <p class="risk"><strong>Risk:</strong> The directional arrowhead is subtle and may vanish at 16px.</p>
+    <a class="dl" href="logos/A_julia_native/a2return-01.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Minimal true Poincare return map: axes + identity diagonal + a lean SD1/SD2 cloud, only 3 points, colored as the Julia triad -->
+  <path d="M52,268 L52,60" fill="none" stroke="#1A1A1A" stroke-width="4" opacity="0.4" stroke-linecap="round"/>
+  <path d="M52,268 L268,268" fill="none" stroke="#1A1A1A" stroke-width="4" opacity="0.4" stroke-linecap="round"/>
+  <path d="M64,256 L258,78" fill="none" stroke="#1A1A1A" stroke-width="3" stroke-dasharray="1 11" opacity="0.45" stroke-linecap="round"/>
+  <ellipse cx="161" cy="167" rx="118" ry="42" fill="none" stroke="#4063D8" stroke-width="3" opacity="0.4" transform="rotate(-44 161 167)"/>
+  <circle cx="112" cy="214" r="30" fill="#CB3C33"/>
+  <circle cx="163" cy="167" r="30" fill="#9558B2"/>
+  <circle cx="214" cy="120" r="30" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Return Map Minimal</h3><span class="rank">#7</span></div>
+    <code class="id">a2return-07</code>
+    <div class="badges"><span class="badge motif">Poincaré / three-dot</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A minimal Poincaré return map: axes, a dashed identity diagonal, a lean SD1/SD2 cloud, and three dots stretched along the diagonal.</p>
+    <p class="why"><strong>Why:</strong> The most scientifically honest Poincaré plot in the lane while still reading as three Julia dots.</p>
+    <p class="risk"><strong>Risk:</strong> Diagonal arrangement can parse as &#x27;just a scatter plot&#x27; to someone who doesn&#x27;t know the Julia mark.</p>
+    <a class="dl" href="logos/A_julia_native/a2return-07.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Interval Calipers: beats on a line, unequal double-arrow brackets show the IBI gap ⟷ -->
+  <line x1="40" y1="150" x2="280" y2="150" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="80"  cy="150" r="20" fill="#9558B2"/>
+  <circle cx="160" cy="150" r="20" fill="#CB3C33"/>
+  <circle cx="216" cy="150" r="20" fill="#389826"/>
+
+  <!-- drop ticks -->
+  <line x1="80"  y1="170" x2="80"  y2="216" stroke="#1A1A1A" stroke-width="3" opacity="0.55"/>
+  <line x1="160" y1="170" x2="160" y2="216" stroke="#1A1A1A" stroke-width="3" opacity="0.55"/>
+  <line x1="216" y1="170" x2="216" y2="216" stroke="#1A1A1A" stroke-width="3" opacity="0.55"/>
+
+  <!-- wide gap bracket (purple-red) -->
+  <line x1="80" y1="216" x2="160" y2="216" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M80,216 L92,208 M80,216 L92,224" fill="none" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M160,216 L148,208 M160,216 L148,224" fill="none" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round"/>
+
+  <!-- narrow gap bracket (red-green) -->
+  <line x1="160" y1="216" x2="216" y2="216" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round" opacity="0.9"/>
+  <path d="M216,216 L204,208 M216,216 L204,224" fill="none" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Interval Calipers</h3><span class="rank">#8</span></div>
+    <code class="id">a1rhythm-02</code>
+    <div class="badges"><span class="badge motif">IBI-gap / three-dot</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Three beats as beads on a rhythm line; unequal double-arrow brackets beneath measure the gaps — HRV as literally unequal intervals.</p>
+    <p class="why"><strong>Why:</strong> Directly visualizes the package&#x27;s core measurement (the ⟷ interval), which nothing else does as explicitly.</p>
+    <p class="risk"><strong>Risk:</strong> The caliper arrows are the smallest detail and soften first under downscaling.</p>
+    <a class="dl" href="logos/A_julia_native/a1rhythm-02.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Heart Cut: canonical Julia triad, a heart shape masked out where the three dots meet -->
+  <defs>
+    <mask id="heartcut4" maskUnits="userSpaceOnUse" x="0" y="0" width="320" height="320">
+      <rect x="0" y="0" width="320" height="320" fill="#ffffff"/>
+      <path d="M160,196 C142,182 130,170 130,158 C130,148 138,140 148,140
+               C154,140 158,144 160,150 C162,144 166,140 172,140
+               C182,140 190,148 190,158 C190,170 178,182 160,196 Z" fill="#000000"/>
+    </mask>
+  </defs>
+  <g mask="url(#heartcut4)">
+    <circle cx="160" cy="118" r="62" fill="#9558B2"/>
+    <circle cx="118" cy="204" r="62" fill="#CB3C33"/>
+    <circle cx="202" cy="204" r="62" fill="#389826"/>
+  </g>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Heart Cut</h3><span class="rank">#9</span></div>
+    <code class="id">a3pulse-04</code>
+    <div class="badges"><span class="badge motif">heart / negative-space / three-dot</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">The canonical tightly-overlapping triad with a small heart masked out of the negative space exactly where the three dots meet.</p>
+    <p class="why"><strong>Why:</strong> First read is &#x27;three Julia dots&#x27;; second read reveals the hidden heart — a rewarding easter egg.</p>
+    <p class="risk"><strong>Risk:</strong> At 32px the tiny heart cutout can shrink to a faint highlight.</p>
+    <a class="dl" href="logos/A_julia_native/a3pulse-04.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Poincare backdrop behind the classic upright Julia triad: axes, diagonal identity line, faint SD1/SD2 cloud -->
+  <path d="M56,264 L56,64" fill="none" stroke="#1A1A1A" stroke-width="4" opacity="0.35" stroke-linecap="round"/>
+  <path d="M56,264 L272,264" fill="none" stroke="#1A1A1A" stroke-width="4" opacity="0.35" stroke-linecap="round"/>
+  <path d="M64,256 L262,90" fill="none" stroke="#1A1A1A" stroke-width="3" stroke-dasharray="2 10" opacity="0.4" stroke-linecap="round"/>
+  <ellipse cx="163" cy="173" rx="100" ry="46" fill="#9558B2" opacity="0.08" transform="rotate(-40 163 173)"/>
+  <ellipse cx="163" cy="173" rx="100" ry="46" fill="none" stroke="#9558B2" stroke-width="3" opacity="0.3" transform="rotate(-40 163 173)"/>
+  <circle cx="160" cy="108" r="38" fill="#9558B2"/>
+  <circle cx="110" cy="198" r="38" fill="#CB3C33"/>
+  <circle cx="210" cy="198" r="38" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Poincaré Diagonal</h3><span class="rank">#10</span></div>
+    <code class="id">a2return-02</code>
+    <div class="badges"><span class="badge motif">Poincaré / three-dot</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">The upright Julia triangle sits inside a faint 45° ellipse cloud with axes and an identity diagonal behind it.</p>
+    <p class="why"><strong>Why:</strong> Keeps the Julia triangle 100% intact while layering in genuine HRV semantics as background texture.</p>
+    <p class="risk"><strong>Risk:</strong> At favicon size the axes/diagonal disappear, leaving just the triangle.</p>
+    <a class="dl" href="logos/A_julia_native/a2return-02.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Sinus Spark: pulse rings from the purple dot only -- the pacemaker -->
+  <circle cx="160" cy="120" r="80" fill="none" stroke="#9558B2" stroke-width="4" opacity="0.18"/>
+  <circle cx="160" cy="120" r="64" fill="none" stroke="#9558B2" stroke-width="5" opacity="0.35"/>
+  <circle cx="160" cy="120" r="46" fill="#9558B2"/>
+  <circle cx="110" cy="208" r="30" fill="#CB3C33"/>
+  <circle cx="210" cy="208" r="30" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Sinus Spark</h3><span class="rank">#11</span></div>
+    <code class="id">a3pulse-02</code>
+    <div class="badges"><span class="badge motif">pulse / three-dot</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Pulse rings radiate from the purple dot alone, casting it as the pacemaker (sinus node) that fires first.</p>
+    <p class="why"><strong>Why:</strong> The asymmetric energy source gives a clear focal point and a distinct silhouette from other ring marks.</p>
+    <p class="risk"><strong>Risk:</strong> The pacemaker nuance may read simply as &#x27;one big dot, two small&#x27; without context.</p>
+    <a class="dl" href="logos/A_julia_native/a3pulse-02.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Monitor Grid: clinical rhythm strip on a bedside-monitor bezel -->
+  <rect x="40" y="70" width="240" height="180" rx="18" fill="none" stroke="#1A1A1A" stroke-width="4.5" opacity="0.55"/>
+  <g stroke="#1A1A1A" stroke-width="1" opacity="0.14">
+    <line x1="80"  y1="70" x2="80"  y2="250"/>
+    <line x1="120" y1="70" x2="120" y2="250"/>
+    <line x1="160" y1="70" x2="160" y2="250"/>
+    <line x1="200" y1="70" x2="200" y2="250"/>
+    <line x1="240" y1="70" x2="240" y2="250"/>
+    <line x1="40"  y1="110" x2="280" y2="110"/>
+    <line x1="40"  y1="150" x2="280" y2="150"/>
+    <line x1="40"  y1="190" x2="280" y2="190"/>
+    <line x1="40"  y1="230" x2="280" y2="230"/>
+  </g>
+  <path d="M58,190 L86,190 L94,200 L104,150 L112,200 L120,190 L146,190
+           L154,200 L164,150 L172,200 L180,190 L206,190
+           L214,200 L224,150 L232,200 L240,190 L262,190"
+        fill="none" stroke="#1A1A1A" stroke-width="4.5"
+        stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="104" cy="150" r="15" fill="#9558B2"/>
+  <circle cx="164" cy="150" r="15" fill="#CB3C33"/>
+  <circle cx="224" cy="150" r="15" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Monitor Grid</h3><span class="rank">#12</span></div>
+    <code class="id">a1rhythm-09</code>
+    <div class="badges"><span class="badge motif">ECG / clinical monitor / three-dot</span><span class="badge register">illustrative</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A bedside-monitor bezel with a faint graph-paper grid behind an ECG trace whose three R-peaks are the Julia dots.</p>
+    <p class="why"><strong>Why:</strong> The rounded bezel + grid instantly signals &#x27;clinical monitor&#x27;, adding context the plain strip lacks.</p>
+    <p class="risk"><strong>Risk:</strong> Most detail-dense mark; the grid fades to nothing at 32px — best used above favicon size.</p>
+    <a class="dl" href="logos/A_julia_native/a1rhythm-09.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Pulse propagating as concentric orbits: ripples radiate outward, the triad rides the outermost ring -->
+  <circle cx="160" cy="170" r="34" fill="none" stroke="#1A1A1A" stroke-width="3" opacity="0.25"/>
+  <circle cx="160" cy="170" r="58" fill="none" stroke="#1A1A1A" stroke-width="3.5" opacity="0.35"/>
+  <circle cx="160" cy="170" r="82" fill="none" stroke="#1A1A1A" stroke-width="4" opacity="0.5"/>
+  <circle cx="160" cy="88" r="33" fill="#9558B2"/>
+  <circle cx="231" cy="211" r="33" fill="#389826"/>
+  <circle cx="89" cy="211" r="33" fill="#CB3C33"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Concentric Orbit</h3><span class="rank">#13</span></div>
+    <code class="id">a2return-08</code>
+    <div class="badges"><span class="badge motif">pulse / attractor / three-dot</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Pulse rings ripple outward from a shared center; the triad rides the outermost ring — orbit and beat-propagation at once.</p>
+    <p class="why"><strong>Why:</strong> Concentric rings are extremely robust at small sizes and the triad sits confidently on top.</p>
+    <p class="risk"><strong>Risk:</strong> The inner rings are decorative and could be dropped without hurting the concept.</p>
+    <a class="dl" href="logos/A_julia_native/a2return-08.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Motion-trail triad: each Julia dot carries a comet tail, all curling the same way like bodies in orbit -->
+  <path d="M 160,92 A 78,78 0 0 0 100,140" fill="none" stroke="#9558B2" stroke-width="26" stroke-linecap="round" opacity="0.28"/>
+  <path d="M 239.7,209 A 78,78 0 0 0 213,124" fill="none" stroke="#389826" stroke-width="26" stroke-linecap="round" opacity="0.28"/>
+  <path d="M 80.3,209 A 78,78 0 0 0 143,241" fill="none" stroke="#CB3C33" stroke-width="26" stroke-linecap="round" opacity="0.28"/>
+  <circle cx="160" cy="92" r="36" fill="#9558B2"/>
+  <circle cx="239.7" cy="209" r="36" fill="#389826"/>
+  <circle cx="80.3" cy="209" r="36" fill="#CB3C33"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Trail Triad</h3><span class="rank">#14</span></div>
+    <code class="id">a2return-04</code>
+    <div class="badges"><span class="badge motif">attractor / three-dot</span><span class="badge register">illustrative</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Each dot trails a short comet-tail arc, all curling the same way, implying synchronized orbital motion.</p>
+    <p class="why"><strong>Why:</strong> Motion trails are an intuitive, low-cognitive-load way to say &#x27;orbit&#x27; — the most dynamic mark in the lane.</p>
+    <p class="risk"><strong>Risk:</strong> Pale trails can read as smudges/shadows at very small sizes.</p>
+    <a class="dl" href="logos/A_julia_native/a2return-04.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Pulse Ring: the rhythm strip bent into a recurring cycle; three beats mark the loop -->
+  <circle cx="160" cy="160" r="92" fill="none" stroke="#1A1A1A" stroke-width="4" opacity="0.45"/>
+  <g stroke="#1A1A1A" stroke-width="3" opacity="0.4" stroke-linecap="round">
+    <line x1="160" y1="60"  x2="160" y2="48"/>
+    <line x1="160" y1="260" x2="160" y2="272"/>
+    <line x1="60"  y1="160" x2="48"  y2="160"/>
+    <line x1="260" y1="160" x2="272" y2="160"/>
+    <line x1="93.4" y1="93.4" x2="85" y2="85"/>
+    <line x1="226.6" y1="93.4" x2="235" y2="85"/>
+    <line x1="93.4" y1="226.6" x2="85" y2="235"/>
+    <line x1="226.6" y1="226.6" x2="235" y2="235"/>
+  </g>
+  <circle cx="160" cy="68"  r="21" fill="#9558B2"/>
+  <circle cx="102" cy="216" r="21" fill="#CB3C33"/>
+  <circle cx="218" cy="216" r="21" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Pulse Ring</h3><span class="rank">#15</span></div>
+    <code class="id">a1rhythm-04</code>
+    <div class="badges"><span class="badge motif">pulse / limit-cycle / three-dot</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">The rhythm strip bent into a closed loop (a recurring cardiac cycle) with clock-like ticks and the triad marking beats on the rim.</p>
+    <p class="why"><strong>Why:</strong> Only circular composition in the lane, nodding to the limit-cycle dynamics vocabulary.</p>
+    <p class="risk"><strong>Risk:</strong> Weakest at reading &#x27;heartbeat&#x27; first glance — leans toward &#x27;Julia mark in a circle&#x27;.</p>
+    <a class="dl" href="logos/A_julia_native/a1rhythm-04.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Spiral phase-space trajectory converging outward to settle on the Julia triad's limit cycle -->
+  <path d="M160,178
+           C172,178 182,168 182,156
+           C182,134 162,118 138,118
+           C104,118 78,146 78,180
+           C78,222 114,256 158,256
+           C210,256 250,214 250,160
+           C250,96 198,60 160,92"
+        fill="none" stroke="#1A1A1A" stroke-width="7" opacity="0.55" stroke-linecap="round"/>
+  <circle cx="160" cy="92" r="34" fill="#9558B2"/>
+  <circle cx="236" cy="205" r="34" fill="#389826"/>
+  <circle cx="84" cy="205" r="34" fill="#CB3C33"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Spiral Converge</h3><span class="rank">#16</span></div>
+    <code class="id">a2return-05</code>
+    <div class="badges"><span class="badge motif">attractor / spiral / three-dot</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A spiral trajectory winds outward from center and settles onto the top purple dot — a phase-space path converging onto a limit cycle.</p>
+    <p class="why"><strong>Why:</strong> Directly illustrates the &#x27;converging to a limit cycle&#x27; dynamics idea, distinct from the pure-ring marks.</p>
+    <p class="risk"><strong>Risk:</strong> The delicate inner windings blur first below ~24px; the triad stays legible regardless.</p>
+    <a class="dl" href="logos/A_julia_native/a2return-05.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- R-Spike: the purple dot grows a sharp, narrow R-peak spike -->
+  <circle cx="160" cy="136" r="46" fill="#9558B2"/>
+  <path d="M160,36 L174,100 L146,100 Z" fill="#9558B2"/>
+  <circle cx="108" cy="214" r="34" fill="#CB3C33"/>
+  <circle cx="212" cy="214" r="34" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>R-Spike</h3><span class="rank">#17</span></div>
+    <code class="id">a3pulse-05</code>
+    <div class="badges"><span class="badge motif">ECG / R-peak / three-dot</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">The purple dot grows a narrow triangular spike off its crown, turning the dot itself into the silhouette of an ECG R-peak.</p>
+    <p class="why"><strong>Why:</strong> One dot doing double duty as both &#x27;Julia purple&#x27; and &#x27;R-peak&#x27; — about as reductive as the idea can get.</p>
+    <p class="risk"><strong>Risk:</strong> At small sizes the spike could soften into a flame/teardrop rather than an explicit ECG reference.</p>
+    <a class="dl" href="logos/A_julia_native/a3pulse-05.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Breath Wave: slow smooth modulation (RSA) carrying three beats at crest / mid / trough -->
+  <path d="M34,180 C67,104 87,104 120,180 C153,256 173,256 200,180 C227,104 247,104 280,180"
+        fill="none" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="100" cy="126" r="18" fill="#9558B2"/>
+  <circle cx="160" cy="188" r="18" fill="#CB3C33"/>
+  <circle cx="220" cy="126" r="18" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Breath Wave</h3><span class="rank">#18</span></div>
+    <code class="id">a1rhythm-07</code>
+    <div class="badges"><span class="badge motif">pulse (RSA) / three-dot</span><span class="badge register">illustrative</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A slow sinusoid (respiratory sinus arrhythmia — breathing&#x27;s modulation of heart rate) carries three beats at crest, midline, trough.</p>
+    <p class="why"><strong>Why:</strong> The only soft/organic register in the lane, giving range while staying grounded in real RSA physiology.</p>
+    <p class="risk"><strong>Risk:</strong> A smooth wave alone can read &#x27;signal/audio&#x27; more than &#x27;heart&#x27; without the dot colors anchoring it.</p>
+    <a class="dl" href="logos/A_julia_native/a1rhythm-07.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Tachogram Steps: beat-to-beat interval series, three of the beats are the Julia dots -->
+  <line x1="30" y1="260" x2="290" y2="260" stroke="#1A1A1A" stroke-width="3" opacity="0.35"/>
+  <line x1="60"  y1="260" x2="60"  y2="266" stroke="#1A1A1A" stroke-width="3" opacity="0.5"/>
+  <line x1="260" y1="260" x2="260" y2="266" stroke="#1A1A1A" stroke-width="3" opacity="0.5"/>
+
+  <polyline points="60,196 110,140 160,182 210,124 260,168"
+            fill="none" stroke="#1A1A1A" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
+
+  <circle cx="60"  cy="196" r="7"  fill="#8A8F98"/>
+  <circle cx="110" cy="140" r="18" fill="#9558B2"/>
+  <circle cx="160" cy="182" r="18" fill="#CB3C33"/>
+  <circle cx="210" cy="124" r="18" fill="#389826"/>
+  <circle cx="260" cy="168" r="7"  fill="#8A8F98"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Tachogram Steps</h3><span class="rank">#19</span></div>
+    <code class="id">a1rhythm-03</code>
+    <div class="badges"><span class="badge motif">tachogram / three-dot</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A beat-to-beat interval series (tachogram) drawn as a jagged polyline; three of five vertices are the colored Julia dots, two are neutral anchors.</p>
+    <p class="why"><strong>Why:</strong> The zigzag height literally encodes IBI variability — exactly what a tachogram is.</p>
+    <p class="risk"><strong>Risk:</strong> Could be mistaken for a generic line-chart icon without HRV context.</p>
+    <a class="dl" href="logos/A_julia_native/a1rhythm-03.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Ring Rhythm: three outline dots, a pulse line threads the gap between them -->
+  <circle cx="160" cy="104" r="40" fill="none" stroke="#9558B2" stroke-width="9"/>
+  <circle cx="108" cy="200" r="40" fill="none" stroke="#CB3C33" stroke-width="9"/>
+  <circle cx="212" cy="200" r="40" fill="none" stroke="#389826" stroke-width="9"/>
+  <path d="M138,168 L150,168 L158,140 L168,188 L176,168 L188,168"
+        fill="none" stroke="#4063D8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Ring Rhythm</h3><span class="rank">#20</span></div>
+    <code class="id">a3pulse-08</code>
+    <div class="badges"><span class="badge motif">pulse / three-dot</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">The three dots are open rings with a small Julia-blue pulse line threading the gaps between them like a beat passing through.</p>
+    <p class="why"><strong>Why:</strong> Outline dots + a wired pulse line is a genuinely different figure-ground treatment from every filled mark.</p>
+    <p class="risk"><strong>Risk:</strong> Thin ring strokes and the blue squiggle are the most detail-dense; least margin for shrinking.</p>
+    <a class="dl" href="logos/A_julia_native/a3pulse-08.svg" download>↓ SVG</a>
+  </figcaption>
+</figure></div>
+</section>
+<section id="dir-B">
+  <div class="sec-head">
+    <span class="sec-tag">Direction B</span>
+    <h2>HRV-First</h2>
+    <p>Heart-rate identity leads — ECG waveforms, Poincaré ellipses, phase-space attractors, pulse rings, abstract hearts — in the Julia palette, without forcing the three-dot arrangement.</p>
+    <span class="count">20 logos</span>
+  </div>
+  <div class="grid"><figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Loop Beat Heart: a single continuous stroke traces the heart contour, two colors meeting at the beat -->
+  <g transform="translate(60,68) scale(6.25)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16,5.6 C14.7,2.7 11.8,0 8.4,0 C3.8,0 0,3.8 0,8.4 C0,15.6 7.8,21.4 16,29.2"
+          stroke="#9558B2" stroke-width="2.3"/>
+    <path d="M16,29.2 C24.2,21.4 32,15.6 32,8.4 C32,3.8 28.2,0 23.6,0 C20.2,0 17.3,2.7 16,5.6"
+          stroke="#389826" stroke-width="2.3"/>
+  </g>
+  <circle cx="160" cy="250.5" r="9" fill="#CB3C33"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Loop Beat Heart</h3><span class="rank">#1</span></div>
+    <code class="id">b3heart-02</code>
+    <div class="badges"><span class="badge motif">heart (looping line)</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">The heart outline drawn as one continuous open stroke — purple left arc, green right — meeting at a red dot at the point.</p>
+    <p class="why"><strong>Why:</strong> Huge negative space reads immediately as a heart while feeling like a signal trace, not clip-art.</p>
+    <p class="risk"><strong>Risk:</strong> Relies on the viewer completing the shape from an open contour.</p>
+    <a class="dl" href="logos/B_hrv_first/b3heart-02.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Poincaré Cloud: honest SD1/SD2 ellipse of NN(n) vs NN(n+1), scatter along the 45° diagonal -->
+  <g transform="rotate(-45 160 160)">
+    <ellipse cx="160" cy="160" rx="112" ry="40" fill="#9558B2" fill-opacity="0.16"
+             stroke="#9558B2" stroke-width="9" stroke-opacity="0.8"/>
+    <line x1="42" y1="160" x2="278" y2="160" stroke="#1A1A1A" stroke-width="3"
+          stroke-linecap="round" stroke-dasharray="1 15" opacity="0.4"/>
+    <circle cx="78"  cy="140" r="15" fill="#CB3C33"/>
+    <circle cx="105" cy="174" r="15" fill="#389826"/>
+    <circle cx="132" cy="146" r="15" fill="#4063D8"/>
+    <circle cx="159" cy="170" r="15" fill="#9558B2"/>
+    <circle cx="186" cy="142" r="15" fill="#CB3C33"/>
+    <circle cx="213" cy="172" r="15" fill="#389826"/>
+    <circle cx="240" cy="148" r="15" fill="#9558B2"/>
+  </g>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Poincaré Cloud</h3><span class="rank">#2</span></div>
+    <code class="id">b2phase-01</code>
+    <div class="badges"><span class="badge motif">Poincaré / attractor</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">The honest Poincaré plot — NN(n) vs NN(n+1) samples scattered inside an elongated ellipse on the 45° identity line.</p>
+    <p class="why"><strong>Why:</strong> Instantly reads as &#x27;Poincaré plot&#x27; to any HRV researcher — the field&#x27;s single most iconic chart.</p>
+    <p class="risk"><strong>Risk:</strong> At favicon size the scatter can read as a generic dotted blob.</p>
+    <a class="dl" href="logos/B_hrv_first/b2phase-01.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- R-Peak Bolt: the QRS reduced to a single bold gradient spike, favicon-proof -->
+  <defs>
+    <linearGradient id="b5g" x1="85" y1="0" x2="245" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#9558B2"/>
+      <stop offset="1" stop-color="#4063D8"/>
+    </linearGradient>
+  </defs>
+  <path d="M85,190 L125,190 L152,70 L178,230 L215,190 L245,190"
+        fill="none" stroke="url(#b5g)" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>R-Peak Bolt</h3><span class="rank">#3</span></div>
+    <code class="id">b1ecg-05</code>
+    <div class="badges"><span class="badge motif">ECG / R-peak</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">The QRS complex reduced to its single essential gesture — a bold Q-R-S zigzag, purple→blue gradient, no P/T waves.</p>
+    <p class="why"><strong>Why:</strong> The most abstracted, favicon-proof mark: thick, few points, unmistakable spike silhouette.</p>
+    <p class="risk"><strong>Risk:</strong> Without P/T context some may read a generic &#x27;lightning bolt&#x27;; leans on the blue accent more than most.</p>
+    <a class="dl" href="logos/B_hrv_first/b1ecg-05.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Pulse Tile: rounded-square app-icon tile with a bold white ECG trace -->
+  <rect x="44" y="44" width="232" height="232" rx="44" fill="#9558B2"/>
+  <path d="M80,170 L110,170 Q120,155 130,170 L142,170 L150,185 L172,100 L190,225 L202,170 L214,170 Q228,140 240,170"
+        fill="none" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Pulse Tile</h3><span class="rank">#4</span></div>
+    <code class="id">b1ecg-03</code>
+    <div class="badges"><span class="badge motif">ECG (container)</span><span class="badge register">app-icon</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A rounded-square app-icon tile in Julia purple with a bold white ECG trace knocked through the center.</p>
+    <p class="why"><strong>Why:</strong> Extremely legible at favicon size; the tile form factor is exactly what app icons are judged against.</p>
+    <p class="risk"><strong>Risk:</strong> Single-color tile is the least &#x27;Julia-coded&#x27; on its own; relies on family context.</p>
+    <a class="dl" href="logos/B_hrv_first/b1ecg-03.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Lorenz Wings: stylized two-lobe attractor traced as one continuous path, crossing at the saddle -->
+  <defs>
+    <linearGradient id="lz04" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#9558B2"/>
+      <stop offset="1" stop-color="#389826"/>
+    </linearGradient>
+  </defs>
+  <path d="M160,160
+           C130,108 68,108 68,160
+           C68,212 130,212 160,160
+           C190,108 252,108 252,160
+           C252,212 190,212 160,160 Z"
+        fill="none" stroke="url(#lz04)" stroke-width="13"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="160" cy="160" r="11" fill="#CB3C33"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Lorenz Wings</h3><span class="rank">#5</span></div>
+    <code class="id">b2phase-04</code>
+    <div class="badges"><span class="badge motif">attractor / Lorenz butterfly</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">The two-lobe topology of the Lorenz attractor stylized as one continuous infinity stroke crossing at the saddle point.</p>
+    <p class="why"><strong>Why:</strong> Captures the defining &#x27;two wings, one crossing&#x27; structure in a single elegant stroke.</p>
+    <p class="risk"><strong>Risk:</strong> Could read as a plain infinity symbol to viewers unfamiliar with the attractor.</p>
+    <a class="dl" href="logos/B_hrv_first/b2phase-04.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Cleft Beat Heart: two-tone geometric heart with an R-peak spike bursting from its cleft -->
+  <defs>
+    <clipPath id="h1clip">
+      <path d="M23.6,0 C20.2,0 17.3,2.7 16,5.6 C14.7,2.7 11.8,0 8.4,0 C3.8,0 0,3.8 0,8.4 C0,15.6 7.8,21.4 16,29.2 C24.2,21.4 32,15.6 32,8.4 C32,3.8 28.2,0 23.6,0 Z"/>
+    </clipPath>
+  </defs>
+  <g transform="translate(60,68) scale(6.25)">
+    <rect x="-2" y="-3" width="18" height="35" fill="#9558B2" clip-path="url(#h1clip)"/>
+    <rect x="16" y="-3" width="18" height="35" fill="#389826" clip-path="url(#h1clip)"/>
+    <path d="M23.6,0 C20.2,0 17.3,2.7 16,5.6 C14.7,2.7 11.8,0 8.4,0 C3.8,0 0,3.8 0,8.4 C0,15.6 7.8,21.4 16,29.2 C24.2,21.4 32,15.6 32,8.4 C32,3.8 28.2,0 23.6,0 Z"
+      fill="none" stroke="#1A1A1A" stroke-width="0.8"/>
+  </g>
+  <path d="M147,104 L154,110 L160,50 L168,104" fill="none" stroke="#CB3C33"
+        stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Cleft Beat Heart</h3><span class="rank">#6</span></div>
+    <code class="id">b3heart-01</code>
+    <div class="badges"><span class="badge motif">heart / ECG-spike</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A two-tone geometric heart (purple/green) whose natural top cleft bursts into a small red QRS zigzag.</p>
+    <p class="why"><strong>Why:</strong> The spike literally grows from the heart&#x27;s own anatomy, so the beat is structural, not decorative.</p>
+    <p class="risk"><strong>Risk:</strong> At very small sizes the thin spike can soften into a short tick.</p>
+    <a class="dl" href="logos/B_hrv_first/b3heart-01.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Nested Cycles: a loose big orbit (high HRV) versus a tight small orbit (low HRV), same phase frame -->
+  <ellipse cx="160" cy="160" rx="105" ry="80" fill="none" stroke="#389826" stroke-width="12"/>
+  <ellipse cx="160" cy="160" rx="42"  ry="30" fill="none" stroke="#CB3C33" stroke-width="12"/>
+  <circle cx="160" cy="80"  r="9" fill="#2A7A1E"/>
+  <circle cx="160" cy="130" r="7" fill="#A62F27"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Nested Cycles</h3><span class="rank">#7</span></div>
+    <code class="id">b2phase-08</code>
+    <div class="badges"><span class="badge motif">attractor / nested limit cycles</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Two concentric orbits at very different scale — a big loose loop (green, high HRV) against a small tight loop (red, low HRV).</p>
+    <p class="why"><strong>Why:</strong> The size contrast alone tells the HRV story (bigger orbit = more variability) with no text.</p>
+    <p class="risk"><strong>Risk:</strong> Could be misread as a plain target/bullseye without the HRV framing.</p>
+    <a class="dl" href="logos/B_hrv_first/b2phase-08.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Pulse Emitter: an R-peak spike broadcasting outward as concentric rhythm waves -->
+  <path d="M190,56 A120,120 0 0 1 190,264" fill="none" stroke="#4063D8" stroke-width="8" stroke-linecap="round"/>
+  <path d="M172,86 A85,85 0 0 1 172,234" fill="none" stroke="#389826" stroke-width="9" stroke-linecap="round"/>
+  <path d="M155,117 A50,50 0 0 1 155,203" fill="none" stroke="#9558B2" stroke-width="10" stroke-linecap="round"/>
+  <path d="M105,210 L125,210 L138,80 L155,235 L170,195"
+        fill="none" stroke="#CB3C33" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Pulse Emitter</h3><span class="rank">#8</span></div>
+    <code class="id">b1ecg-08</code>
+    <div class="badges"><span class="badge motif">ECG + pulse (radiating)</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A compact red R-peak spike broadcasting three concentric rhythm waves outward in purple, green, and blue.</p>
+    <p class="why"><strong>Why:</strong> Reads as signal + transmission — exactly what HRV feature extraction is — distinct from every &#x27;line in a box&#x27;.</p>
+    <p class="risk"><strong>Risk:</strong> Off-center; at a glance could be mistaken for a wifi/signal icon if the red spike doesn&#x27;t register first.</p>
+    <a class="dl" href="logos/B_hrv_first/b1ecg-08.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Faceted Heart: a low-poly heart built from three flat color facets -->
+  <polygon points="160,165 60,140 100,85 130,100 160,125" fill="#9558B2"/>
+  <polygon points="160,165 160,125 190,100 220,85 260,140" fill="#389826"/>
+  <polygon points="160,165 260,140 160,255 60,140" fill="#CB3C33"/>
+  <path d="M60,140 L100,85 L130,100 L160,125 L190,100 L220,85 L260,140 L160,255 Z"
+        fill="none" stroke="#1A1A1A" stroke-width="3" stroke-linejoin="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Faceted Heart</h3><span class="rank">#9</span></div>
+    <code class="id">b3heart-08</code>
+    <div class="badges"><span class="badge motif">abstract geometric heart</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A low-poly heart built from three flat color facets (purple, green, red) meeting at a shared center.</p>
+    <p class="why"><strong>Why:</strong> Sharp facet lines and flat blocking feel deliberately engineered/scientific rather than decorative.</p>
+    <p class="risk"><strong>Risk:</strong> Can momentarily read as a shield or gem before &#x27;heart&#x27; resolves.</p>
+    <a class="dl" href="logos/B_hrv_first/b3heart-08.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Limit Cycle: closed relaxation-oscillator (Van der Pol) trajectory in phase space, with a beat riding the orbit -->
+  <defs>
+    <linearGradient id="lc03" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9558B2"/>
+      <stop offset="1" stop-color="#4063D8"/>
+    </linearGradient>
+  </defs>
+  <rect x="70" y="95" width="180" height="130" rx="65" ry="65"
+        fill="none" stroke="url(#lc03)" stroke-width="14"/>
+  <circle cx="250" cy="160" r="12" fill="#CB3C33"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Limit Cycle</h3><span class="rank">#10</span></div>
+    <code class="id">b2phase-03</code>
+    <div class="badges"><span class="badge motif">attractor / limit cycle</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A Van der Pol relaxation-oscillator limit cycle drawn as a bold stadium-shaped orbit with a beat riding the trajectory.</p>
+    <p class="why"><strong>Why:</strong> A closed loop is the simplest, boldest way to say &#x27;dynamical system in equilibrium&#x27; — clear even at 32px.</p>
+    <p class="risk"><strong>Risk:</strong> A stadium shape alone could be mistaken for a rounded-rectangle icon.</p>
+    <a class="dl" href="logos/B_hrv_first/b2phase-03.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- SD Compass: SD2 (long axis) and SD1 (short axis) as a caliper cross on the Poincaré diagonal -->
+  <g transform="rotate(-45 160 160)">
+    <ellipse cx="160" cy="160" rx="120" ry="46" fill="none" stroke="#1A1A1A" stroke-width="3" stroke-opacity="0.15"/>
+    <!-- SD2: long axis -->
+    <line x1="64" y1="160" x2="256" y2="160" stroke="#389826" stroke-width="10" stroke-linecap="round"/>
+    <polygon points="274,160 254,150 254,170" fill="#389826"/>
+    <polygon points="46,160 66,150 66,170" fill="#389826"/>
+    <!-- SD1: short axis -->
+    <line x1="160" y1="122" x2="160" y2="198" stroke="#9558B2" stroke-width="10" stroke-linecap="round"/>
+    <polygon points="160,104 150,122 170,122" fill="#9558B2"/>
+    <polygon points="160,216 150,198 170,198" fill="#9558B2"/>
+    <!-- mean NN -->
+    <circle cx="160" cy="160" r="12" fill="#CB3C33"/>
+  </g>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>SD Compass</h3><span class="rank">#11</span></div>
+    <code class="id">b2phase-02</code>
+    <div class="badges"><span class="badge motif">Poincaré / SD1-SD2 axes</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">SD1 (short axis) and SD2 (long axis) — the two numbers every Poincaré analysis reports — abstracted into a caliper cross on the diagonal with a ghost ellipse and mean-NN dot.</p>
+    <p class="why"><strong>Why:</strong> Turns two abstract HRV metrics into an immediately legible crosshair mark, distinct from every ellipse-based logo.</p>
+    <p class="risk"><strong>Risk:</strong> Without HRV context it can read as &#x27;a green X&#x27;, missing the SD1/SD2 reference.</p>
+    <a class="dl" href="logos/B_hrv_first/b2phase-02.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Sonar Pulse: a beat propagating outward as concentric rings -->
+  <circle cx="160" cy="160" r="128" fill="none" stroke="#9558B2" stroke-width="9"  opacity="0.45"/>
+  <circle cx="160" cy="160" r="92"  fill="none" stroke="#4063D8" stroke-width="10" opacity="0.6"/>
+  <circle cx="160" cy="160" r="56"  fill="none" stroke="#389826" stroke-width="12" opacity="0.85"/>
+  <circle cx="160" cy="160" r="22"  fill="#CB3C33" stroke="#1A1A1A" stroke-width="2"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Sonar Pulse</h3><span class="rank">#12</span></div>
+    <code class="id">b3heart-03</code>
+    <div class="badges"><span class="badge motif">pulse rings</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A beat propagating outward as thick concentric rings (purple→blue→green) tightening toward a solid red core.</p>
+    <p class="why"><strong>Why:</strong> Pure radial symmetry and bold ring widths make it the most instantly &#x27;pulse&#x27; and it holds perfectly at favicon size.</p>
+    <p class="risk"><strong>Risk:</strong> Without a literal heart/ECG shape it reads &#x27;pulse/signal&#x27; more than &#x27;heart&#x27;.</p>
+    <a class="dl" href="logos/B_hrv_first/b3heart-03.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Capsule Monitor: two-tone pill/capsule tile with a white ECG trace crossing through -->
+  <path d="M116,80 H204 A80,80 0 0 1 204,240 H116 A80,80 0 0 1 116,80 Z" fill="#9558B2"/>
+  <path d="M160,80 H204 A80,80 0 0 1 204,240 H160 Z" fill="#389826"/>
+  <path d="M70,178 L100,178 Q110,163 120,178 L130,178 L138,193 L158,105 L178,230 L192,178 L204,178 Q218,148 240,178"
+        fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Capsule Monitor</h3><span class="rank">#13</span></div>
+    <code class="id">b1ecg-02</code>
+    <div class="badges"><span class="badge motif">ECG (container)</span><span class="badge register">app-icon</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A two-tone purple/green capsule tile with a bold white rhythm trace running through it.</p>
+    <p class="why"><strong>Why:</strong> The capsule silhouette is memorable while the white-on-color trace reads instantly as &#x27;heart monitor&#x27;.</p>
+    <p class="risk"><strong>Risk:</strong> The pill shape could read as &#x27;medicine&#x27; without the trace doing the identifying work.</p>
+    <a class="dl" href="logos/B_hrv_first/b1ecg-02.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Return-Map Heart: NN(n) vs NN(n+1) samples arranged so the point cloud itself reads as a heart -->
+  <polygon points="160.0,107.1 198.9,61.7 270.0,114.0 246.7,164.1 198.9,207.5 160.0,258.3 121.1,207.5 73.3,164.1 50.0,114.0 121.1,61.7"
+           fill="none" stroke="#1A1A1A" stroke-opacity="0.10" stroke-width="2"/>
+  <circle cx="160.0" cy="107.1" r="15" fill="#9558B2"/>
+  <circle cx="198.9" cy="61.7"  r="15" fill="#CB3C33"/>
+  <circle cx="270.0" cy="114.0" r="15" fill="#389826"/>
+  <circle cx="246.7" cy="164.1" r="15" fill="#4063D8"/>
+  <circle cx="198.9" cy="207.5" r="15" fill="#9558B2"/>
+  <circle cx="160.0" cy="258.3" r="15" fill="#CB3C33"/>
+  <circle cx="121.1" cy="207.5" r="15" fill="#389826"/>
+  <circle cx="73.3"  cy="164.1" r="15" fill="#4063D8"/>
+  <circle cx="50.0"  cy="114.0" r="15" fill="#9558B2"/>
+  <circle cx="121.1" cy="61.7"  r="15" fill="#CB3C33"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Return-Map Heart</h3><span class="rank">#14</span></div>
+    <code class="id">b2phase-06</code>
+    <div class="badges"><span class="badge motif">heart / return-map scatter</span><span class="badge register">illustrative</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A return-map scatter deliberately arranged so the point cloud&#x27;s silhouette reads as a heart.</p>
+    <p class="why"><strong>Why:</strong> Delivers a heart &#x27;constructed from dots&#x27; while staying in the data/attractor vocabulary — a knowing wink.</p>
+    <p class="risk"><strong>Risk:</strong> Least scientifically literal mark here; a purist could object no real return map looks like a heart.</p>
+    <a class="dl" href="logos/B_hrv_first/b2phase-06.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- QRS Line: honest single-stroke P-QRS-T complex, pure minimal mark -->
+  <path d="M30,180 L70,180 Q82,160 95,180 L110,180 L120,195 L150,60 L170,230 L185,180 L200,180 Q230,120 260,180 L290,180"
+        fill="none" stroke="#9558B2" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>QRS Line</h3><span class="rank">#15</span></div>
+    <code class="id">b1ecg-01</code>
+    <div class="badges"><span class="badge motif">ECG</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">The honest P-QRS-T complex as a single confident stroke — no container, no ornament, Julia purple.</p>
+    <p class="why"><strong>Why:</strong> The single most literal &#x27;this is an ECG&#x27; read in the set; survives any size or background.</p>
+    <p class="risk"><strong>Risk:</strong> Single-color mark leans least on the Julia palette; could read as a generic health icon.</p>
+    <a class="dl" href="logos/B_hrv_first/b1ecg-01.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- IBI Caliper: two R-peaks with the measured gap called out by a double-headed arrow -->
+  <line x1="50" y1="225" x2="270" y2="225" stroke="#1A1A1A" stroke-width="4" stroke-linecap="round"/>
+  <polygon points="100,225 110,140 120,225" fill="#9558B2"/>
+  <polygon points="200,225 210,140 220,225" fill="#389826"/>
+  <line x1="110" y1="145" x2="110" y2="95" stroke="#1A1A1A" stroke-width="2" stroke-dasharray="4 5" opacity="0.6"/>
+  <line x1="210" y1="145" x2="210" y2="95" stroke="#1A1A1A" stroke-width="2" stroke-dasharray="4 5" opacity="0.6"/>
+  <line x1="112" y1="95" x2="208" y2="95" stroke="#CB3C33" stroke-width="5" stroke-linecap="round"/>
+  <polygon points="110,95 122,88 122,102" fill="#CB3C33"/>
+  <polygon points="210,95 198,88 198,102" fill="#CB3C33"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>IBI Caliper</h3><span class="rank">#16</span></div>
+    <code class="id">b3heart-05</code>
+    <div class="badges"><span class="badge motif">IBI-gap</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Two R-peak spikes on a baseline with a double-headed arrow measuring the gap between them, like a dimension line.</p>
+    <p class="why"><strong>Why:</strong> This is literally what the package measures — nothing needs explaining to an HRV-literate viewer.</p>
+    <p class="risk"><strong>Risk:</strong> The dashed guide lines are the thinnest elements; first to soften on print.</p>
+    <a class="dl" href="logos/B_hrv_first/b3heart-05.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Tri-Lead Stack: three stacked rhythm-strip leads in the three core Julia colors -->
+  <path d="M50,95 L76,95 Q84,81 92,95 L102,95 L108,105 L122,57 L134,117 L142,95 L152,95 Q164,73 178,95 L270,95"
+        fill="none" stroke="#9558B2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M50,170 L76,170 Q84,156 92,170 L102,170 L108,180 L122,132 L134,192 L142,170 L152,170 Q164,148 178,170 L270,170"
+        fill="none" stroke="#389826" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M50,245 L76,245 Q84,231 92,245 L102,245 L108,255 L122,207 L134,267 L142,245 L152,245 Q164,223 178,245 L270,245"
+        fill="none" stroke="#CB3C33" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Tri-Lead Stack</h3><span class="rank">#17</span></div>
+    <code class="id">b1ecg-04</code>
+    <div class="badges"><span class="badge motif">ECG (multi-lead)</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Three stacked rhythm-strip leads, one in each core Julia color, gesturing at multi-lead recording.</p>
+    <p class="why"><strong>Why:</strong> Reads as genuine biomedical-signal vocabulary while still delivering the &#x27;three Julia colors&#x27; cue.</p>
+    <p class="risk"><strong>Risk:</strong> At extreme miniaturization the three thin lanes have the least margin before merging.</p>
+    <a class="dl" href="logos/B_hrv_first/b1ecg-04.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Pulse Ellipses: a beat rippling outward along the Poincaré diagonal, ellipse after ellipse -->
+  <g transform="rotate(-45 160 160)">
+    <ellipse cx="160" cy="160" rx="110" ry="40" fill="none" stroke="#389826" stroke-width="7" opacity="0.55"/>
+    <ellipse cx="160" cy="160" rx="80"  ry="29" fill="none" stroke="#9558B2" stroke-width="8" opacity="0.85"/>
+    <ellipse cx="160" cy="160" rx="50"  ry="18" fill="none" stroke="#CB3C33" stroke-width="10" opacity="1"/>
+    <circle cx="160" cy="160" r="11" fill="#CB3C33"/>
+  </g>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Pulse Ellipses</h3><span class="rank">#18</span></div>
+    <code class="id">b2phase-09</code>
+    <div class="badges"><span class="badge motif">Poincaré / pulse rings</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A heartbeat rippling outward along the Poincaré diagonal — three same-orientation ellipses of increasing size, decreasing opacity.</p>
+    <p class="why"><strong>Why:</strong> Merges &#x27;pulse&#x27; and &#x27;Poincaré diagonal&#x27; into one ripple mark, distinct from scatter or cross variants.</p>
+    <p class="risk"><strong>Risk:</strong> The fainter outer rings can wash out at favicon size or on busy backgrounds.</p>
+    <a class="dl" href="logos/B_hrv_first/b2phase-09.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Rhythm Ring: a continuous monitoring loop in the four Julia colors, broken by one R-spike -->
+  <path d="M160,76 A84,84 0 0 1 244,160" fill="none" stroke="#4063D8" stroke-width="16" stroke-linecap="round"/>
+  <path d="M244,160 A84,84 0 0 1 160,244" fill="none" stroke="#CB3C33" stroke-width="16" stroke-linecap="round"/>
+  <path d="M160,244 A84,84 0 0 1 76,160" fill="none" stroke="#389826" stroke-width="16" stroke-linecap="round"/>
+  <path d="M76,160 A84,84 0 0 1 160,76" fill="none" stroke="#9558B2" stroke-width="16" stroke-linecap="round"/>
+  <path d="M136,80 L160,30 L184,80 Z" fill="#CB3C33"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Rhythm Ring</h3><span class="rank">#19</span></div>
+    <code class="id">b1ecg-06</code>
+    <div class="badges"><span class="badge motif">ECG / pulse loop</span><span class="badge register">geometric</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A continuous monitoring loop of four quarter-arcs (one per Julia color) broken at the top by a single red R-peak spike.</p>
+    <p class="why"><strong>Why:</strong> Uses all four palette colors at once without a three-dot cliché; the segmented ring says &#x27;continuous monitoring&#x27;.</p>
+    <p class="risk"><strong>Risk:</strong> At small sizes reads more as a segmented-loader icon; the spike is the only cardiac cue.</p>
+    <a class="dl" href="logos/B_hrv_first/b1ecg-06.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Triangular Orbit: one continuous closed trajectory visiting three phase-space nodes -->
+  <path d="M160,85 Q232.9,126.1 240,205 Q164.6,250.4 85,220 Q87.4,138.0 160,85 Z"
+        fill="none" stroke="#1A1A1A" stroke-opacity="0.85" stroke-width="10"
+        stroke-linejoin="round"/>
+  <circle cx="160" cy="85"  r="16" fill="#9558B2"/>
+  <circle cx="240" cy="205" r="16" fill="#CB3C33"/>
+  <circle cx="85"  cy="220" r="16" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Triangular Orbit</h3><span class="rank">#20</span></div>
+    <code class="id">b2phase-10</code>
+    <div class="badges"><span class="badge motif">attractor / limit cycle</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">One continuous asymmetric closed trajectory (a limit cycle) that visits three phase-space nodes in Julia&#x27;s three colors.</p>
+    <p class="why"><strong>Why:</strong> Satisfies the three-color convention while staying unmistakably &#x27;orbit&#x27;, not &#x27;logo triangle&#x27;.</p>
+    <p class="risk"><strong>Risk:</strong> The closest B mark to Julia&#x27;s own three-dot logo; needs the loop bold so it doesn&#x27;t collapse to three dots.</p>
+    <a class="dl" href="logos/B_hrv_first/b2phase-10.svg" download>↓ SVG</a>
+  </figcaption>
+</figure></div>
+</section>
+<section id="dir-C">
+  <div class="sec-head">
+    <span class="sec-tag">Direction C</span>
+    <h2>Hybrid / Fusion</h2>
+    <p>The Julia three-dot identity fused with HRV artifacts so both read at once, plus the wordmark / lockup explorations.</p>
+    <span class="count">20 logos</span>
+  </div>
+  <div class="grid"><figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- c2lobe-08: Dot-Fused Heart — two Julia dots form the lobes, a third color fills the point -->
+  <defs>
+    <clipPath id="heartClip08">
+      <path d="M160,258 C112,214 54,182 54,128 C54,90 84,62 118,62
+               C140,62 154,76 160,96 C166,76 180,62 202,62
+               C236,62 266,90 266,128 C266,182 208,214 160,258 Z"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#heartClip08)">
+    <path d="M160,258 C112,214 54,182 54,128 C54,90 84,62 118,62
+             C140,62 154,76 160,96 C166,76 180,62 202,62
+             C236,62 266,90 266,128 C266,182 208,214 160,258 Z" fill="#CB3C33"/>
+    <circle cx="118" cy="112" r="82" fill="#9558B2"/>
+    <circle cx="202" cy="112" r="82" fill="#389826"/>
+  </g>
+  <path d="M160,258 C112,214 54,182 54,128 C54,90 84,62 118,62
+           C140,62 154,76 160,96 C166,76 180,62 202,62
+           C236,62 266,90 266,128 C266,182 208,214 160,258 Z"
+        fill="none" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Dot-Fused Heart</h3><span class="rank">#1</span></div>
+    <code class="id">c2lobe-08</code>
+    <div class="badges"><span class="badge motif">heart / three-dot (dots as lobes)</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Two big Julia dots (purple, green) sit exactly where a heart&#x27;s lobes belong, fused, with red filling the point beneath.</p>
+    <p class="why"><strong>Why:</strong> The cleanest fusion in the project — reads as heart AND as two Julia dots simultaneously.</p>
+    <p class="risk"><strong>Risk:</strong> Very low risk; mainly keep the ink outline crisp so the red sliver isn&#x27;t lost when small.</p>
+    <a class="dl" href="logos/C_hybrid/c2lobe-08.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Heart from a Heartbeat: ECG line bends into an abstract heart silhouette, its two lobes plus dip are the triad -->
+  <path d="M160,262 C86,206 50,158 50,116 C50,80 78,58 108,58 C132,58 150,74 160,96
+           C170,74 188,58 212,58 C242,58 270,80 270,116 C270,158 234,206 160,262 Z"
+        fill="none" stroke="#1A1A1A" stroke-width="6.5" stroke-linejoin="round"/>
+  <circle cx="108" cy="60" r="24" fill="#CB3C33"/>
+  <circle cx="212" cy="60" r="24" fill="#389826"/>
+  <circle cx="160" cy="150" r="24" fill="#9558B2"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Heart from a Heartbeat</h3><span class="rank">#2</span></div>
+    <code class="id">c1trace-09</code>
+    <div class="badges"><span class="badge motif">heart glyph / ECG / three-dot</span><span class="badge register">illustrative</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">An abstract heart built entirely from a single bent ECG line (no valentine curves); lobes and dip marked by the three dots.</p>
+    <p class="why"><strong>Why:</strong> Satisfies &#x27;heart glyph built from curves not cliché&#x27; directly, and is the most universally legible C mark.</p>
+    <p class="risk"><strong>Risk:</strong> Closest to a generic heart-outline icon if the dots were ever removed or miscolored.</p>
+    <a class="dl" href="logos/C_hybrid/c1trace-09.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- c2lobe-01: Tri-Slice Heart — a heart cut into three Mercedes-style wedges -->
+  <defs>
+    <clipPath id="heartClip01">
+      <path d="M160,258 C112,214 54,182 54,128 C54,90 84,62 118,62
+               C140,62 154,76 160,96 C166,76 180,62 202,62
+               C236,62 266,90 266,128 C266,182 208,214 160,258 Z"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#heartClip01)">
+    <polygon points="160,160 160,-140 419.8,310" fill="#9558B2"/>
+    <polygon points="160,160 419.8,310 -99.8,310" fill="#CB3C33"/>
+    <polygon points="160,160 -99.8,310 160,-140" fill="#389826"/>
+  </g>
+  <path d="M160,258 C112,214 54,182 54,128 C54,90 84,62 118,62
+           C140,62 154,76 160,96 C166,76 180,62 202,62
+           C236,62 266,90 266,128 C266,182 208,214 160,258 Z"
+        fill="none" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Tri-Slice Heart</h3><span class="rank">#3</span></div>
+    <code class="id">c2lobe-01</code>
+    <div class="badges"><span class="badge motif">heart / three wedges</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A solid heart cut into three Mercedes-style 120° wedges from its centroid — the triad *is* the heart, sliced.</p>
+    <p class="why"><strong>Why:</strong> Instant heart read; the straight radial cuts feel intentional/geometric and stay crisp at any size.</p>
+    <p class="risk"><strong>Risk:</strong> Hard straight seams are less &#x27;organic&#x27;; can scan as pie art before heart for some.</p>
+    <a class="dl" href="logos/C_hybrid/c2lobe-01.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- c2lobe-06: Negative Heart — three fused Julia dots with a heart cut out of the negative space -->
+  <defs>
+    <mask id="negHeart06">
+      <rect x="0" y="0" width="320" height="320" fill="white"/>
+      <path d="M160,252 C118,214 66,186 66,138 C66,104 92,80 122,80
+               C142,80 154,92 160,110 C166,92 178,80 198,80
+               C228,80 254,104 254,138 C254,186 202,214 160,252 Z"
+            fill="black"/>
+    </mask>
+  </defs>
+  <g mask="url(#negHeart06)">
+    <circle cx="160" cy="102" r="78" fill="#9558B2"/>
+    <circle cx="104" cy="214" r="78" fill="#389826"/>
+    <circle cx="216" cy="214" r="78" fill="#CB3C33"/>
+  </g>
+  <path d="M160,252 C118,214 66,186 66,138 C66,104 92,80 122,80
+           C142,80 154,92 160,110 C166,92 178,80 198,80
+           C228,80 254,104 254,138 C254,186 202,214 160,252 Z"
+        fill="none" stroke="#1A1A1A" stroke-width="3.5" opacity="0.55" stroke-linejoin="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Negative Heart</h3><span class="rank">#4</span></div>
+    <code class="id">c2lobe-06</code>
+    <div class="badges"><span class="badge motif">heart (negative space) / three-dot</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Three large solid Julia circles fuse into a clover badge with a heart punched out of the middle as negative space.</p>
+    <p class="why"><strong>Why:</strong> The cleverest negative-space use in the set — the heart is implied yet an outline keeps it instantly legible.</p>
+    <p class="risk"><strong>Risk:</strong> Fast scanners may parse &#x27;three overlapping circles&#x27; before the heart-shaped hole.</p>
+    <a class="dl" href="logos/C_hybrid/c2lobe-06.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- "H (heart) L" lockup: a geometric heart stands in for the middle of the
+       name, seeded with a tiny Poincare-plot dot cloud along its diagonal. -->
+  <text x="26" y="218" font-family="Arial, Helvetica, sans-serif" font-weight="700"
+        font-size="168" fill="#1A1A1A">H</text>
+  <text x="294" y="218" text-anchor="end" font-family="Arial, Helvetica, sans-serif"
+        font-weight="700" font-size="168" fill="#1A1A1A">L</text>
+  <path d="M160,196 C160,196 112,158 112,124 C112,101 133,90 150,105
+           C154,109 158,115 160,120 C162,115 166,109 170,105
+           C187,90 208,101 208,124 C208,158 160,196 160,196 Z"
+        fill="#CB3C33"/>
+  <circle cx="132" cy="150" r="7" fill="#9558B2"/>
+  <circle cx="145" cy="138" r="6" fill="#389826"/>
+  <circle cx="158" cy="128" r="7" fill="#4063D8"/>
+  <circle cx="171" cy="118" r="6" fill="#9558B2"/>
+  <circle cx="184" cy="140" r="5" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>H♥L</h3><span class="rank">#5</span></div>
+    <code class="id">c3word-04</code>
+    <div class="badges"><span class="badge motif">heart / Poincaré-cloud / monogram</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">Bold &#x27;H&#x27; and &#x27;L&#x27; flank a geometric heart standing in for the middle of the name; a tiny dot cluster inside nods to a Poincaré cloud.</p>
+    <p class="why"><strong>Why:</strong> Strongest square wordmark — clean, bold, reads as letters+heart even at 32px; the I♥NY substitution is instantly parseable.</p>
+    <p class="risk"><strong>Risk:</strong> The internal dot cloud is a bonus detail invisible below ~64px.</p>
+    <a class="dl" href="logos/C_hybrid/c3word-04.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Poincare Triad: the ellipse's three densest clusters ARE the three Julia dots -->
+  <g transform="rotate(-40 160 160)">
+    <ellipse cx="160" cy="160" rx="118" ry="46" fill="#9558B2" opacity="0.13"/>
+    <line x1="42" y1="160" x2="278" y2="160" stroke="#9558B2" stroke-width="3" stroke-dasharray="2 10" opacity="0.55"/>
+    <!-- faint scatter members around each cluster -->
+    <circle cx="100" cy="160" r="6" fill="#CB3C33" opacity="0.45"/>
+    <circle cx="112" cy="148" r="5" fill="#CB3C33" opacity="0.4"/>
+    <circle cx="90" cy="172" r="5" fill="#CB3C33" opacity="0.4"/>
+    <circle cx="160" cy="160" r="6" fill="#9558B2" opacity="0.45"/>
+    <circle cx="172" cy="149" r="5" fill="#9558B2" opacity="0.4"/>
+    <circle cx="148" cy="172" r="5" fill="#9558B2" opacity="0.4"/>
+    <circle cx="220" cy="160" r="6" fill="#389826" opacity="0.45"/>
+    <circle cx="232" cy="149" r="5" fill="#389826" opacity="0.4"/>
+    <circle cx="208" cy="172" r="5" fill="#389826" opacity="0.4"/>
+    <!-- the three dense cluster cores = the triad -->
+    <circle cx="100" cy="160" r="24" fill="#CB3C33"/>
+    <circle cx="160" cy="160" r="24" fill="#9558B2"/>
+    <circle cx="220" cy="160" r="24" fill="#389826"/>
+  </g>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Poincaré Triad</h3><span class="rank">#6</span></div>
+    <code class="id">c1trace-02</code>
+    <div class="badges"><span class="badge motif">Poincaré / three-dot</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A tilted Poincaré ellipse cloud along the 45° identity line whose three densest clusters are the three Julia dots.</p>
+    <p class="why"><strong>Why:</strong> Honors the real SD1/SD2 ellipse geometry while making the dominant read exactly the Julia triad.</p>
+    <p class="risk"><strong>Risk:</strong> Faint scatter dots vanish at 32px, leaving &#x27;3 dots in an ellipse&#x27;.</p>
+    <a class="dl" href="logos/C_hybrid/c1trace-02.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Tachogram Triad: three IBI bars of differing height, capped by the three dots, linked by trend line -->
+  <line x1="30" y1="270" x2="290" y2="270" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round"/>
+  <rect x="92" y="176" width="24" height="94" rx="10" fill="#CB3C33"/>
+  <rect x="148" y="120" width="24" height="150" rx="10" fill="#9558B2"/>
+  <rect x="204" y="160" width="24" height="110" rx="10" fill="#389826"/>
+  <path d="M104,176 L160,120 L216,160" fill="none" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+  <circle cx="104" cy="176" r="24" fill="#CB3C33"/>
+  <circle cx="160" cy="120" r="25" fill="#9558B2"/>
+  <circle cx="216" cy="160" r="24" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Tachogram Triad</h3><span class="rank">#7</span></div>
+    <code class="id">c1trace-03</code>
+    <div class="badges"><span class="badge motif">IBI-gap / tachogram / three-dot</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Three IBI bars of different heights rise from a baseline, each capped by a Julia dot, linked by a thin trend line.</p>
+    <p class="why"><strong>Why:</strong> Bar-chart language reads instantly as &#x27;time-series data&#x27;, grounding the triad in recognizable HRV output.</p>
+    <p class="risk"><strong>Risk:</strong> Could be mistaken for a generic bar-chart icon if the colors were muted.</p>
+    <a class="dl" href="logos/C_hybrid/c1trace-03.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- c2lobe-04: Three-Stroke Heart — a heart outline drawn as three thick colored brush arcs -->
+  <path d="M54,128 C54,90 84,62 118,62 C140,62 154,76 160,96"
+        fill="none" stroke="#9558B2" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M266,128 C266,90 236,62 202,62 C180,62 166,76 160,96"
+        fill="none" stroke="#389826" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M54,128 C54,182 112,214 160,258 C208,214 266,182 266,128"
+        fill="none" stroke="#CB3C33" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Three-Stroke Heart</h3><span class="rank">#8</span></div>
+    <code class="id">c2lobe-04</code>
+    <div class="badges"><span class="badge motif">heart / negative-space</span><span class="badge register">illustrative</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">The heart drawn only as an outline, stitched from three thick rounded brush-stroke arcs in the three Julia colors.</p>
+    <p class="why"><strong>Why:</strong> Confident negative space; a very legible line-art heart that still telegraphs &#x27;three Julia colors&#x27;.</p>
+    <p class="risk"><strong>Risk:</strong> The two short top arcs could weaken at extreme small sizes if stroked too thin.</p>
+    <a class="dl" href="logos/C_hybrid/c2lobe-04.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage wide"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <!-- Triad Pulse lockup: the classic Julia three-dot triangle sits directly on
+       an ECG baseline (three dots as beats + ECG underline), paired with the
+       full wordmark. -->
+  <path d="M20,178 H70 L84,152 L98,204 L112,178 H200"
+        fill="none" stroke="#1A1A1A" stroke-width="8"
+        stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="110" cy="68" r="27" fill="#9558B2"/>
+  <circle cx="74" cy="126" r="25" fill="#CB3C33"/>
+  <circle cx="146" cy="126" r="25" fill="#389826"/>
+  <text x="220" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700"
+        font-size="70" textLength="390" lengthAdjust="spacingAndGlyphs"
+        fill="#1A1A1A">HeartRateLab</text>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Triad Pulse Lockup</h3><span class="rank">#9</span></div>
+    <code class="id">c3word-05</code>
+    <div class="badges"><span class="badge motif">three-dot / ECG underline</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">The Julia three-dot triangle on an ECG baseline with a peak beneath, paired with the full &#x27;HeartRateLab&#x27; wordmark.</p>
+    <p class="why"><strong>Why:</strong> The safest, most legible default lockup — Julia package + heartbeat + full name at a glance.</p>
+    <p class="risk"><strong>Risk:</strong> The least novel of the lockups; closest in spirit to the reference seed.</p>
+    <a class="dl" href="logos/C_hybrid/c3word-05.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- c2lobe-03: Trefoil Pulse — three rotationally-symmetric dot-petals meeting at a beating core -->
+  <g>
+    <path d="M160,160 C128,138 116,84 160,50 C204,84 192,138 160,160 Z" fill="#9558B2"/>
+    <path d="M160,160 C128,138 116,84 160,50 C204,84 192,138 160,160 Z" fill="#389826" transform="rotate(120 160 160)"/>
+    <path d="M160,160 C128,138 116,84 160,50 C204,84 192,138 160,160 Z" fill="#CB3C33" transform="rotate(240 160 160)"/>
+  </g>
+  <circle cx="160" cy="160" r="16" fill="#4063D8"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Trefoil Pulse</h3><span class="rank">#10</span></div>
+    <code class="id">c2lobe-03</code>
+    <div class="badges"><span class="badge motif">pulse / three-dot (petals)</span><span class="badge register">minimalist</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Three dot-derived teardrop petals meet at a small blue pulse-core, rotated 120° apart — a three-fold beat.</p>
+    <p class="why"><strong>Why:</strong> A clean, original silhouette unmistakably built from three equal colored parts meeting at one beating point.</p>
+    <p class="risk"><strong>Risk:</strong> Reads as pulse/trefoil more than a literal heart — the weakest &#x27;heart&#x27; read of its studio.</p>
+    <a class="dl" href="logos/C_hybrid/c2lobe-03.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Pulse Ring: a thin heart-monitor ring with three radial blips marking the triad, 120 degrees apart -->
+  <circle cx="160" cy="160" r="104" fill="none" stroke="#1A1A1A" stroke-width="4" opacity="0.3"/>
+  <path d="M160,56 L152,80 L168,84 L160,56" fill="none" stroke="#1A1A1A" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M247,212 L226,200 L216,214 L247,212" fill="none" stroke="#1A1A1A" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M73,212 L94,200 L104,214 L73,212" fill="none" stroke="#1A1A1A" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="160" cy="56" r="25" fill="#9558B2"/>
+  <circle cx="247" cy="212" r="25" fill="#CB3C33"/>
+  <circle cx="73" cy="212" r="25" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Pulse Ring</h3><span class="rank">#11</span></div>
+    <code class="id">c1trace-07</code>
+    <div class="badges"><span class="badge motif">pulse / ECG / three-dot</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A thin heart-monitor ring (ECG wrapped into a circle) with three radial pulse-blips 120° apart, each ending in a Julia dot.</p>
+    <p class="why"><strong>Why:</strong> Perfect rotational symmetry and a monitor-ring frame make &#x27;pulse&#x27; unmistakable while the triad stays intact.</p>
+    <p class="risk"><strong>Risk:</strong> The small radial ticks can fuse into the dots at 32px, reducing to &#x27;ring + 3 dots&#x27;.</p>
+    <a class="dl" href="logos/C_hybrid/c1trace-07.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- c2lobe-09: Radiating Pulse Heart — three nested heart contours rippling outward like a beat -->
+  <path d="M160,271 C107,222 42,187 42,124 C42,84 74,54 111,54
+           C135,54 150,69 160,92 C170,69 185,54 209,54
+           C246,54 278,84 278,124 C278,187 213,222 160,271 Z"
+        fill="none" stroke="#9558B2" stroke-width="11" opacity="0.75"/>
+  <path d="M160,247 C122,211 76,184 76,138 C76,109 99,86 126,86
+           C143,86 154,97 160,113 C166,97 177,86 194,86
+           C221,86 244,109 244,138 C244,184 198,211 160,247 Z"
+        fill="none" stroke="#389826" stroke-width="11" opacity="0.9"/>
+  <path d="M160,220 C133,196 100,177 100,146 C100,127 115,112 133,112
+           C145,112 153,119 160,130 C167,119 175,112 187,112
+           C205,112 220,127 220,146 C220,177 187,196 160,220 Z"
+        fill="#CB3C33"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Radiating Pulse Heart</h3><span class="rank">#12</span></div>
+    <code class="id">c2lobe-09</code>
+    <div class="badges"><span class="badge motif">heart / pulse (heart-shaped rings)</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Three nested heart contours scaling down to a solid red core, rippling outward like a pulse — rings reshaped as hearts.</p>
+    <p class="why"><strong>Why:</strong> An original combination of two brief motifs (pulse rings + heart) that reads neither generic nor cliché.</p>
+    <p class="risk"><strong>Risk:</strong> The outer purple ring is the thinnest element; needs contrast at favicon size.</p>
+    <a class="dl" href="logos/C_hybrid/c2lobe-09.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Limit-Cycle Knot: an asymmetric Van der Pol relaxation-oscillation loop, three dots riding the trajectory -->
+  <path d="M150,46 C 224,42 274,84 268,138 C 264,172 226,182 196,168
+           C 236,196 232,246 182,266 C 122,290 62,254 66,200
+           C 40,182 36,128 78,86 C 100,64 122,48 150,46 Z"
+        fill="none" stroke="#1A1A1A" stroke-width="7.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="150" cy="46" r="26" fill="#9558B2"/>
+  <circle cx="196" cy="168" r="24" fill="#CB3C33"/>
+  <circle cx="66" cy="200" r="24" fill="#389826"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Limit-Cycle Knot</h3><span class="rank">#13</span></div>
+    <code class="id">c1trace-04</code>
+    <div class="badges"><span class="badge motif">attractor / limit cycle / three-dot</span><span class="badge register">illustrative</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">An asymmetric organic closed loop (a Van der Pol relaxation-oscillation limit cycle, not a circle) with the three dots riding the trajectory at uneven points.</p>
+    <p class="why"><strong>Why:</strong> The lopsided non-circular contour reads distinctly as a dynamical-systems trajectory while still resolving into the triad.</p>
+    <p class="risk"><strong>Risk:</strong> Without dynamics-literate context some viewers may just see &#x27;a blob&#x27;.</p>
+    <a class="dl" href="logos/C_hybrid/c1trace-04.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage wide"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <!-- R-Peak Letter lockup: a Van der Pol limit-cycle loop (closed orbit in
+       phase space) as icon; the wordmark's "R" (of "Rate") is crowned by a
+       small ECG spike -- an R-peak literally sitting on the stroke of a letter. -->
+  <path d="M110,40 C150,40 178,72 172,108 C168,132 148,150 118,152
+           C90,154 68,138 66,112 C64,86 82,54 110,40 Z"
+        fill="none" stroke="#4063D8" stroke-width="9" stroke-linejoin="round"/>
+  <circle cx="172" cy="108" r="9" fill="#389826"/>
+  <text x="220" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700"
+        font-size="70" textLength="175" lengthAdjust="spacingAndGlyphs"
+        fill="#1A1A1A">Heart</text>
+  <text x="395" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700"
+        font-size="70" textLength="45" lengthAdjust="spacingAndGlyphs"
+        fill="#CB3C33">R</text>
+  <text x="440" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700"
+        font-size="70" textLength="170" lengthAdjust="spacingAndGlyphs"
+        fill="#1A1A1A">ateLab</text>
+  <path d="M396,92 L417,54 L439,92"
+        fill="none" stroke="#CB3C33" stroke-width="8"
+        stroke-linejoin="round" stroke-linecap="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>R-Peak Letter Lockup</h3><span class="rank">#14</span></div>
+    <code class="id">c3word-07</code>
+    <div class="badges"><span class="badge motif">limit-cycle / R-peak-as-letter</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">A Van der Pol limit-cycle icon; in the wordmark the &#x27;R&#x27; of &#x27;Rate&#x27; is crowned by a sharp ECG spike on its cap.</p>
+    <p class="why"><strong>Why:</strong> Doubles Julia-native (blue accent, closed-loop dynamics) and HRV (R-peak) in one detail without hurting legibility.</p>
+    <p class="risk"><strong>Risk:</strong> The crowned &#x27;R&#x27; reads best at ≥200px wide; at tiny sizes it looks like an accent mark.</p>
+    <a class="dl" href="logos/C_hybrid/c3word-07.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- c2lobe-05: Orbiting Beat — three Julia dots orbit a small central pulse-heart -->
+  <circle cx="160" cy="160" r="118" fill="none" stroke="#1A1A1A" stroke-width="4" opacity="0.4"/>
+  <path d="M160,200 C136,178 108,160 108,128 C108,108 122,94 140,94
+           C150,94 157,100 160,110 C163,100 170,94 180,94
+           C198,94 212,108 212,128 C212,160 184,178 160,200 Z"
+        fill="#1A1A1A"/>
+  <circle cx="160" cy="42" r="30" fill="#9558B2"/>
+  <circle cx="262" cy="219" r="30" fill="#389826"/>
+  <circle cx="58" cy="219" r="30" fill="#CB3C33"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Orbiting Beat</h3><span class="rank">#15</span></div>
+    <code class="id">c2lobe-05</code>
+    <div class="badges"><span class="badge motif">heart / three-dot (orbital)</span><span class="badge register">illustrative</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A small solid ink heart at center while the three Julia dots orbit it on a thin ring, like electrons around a nucleus.</p>
+    <p class="why"><strong>Why:</strong> A distinct atomic/orbital framing used nowhere else; the heart core stays legible even if the ring vanishes.</p>
+    <p class="risk"><strong>Risk:</strong> The orbit ring and dots are the smallest elements; can lose contrast under 32px.</p>
+    <a class="dl" href="logos/C_hybrid/c2lobe-05.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Spiral Attractor: a phase-space trajectory spiraling into a fixed point, three passes marked by the triad -->
+  <path d="M160.0,57.0 L185.1,62.3 L207.8,73.1 L226.9,88.7 L241.4,108.0 L250.7,129.7 L254.5,152.6 L252.7,175.2
+           L245.9,196.3 L234.4,214.7 L219.2,229.6 L201.3,240.2 L181.7,246.2 L161.8,247.3 L142.5,243.7 L125.1,235.8
+           L110.3,224.2 L98.9,209.7 L91.5,193.4 L88.2,176.0 L89.2,158.8 L94.1,142.6 L102.5,128.3 L113.8,116.7
+           L127.3,108.3 L142.1,103.5 L157.3,102.3 L172.0,104.8 L185.4,110.5 L196.9,119.1 L205.8,129.9 L211.7,142.3
+           L214.5,155.4 L214.1,168.6 L210.6,181.0 L204.4,192.0 L196.0,201.0 L185.8,207.6 L174.6,211.6 L163.1,212.7
+           L151.8,211.1 L141.5,206.9"
+        fill="none" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="160" cy="57" r="24" fill="#CB3C33"/>
+  <circle cx="93.7" cy="143.5" r="22" fill="#389826"/>
+  <circle cx="133.5" cy="201.4" r="20" fill="#9558B2"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Spiral Attractor</h3><span class="rank">#16</span></div>
+    <code class="id">c1trace-10</code>
+    <div class="badges"><span class="badge motif">attractor / spiral / three-dot</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">A true logarithmic phase-space spiral (a damped oscillator converging on a fixed point) with three passes marked by the three dots at decreasing radius.</p>
+    <p class="why"><strong>Why:</strong> Matches the brief&#x27;s spiral vocabulary; the converging composition reads as &#x27;settling into rhythm&#x27;.</p>
+    <p class="risk"><strong>Risk:</strong> The multi-turn curve has the most path complexity; must stay thick-stroked to avoid muddiness when small.</p>
+    <a class="dl" href="logos/C_hybrid/c1trace-10.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- c2lobe-02: Venn Pulse Heart — three translucent Julia-triad circles, blended, clipped to a heart -->
+  <defs>
+    <clipPath id="heartClip02">
+      <path d="M160,258 C112,214 54,182 54,128 C54,90 84,62 118,62
+               C140,62 154,76 160,96 C166,76 180,62 202,62
+               C236,62 266,90 266,128 C266,182 208,214 160,258 Z"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#heartClip02)" opacity="0.78">
+    <circle cx="160" cy="188" r="86" fill="#CB3C33"/>
+    <circle cx="132" cy="118" r="86" fill="#9558B2"/>
+    <circle cx="188" cy="118" r="86" fill="#389826"/>
+  </g>
+  <path d="M160,258 C112,214 54,182 54,128 C54,90 84,62 118,62
+           C140,62 154,76 160,96 C166,76 180,62 202,62
+           C236,62 266,90 266,128 C266,182 208,214 160,258 Z"
+        fill="none" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Venn Pulse Heart</h3><span class="rank">#17</span></div>
+    <code class="id">c2lobe-02</code>
+    <div class="badges"><span class="badge motif">heart / three-dot (Venn circles)</span><span class="badge register">scientific</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Three translucent Julia-triad circles overlap inside a heart clip; their alpha-blended intersections nod to statistical Venn diagrams while the clip guarantees a heart.</p>
+    <p class="why"><strong>Why:</strong> The overlap/blend is a subtle wink at the package&#x27;s statistical heritage, with a guaranteed heart silhouette.</p>
+    <p class="risk"><strong>Risk:</strong> At very small sizes the blended overlaps can read a touch muddy.</p>
+    <a class="dl" href="logos/C_hybrid/c2lobe-02.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- HRL tri-chrome wordmark: each initial takes a Julia color (echoing the
+       three-dot triad), ECG line underlines the mark with a single R-peak spike. -->
+  <text x="160" y="205" text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="150">
+    <tspan fill="#9558B2">H</tspan><tspan fill="#CB3C33">R</tspan><tspan fill="#389826">L</tspan>
+  </text>
+  <path d="M46,238 H124 L134,214 L146,262 L156,238 H274"
+        fill="none" stroke="#1A1A1A" stroke-width="11"
+        stroke-linejoin="round" stroke-linecap="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Tri-Chrome HRL</h3><span class="rank">#18</span></div>
+    <code class="id">c3word-01</code>
+    <div class="badges"><span class="badge motif">three-dot (via color) / ECG underline</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">The initials H-R-L each set in one Julia color, underlined by a thick ECG line with a single R-peak spike under the &#x27;R&#x27;.</p>
+    <p class="why"><strong>Why:</strong> Reads instantly as an acronym mark and a heartbeat trace at once; strong at large and favicon scale.</p>
+    <p class="risk"><strong>Risk:</strong> Three letter colors could feel busy on a busy background; wants a neutral backdrop.</p>
+    <a class="dl" href="logos/C_hybrid/c3word-01.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage "><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- c2lobe-07: Petal Heart — three dot-derived teardrop petals overlap into a single heart -->
+  <path d="M0,-58 C42,-58 42,18 0,104 C-42,18 -42,-58 0,-58 Z"
+        fill="#CB3C33" transform="translate(160,142)"/>
+  <path d="M0,-62 C46,-62 46,4 0,74 C-46,4 -46,-62 0,-62 Z"
+        fill="#9558B2" transform="translate(120,120) rotate(-24)"/>
+  <path d="M0,-62 C46,-62 46,4 0,74 C-46,4 -46,-62 0,-62 Z"
+        fill="#389826" transform="translate(200,120) rotate(24)"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Petal Heart</h3><span class="rank">#19</span></div>
+    <code class="id">c2lobe-07</code>
+    <div class="badges"><span class="badge motif">heart / three-dot (petals)</span><span class="badge register">illustrative</span><span class="badge wm">icon-only</span></div>
+    <p class="concept">Three dot-derived teardrop petals — purple and green lobes, red point — overlap so their union reads as one continuous heart.</p>
+    <p class="why"><strong>Why:</strong> A softer, more organic heart than the wedge/Venn versions, still obviously built from three colored parts.</p>
+    <p class="risk"><strong>Risk:</strong> The red petal is mostly hidden, showing only as a thin sliver — the third color can be missed at a glance.</p>
+    <a class="dl" href="logos/C_hybrid/c2lobe-07.svg" download>↓ SVG</a>
+  </figcaption>
+</figure>
+<figure class="card">
+  <div class="stage wide"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <!-- Heart Badge lockup: a two-tone geometric heart icon; the wordmark rides
+       on a continuous ECG baseline with one R-peak bump under "Rate" --
+       an ECG literally underlining the word. -->
+  <path d="M110,90 C107,84 101,77 93,72 C73,58 50,68 50,90 C50,120 110,155 110,155 Z"
+        fill="#9558B2"/>
+  <path d="M110,90 C113,84 119,77 127,72 C147,58 170,68 170,90 C170,120 110,155 110,155 Z"
+        fill="#389826"/>
+  <circle cx="110" cy="80" r="9" fill="#CB3C33"/>
+  <text x="220" y="140" font-family="Arial, Helvetica, sans-serif" font-weight="700"
+        font-size="70" textLength="390" lengthAdjust="spacingAndGlyphs"
+        fill="#1A1A1A">HeartRateLab</text>
+  <path d="M220,163 H360 L372,148 L384,178 L396,163 H610"
+        fill="none" stroke="#1A1A1A" stroke-width="6"
+        stroke-linejoin="round" stroke-linecap="round"/>
+</svg></div>
+  <figcaption>
+    <div class="cap-head"><h3>Heart Badge Lockup</h3><span class="rank">#20</span></div>
+    <code class="id">c3word-08</code>
+    <div class="badges"><span class="badge motif">heart / ECG-underlining-word</span><span class="badge register">typographic</span><span class="badge wm text">includes text</span></div>
+    <p class="concept">A two-tone geometric heart paired with &#x27;HeartRateLab&#x27; riding a continuous ECG baseline that bumps into an R-peak under &#x27;Rate&#x27;.</p>
+    <p class="why"><strong>Why:</strong> The most approachable lockup — the heart reads instantly and the underline ties the ECG motif to the name itself.</p>
+    <p class="risk"><strong>Risk:</strong> Leans most on the &#x27;heart&#x27; cliché; kept honest by the bicolor split and ECG baseline.</p>
+    <a class="dl" href="logos/C_hybrid/c3word-08.svg" download>↓ SVG</a>
+  </figcaption>
+</figure></div>
+</section>
+</main>
+<footer>
+  Generated for HeartRateLab.jl. All raw exploration attempts are preserved under
+  <code>docs/logos/</code>. Colors follow the official Julia brand palette.
+</footer>
+</body>
+</html>

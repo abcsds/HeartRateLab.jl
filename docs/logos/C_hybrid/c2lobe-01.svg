@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- c2lobe-01: Tri-Slice Heart — a heart cut into three Mercedes-style wedges -->
+  <defs>
+    <clipPath id="heartClip01">
+      <path d="M160,258 C112,214 54,182 54,128 C54,90 84,62 118,62
+               C140,62 154,76 160,96 C166,76 180,62 202,62
+               C236,62 266,90 266,128 C266,182 208,214 160,258 Z"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#heartClip01)">
+    <polygon points="160,160 160,-140 419.8,310" fill="#9558B2"/>
+    <polygon points="160,160 419.8,310 -99.8,310" fill="#CB3C33"/>
+    <polygon points="160,160 -99.8,310 160,-140" fill="#389826"/>
+  </g>
+  <path d="M160,258 C112,214 54,182 54,128 C54,90 84,62 118,62
+           C140,62 154,76 160,96 C166,76 180,62 202,62
+           C236,62 266,90 266,128 C266,182 208,214 160,258 Z"
+        fill="none" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"/>
+</svg>

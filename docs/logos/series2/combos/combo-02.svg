@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <line x1="90" y1="112" x2="550" y2="112" stroke="#1A1A1A" stroke-width="2.5" opacity="0.35" stroke-linecap="round"/>
+  <line x1="140" y1="112" x2="140" y2="100" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="220" y1="112" x2="220" y2="100" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="270" y1="112" x2="270" y2="100" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="390" y1="112" x2="390" y2="100" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="430" y1="112" x2="430" y2="100" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="500" y1="112" x2="500" y2="100" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="180" y1="112" x2="180" y2="80" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="180" cy="68" r="16" fill="#9558B2"/>
+  <line x1="330" y1="112" x2="330" y2="80" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="330" cy="68" r="16" fill="#CB3C33"/>
+  <line x1="470" y1="112" x2="470" y2="80" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="470" cy="68" r="16" fill="#389826"/>
+  <text x="97" y="182" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="80" textLength="446" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+</svg>

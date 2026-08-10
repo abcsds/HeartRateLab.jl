@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Comb bent into an arc: one cardiac cycle read left-to-right along a curve -->
+  <path d="M 40,210 A 200,200 0 0,1 280,210" fill="none" stroke="#1A1A1A" stroke-width="3" opacity="0.35" stroke-linecap="round"/>
+
+  <line x1="39.9"  y1="210.1" x2="27.9"  y2="194.1" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="69.2"  y1="191.8" x2="53.8"  y2="161.5" stroke="#9558B2" stroke-width="6" stroke-linecap="round"/>
+  <line x1="94.9"  y1="180.9" x2="88.4"  y2="162.0" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+  <line x1="132.2" y1="171.9" x2="126.6" y2="132.3" stroke="#CB3C33" stroke-width="6" stroke-linecap="round"/>
+  <line x1="160.0" y1="170.0" x2="160.0" y2="150.0" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="191.3" y1="172.5" x2="197.5" y2="133.0" stroke="#389826" stroke-width="6" stroke-linecap="round"/>
+  <line x1="221.8" y1="179.8" x2="228.0" y2="160.8" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+  <line x1="247.7" y1="190.2" x2="262.6" y2="159.7" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="280.1" y1="210.1" x2="292.1" y2="194.1" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+
+  <circle cx="49.3"  cy="152.6" r="14" fill="#9558B2"/>
+  <circle cx="125.2" cy="122.4" r="14" fill="#CB3C33"/>
+  <circle cx="199.1" cy="123.1" r="14" fill="#389826"/>
+</svg>

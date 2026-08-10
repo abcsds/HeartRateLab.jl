@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Circular badge: a geometric heart built from the Julia three-dot triangle
+       (purple/green lobes, red Poincare-dot "tittle" at the cleft), captioned
+       with the HRL monogram. -->
+  <circle cx="160" cy="156" r="126" fill="none" stroke="#1A1A1A" stroke-width="7"/>
+  <path d="M160,100 C157,93 151,86 143,81 C121,66 96,77 96,103 C96,140 160,182 160,182 Z"
+        fill="#9558B2"/>
+  <path d="M160,100 C163,93 169,86 177,81 C199,66 224,77 224,103 C224,140 160,182 160,182 Z"
+        fill="#389826"/>
+  <circle cx="160" cy="92" r="11" fill="#CB3C33"/>
+  <text x="160" y="250" text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="56"
+        fill="#1A1A1A">HRL</text>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Wordmark: heart pierced by its own ECG trace, with the package name -->
+  <g transform="translate(105.6,63.3) scale(3.4)">
+    <path d="M23.6,0 C20.2,0 17.3,2.7 16,5.6 C14.7,2.7 11.8,0 8.4,0 C3.8,0 0,3.8 0,8.4 C0,15.6 7.8,21.4 16,29.2 C24.2,21.4 32,15.6 32,8.4 C32,3.8 28.2,0 23.6,0 Z"
+      fill="#389826" fill-opacity="0.16" stroke="#9558B2" stroke-width="0.9"/>
+  </g>
+  <path d="M90,112 H132 L140,92 L150,132 L158,112 H230"
+        fill="none" stroke="#CB3C33" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="160" y="256" text-anchor="middle" font-family="Arial, Helvetica, sans-serif"
+        font-weight="800" font-size="34" fill="#1A1A1A" letter-spacing="-0.5">HeartRateLab</text>
+</svg>

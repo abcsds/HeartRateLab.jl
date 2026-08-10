@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Limit-Cycle Knot: an asymmetric Van der Pol relaxation-oscillation loop, three dots riding the trajectory -->
+  <path d="M150,46 C 224,42 274,84 268,138 C 264,172 226,182 196,168
+           C 236,196 232,246 182,266 C 122,290 62,254 66,200
+           C 40,182 36,128 78,86 C 100,64 122,48 150,46 Z"
+        fill="none" stroke="#1A1A1A" stroke-width="7.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="150" cy="46" r="26" fill="#9558B2"/>
+  <circle cx="196" cy="168" r="24" fill="#CB3C33"/>
+  <circle cx="66" cy="200" r="24" fill="#389826"/>
+</svg>

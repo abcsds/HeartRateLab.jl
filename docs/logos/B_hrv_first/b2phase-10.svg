@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Triangular Orbit: one continuous closed trajectory visiting three phase-space nodes -->
+  <path d="M160,85 Q232.9,126.1 240,205 Q164.6,250.4 85,220 Q87.4,138.0 160,85 Z"
+        fill="none" stroke="#1A1A1A" stroke-opacity="0.85" stroke-width="10"
+        stroke-linejoin="round"/>
+  <circle cx="160" cy="85"  r="16" fill="#9558B2"/>
+  <circle cx="240" cy="205" r="16" fill="#CB3C33"/>
+  <circle cx="85"  cy="220" r="16" fill="#389826"/>
+</svg>

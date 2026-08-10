@@ -7,4 +7,63 @@
 wfdb-10.7.0
 LOG.md
 VizHRV
-examples
+examples*.quarto_ipynb
+docs/*_files/
+# Nested Quarto/Documenter render output (e.g. docs/slides/<deck>_files/)
+**/*_files/
+
+# Agent context docs (local only, not part of the package)
+/AGENTS.md
+/CLAUDE.md
+/GEMINI.md
+
+# Local Backlog.md task tracker (MrLesk/Backlog.md shape)
+/backlog/
+
+# Interim GPU-free headless test runner (see backlog task-16)
+/noviz_runtests.jl
+/viz_check.jl
+
+# Dedicated real-time viz env built by `nix run .#viz` (git-LSL + GLMakie)
+/.viz-env/
+
+# Personal/participant XDF datasets pulled in for pre-v1.0.0 testing (not part
+# of the published package or test suite — human-subject research data, never
+# commit this). See data/README.md.
+/data/
+
+# Local scratch, drafts, and regenerable run logs (not part of the package)
+/scratchpad_pilot/
+/Slides.email.txt
+/docs/slides/computational-graph copy.svg
+test/tools/forecasting/out/*.log
+
+# Local agent/session state (never publish)
+/.claude/
+/docs/sessions/
+/memory/
+
+# Regenerable rendered output (nix run .#render / quarto)
+/docs/flagship_demo.html
+/docs/slides/HeartRateLab.html
+/docs/slides.zip
+
+# Experimental / personal analysis output — documented locally in backlog/docs,
+# not part of the published package (0.1.0 scope decision, 2026-08-10)
+/docs/forecasting/
+/docs/reports/
+/docs/normative_report.html
+
+# Python bytecode from slide-figure scripts
+__pycache__/
+
+# LaTeX build artifacts (poster/slides)
+*.aux
+*.vrb
+docs/poster/*.log
+docs/slides/aux/
+
+# Generated normative windowed tiers — private branch only (w360_s120 ships;
+# regenerate others with test/tools/collect_normative_datasets.jl)
+test/testdata/*/windowed_w10_s5_features.csv
+test/testdata/*/windowed_w60_s30_features.csv

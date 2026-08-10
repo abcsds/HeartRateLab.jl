@@ -1,0 +1,377 @@
+# HeartRateLab — Normative Distribution Parameters (Scientific Priors)
+# Generated: 2026-02-28 14:42:36
+# Datasets: nsrdb, nsr2db
+# Window: 360 beats, stride: 120 beats
+# Total windows: 56472
+# Method: MLE via Distributions.fit()
+#
+# Each [features.X] section contains fitted parameters that can be used
+# to construct a Distributions.jl instance: e.g., Normal(μ, σ) or Gamma(α, θ)
+
+[metadata]
+datasets = ["nsrdb", "nsr2db"]
+window_size = 360
+stride = 120
+n_windows = 56472
+generated = "2026-02-28"
+
+[features.ccsi]
+family = "LogNormal"
+prior_call = "LogNormal(6.64948, 0.878659)"
+definition = "Corrected cardiac sympathetic index"
+equation = "4 * SD2^2 / SD1"
+μ = 6.649483723999631
+σ = 0.8786592618464346
+n_valid = 56472
+ks_pvalue = 2.274064592482625e-6
+
+[features.cvi]
+family = "Normal"
+prior_call = "Normal(4.26936, 0.424368)"
+definition = "Cardiac vagal index"
+equation = "log10(SD1 * SD2 * 16)"
+μ = 4.269361868873552
+σ = 0.4243675840387835
+n_valid = 56472
+ks_pvalue = 1.0802024412690063e-28
+
+[features.cvsd]
+family = "Gamma"
+prior_call = "Gamma(3.20435, 0.0130001)"
+definition = "Coefficient of variation of successive differences"
+equation = "sdsd / mean(IBI)"
+α = 3.204348862258013
+θ = 0.0130001040956156
+n_valid = 56472
+ks_pvalue = 2.4787353932095975e-141
+
+[features.hf]
+family = "Gamma"
+prior_call = "Gamma(0.691591, 460.854)"
+definition = "High frequency power (0.15-0.4 Hz)"
+equation = "integral(PSD; 0.15; 0.4) Hz"
+α = 0.6915906068536339
+θ = 460.85408190943764
+n_valid = 56472
+ks_pvalue = 1.0583963580069326e-188
+
+[features.hf_peak]
+family = "Normal"
+prior_call = "Normal(0.212262, 0.0625479)"
+definition = "Peak frequency in HF band"
+equation = "argmax(PSD; 0.15; 0.4)"
+μ = 0.21226187931873128
+σ = 0.06254788942772876
+n_valid = 56472
+ks_pvalue = 5.887682393120889e-112
+
+[features.hf_percentage]
+family = "Gamma"
+prior_call = "Gamma(2.53548, 7.59191)"
+definition = "HF power as percentage of total power"
+equation = "100 * HF / TP"
+α = 2.535484787806655
+θ = 7.591913141879362
+n_valid = 56472
+ks_pvalue = 7.611135703051224e-49
+
+[features.hf_relative]
+family = "Beta"
+prior_call = "Beta(1.3594, 5.70271)"
+definition = "HF power as proportion of total power"
+equation = "HF / TP"
+α = 1.3593981088709934
+β = 5.702710973101243
+n_valid = 56472
+ks_pvalue = 2.8272596407872605e-50
+
+[features.lf]
+family = "Gamma"
+prior_call = "Gamma(0.870894, 705.956)"
+definition = "Low frequency power (0.04-0.15 Hz)"
+equation = "integral(PSD; 0.04; 0.15) Hz"
+α = 0.870893865072293
+θ = 705.9563870331689
+n_valid = 56472
+ks_pvalue = 1.624992582450826e-183
+
+[features.lf_hf_ratio]
+family = "LogNormal"
+prior_call = "LogNormal(0.858276, 0.856713)"
+definition = "LF/HF power ratio"
+equation = "LF / HF"
+μ = 0.8582761105281326
+σ = 0.8567129798742524
+n_valid = 56472
+ks_pvalue = 8.35136750972781e-12
+
+[features.lf_peak]
+family = "Normal"
+prior_call = "Normal(0.0643586, 0.0182054)"
+definition = "Peak frequency in LF band"
+equation = "argmax(PSD; 0.04; 0.15)"
+μ = 0.06435864801892538
+σ = 0.018205361659575606
+n_valid = 56472
+ks_pvalue = 0.0
+
+[features.lf_percentage]
+family = "Gamma"
+prior_call = "Gamma(8.90829, 4.37525)"
+definition = "LF power as percentage of total power"
+equation = "100 * LF / TP"
+α = 8.908289816519392
+θ = 4.375249491395322
+n_valid = 56472
+ks_pvalue = 2.5531043899773437e-39
+
+[features.lf_relative]
+family = "Beta"
+prior_call = "Beta(5.29794, 8.29489)"
+definition = "LF power as proportion of total power"
+equation = "LF / TP"
+α = 5.297942940830514
+β = 8.294894276059216
+n_valid = 56472
+ks_pvalue = 2.6296411295783283e-63
+
+[features.max]
+family = "Normal"
+prior_call = "Normal(950.533, 196.306)"
+definition = "Maximum inter-beat interval"
+equation = "max(IBI)"
+μ = 950.5331668791614
+σ = 196.3056202668412
+n_valid = 56472
+ks_pvalue = 1.1435262842779372e-14
+
+[features.max_hr]
+family = "Normal"
+prior_call = "Normal(65.782, 13.5154)"
+definition = "Maximum heart rate"
+equation = "60000 / max(IBI)"
+μ = 65.78199376258196
+σ = 13.51536316387787
+n_valid = 56472
+ks_pvalue = 6.949987592006994e-45
+
+[features.mean]
+family = "Normal"
+prior_call = "Normal(778.072, 143.707)"
+definition = "Mean inter-beat interval"
+equation = "mean(IBI)"
+μ = 778.0717936420864
+σ = 143.7071709863939
+n_valid = 56472
+ks_pvalue = 5.345535074535386e-42
+
+[features.mean_hr]
+family = "Normal"
+prior_call = "Normal(79.7801, 14.8552)"
+definition = "Mean heart rate"
+equation = "60000 / mean(IBI)"
+μ = 79.78012449711554
+σ = 14.855200536046976
+n_valid = 56472
+ks_pvalue = 3.084324758876755e-69
+
+[features.median]
+family = "Normal"
+prior_call = "Normal(778.572, 146.874)"
+definition = "Median inter-beat interval"
+equation = "median(IBI)"
+μ = 778.5721242385607
+σ = 146.87383482298583
+n_valid = 56472
+ks_pvalue = 1.1052598549110693e-50
+
+[features.min]
+family = "Normal"
+prior_call = "Normal(627.069, 126.23)"
+definition = "Minimum inter-beat interval"
+equation = "min(IBI)"
+μ = 627.0685295367616
+σ = 126.23004743673624
+n_valid = 56472
+ks_pvalue = 2.6115910812611032e-30
+
+[features.min_hr]
+family = "Normal"
+prior_call = "Normal(99.6572, 20.5263)"
+definition = "Minimum heart rate"
+equation = "60000 / min(IBI)"
+μ = 99.65722858855088
+σ = 20.526323682624355
+n_valid = 56472
+ks_pvalue = 2.0792768380419172e-113
+
+[features.pnn20]
+family = "Beta"
+prior_call = "Beta(2.63966, 12.5486)"
+definition = "Proportion of successive differences > 20 ms"
+equation = "sum(|diff(IBI)| > 20) / N"
+α = 2.6396550254649904
+β = 12.548569197726055
+n_valid = 56472
+ks_pvalue = 6.55535213532482e-29
+
+[features.pnn50]
+family = "Beta"
+prior_call = "Beta(0.427202, 10.3405)"
+definition = "Proportion of successive differences > 50 ms"
+equation = "sum(|diff(IBI)| > 50) / N"
+α = 0.4272023856214657
+β = 10.340538146858982
+n_valid = 56472
+ks_pvalue = 1.5206319901174927e-153
+
+[features.rRR]
+family = "Gamma"
+prior_call = "Gamma(4.62985, 0.784604)"
+definition = "Median relative RR interval distance"
+equation = "median(euclidean_dist(relRR; mean(relRR)))*100"
+α = 4.629846996254176
+θ = 0.7846039687328535
+n_valid = 56472
+ks_pvalue = 2.863936083716118e-215
+
+[features.range]
+family = "Gamma"
+prior_call = "Gamma(3.62002, 89.3544)"
+definition = "Range of inter-beat intervals"
+equation = "max(IBI) - min(IBI)"
+α = 3.6200190842704947
+θ = 89.35440112675104
+n_valid = 56472
+ks_pvalue = 8.339298420443414e-33
+
+[features.rmssd]
+family = "Gamma"
+prior_call = "Gamma(2.70004, 12.1746)"
+definition = "Root mean square of successive differences"
+equation = "sqrt(mean(diff(IBI).^2))"
+α = 2.7000437679228826
+θ = 12.174602121571073
+n_valid = 56472
+ks_pvalue = 7.484024857764401e-66
+
+[features.sd1]
+family = "Gamma"
+prior_call = "Gamma(2.69983, 8.62112)"
+definition = "Poincare plot short-term variability"
+equation = "std((IBI[1:end-1] - IBI[2:end]) / sqrt(2))"
+α = 2.699834418875403
+θ = 8.621116595356314
+n_valid = 56472
+ks_pvalue = 7.667234263142532e-66
+
+[features.sd1_sd2_area]
+family = "LogNormal"
+prior_call = "LogNormal(8.20271, 0.977151)"
+definition = "Poincare plot ellipse area"
+equation = "pi * SD1 * SD2"
+μ = 8.202710159475037
+σ = 0.9771511246385276
+n_valid = 56472
+ks_pvalue = 1.0772831288021622e-28
+
+[features.sd2]
+family = "Gamma"
+prior_call = "Gamma(3.86522, 17.9922)"
+definition = "Poincare plot long-term variability"
+equation = "std((IBI[1:end-1] + IBI[2:end]) / sqrt(2))"
+α = 3.86522344901285
+θ = 17.99218224072282
+n_valid = 56472
+ks_pvalue = 1.7294080288082125e-45
+
+[features.sd2_sd1]
+family = "LogNormal"
+prior_call = "LogNormal(1.15613, 0.525657)"
+definition = "Ratio of SD2 to SD1 (cardiac sympathetic index)"
+equation = "SD2 / SD1"
+μ = 1.156132817377948
+σ = 0.5256572518341422
+n_valid = 56472
+ks_pvalue = 3.812824755010899e-5
+
+[features.sdann]
+family = "Gamma"
+prior_call = "Gamma(0.869538, 27.9356)"
+definition = "Standard deviation of 5-min average NN intervals"
+equation = "std(5-min means of IBI)"
+α = 0.869537962901679
+θ = 27.935626760592097
+n_valid = 18609
+ks_pvalue = 2.1995967525814255e-38
+
+[features.sdnn]
+family = "Gamma"
+prior_call = "Gamma(4.01919, 13.1164)"
+definition = "Standard deviation of NN intervals"
+equation = "std(IBI)"
+α = 4.019194458571141
+θ = 13.116438288899063
+n_valid = 56472
+ks_pvalue = 4.012310559040106e-55
+
+[features.sdsd]
+family = "Gamma"
+prior_call = "Gamma(2.69983, 12.1921)"
+definition = "Standard deviation of successive differences"
+equation = "std(diff(IBI))"
+α = 2.6998344188758114
+θ = 12.192100011950728
+n_valid = 56472
+ks_pvalue = 7.667234263060535e-66
+
+[features.std_hr]
+family = "Gamma"
+prior_call = "Gamma(3.92275, 377.184)"
+definition = "Standard deviation of heart rate"
+equation = "60000 / std(IBI)"
+α = 3.9227530506736406
+θ = 377.1835188152172
+n_valid = 56472
+ks_pvalue = 6.091173630179463e-22
+
+[features.tinn]
+family = "Gamma"
+prior_call = "Gamma(5.39762, 30.5632)"
+definition = "Triangular interpolation of NN interval histogram"
+equation = "M - N  (triangle base width)"
+α = 5.397619716848059
+θ = 30.56315118774492
+n_valid = 56472
+ks_pvalue = 1.2175808299422648e-27
+
+[features.tp]
+family = "Gamma"
+prior_call = "Gamma(0.996483, 1524.91)"
+definition = "Total power (0.003-0.4 Hz)"
+equation = "integral(PSD; 0.003; 0.4) Hz"
+α = 0.9964825781455493
+θ = 1524.9065511896758
+n_valid = 56472
+ks_pvalue = 9.037859226951284e-163
+
+[features.triangular_index]
+family = "Gamma"
+prior_call = "Gamma(6.10767, 1.68813)"
+definition = "HRV triangular index"
+equation = "N / max(histogram_weights)"
+α = 6.107665823109426
+θ = 1.6881285092931946
+n_valid = 56472
+ks_pvalue = 1.7217920544271675e-27
+
+[features.vlf]
+family = "Gamma"
+prior_call = "Gamma(1.23977, 891.757)"
+definition = "Very low frequency power (0.003-0.04 Hz)"
+equation = "integral(PSD; 0.003; 0.04) Hz"
+α = 1.2397654568884413
+θ = 891.7570821780226
+n_valid = 54083
+ks_pvalue = 0.0
+

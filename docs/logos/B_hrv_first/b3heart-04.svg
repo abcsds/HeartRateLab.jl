@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Origin Pulse: a small heart broadcasting rising beat-waves -->
+  <path d="M78,205  A95,95 0 0 1 242,205"  fill="none" stroke="#9558B2" stroke-width="10" opacity="0.4" stroke-linecap="round"/>
+  <path d="M100,205 A65,65 0 0 1 220,205"  fill="none" stroke="#9558B2" stroke-width="11" opacity="0.7" stroke-linecap="round"/>
+  <g transform="translate(120,210) scale(2.5)">
+    <path d="M23.6,0 C20.2,0 17.3,2.7 16,5.6 C14.7,2.7 11.8,0 8.4,0 C3.8,0 0,3.8 0,8.4 C0,15.6 7.8,21.4 16,29.2 C24.2,21.4 32,15.6 32,8.4 C32,3.8 28.2,0 23.6,0 Z"
+      fill="#CB3C33" stroke="#1A1A1A" stroke-width="0.9"/>
+  </g>
+</svg>

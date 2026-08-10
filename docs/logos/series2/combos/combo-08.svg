@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <path d="M140,130 Q320,40 500,130" fill="none" stroke="#1A1A1A" stroke-width="3" opacity="0.5" stroke-linecap="round"/>
+
+  <line x1="248" y1="92" x2="248" y2="78" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="291" y1="86" x2="291" y2="72" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="349" y1="86" x2="349" y2="72" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+  <line x1="392" y1="92" x2="392" y2="78" stroke="#8A8F98" stroke-width="4" stroke-linecap="round"/>
+
+  <circle cx="194" cy="107" r="15" fill="#9558B2"/>
+  <circle cx="320" cy="85" r="15" fill="#CB3C33"/>
+  <circle cx="446" cy="107" r="15" fill="#389826"/>
+
+  <text x="164" y="190" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="56" textLength="312" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+</svg>

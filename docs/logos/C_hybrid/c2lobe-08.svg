@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- c2lobe-08: Dot-Fused Heart — two Julia dots form the lobes, a third color fills the point -->
+  <defs>
+    <clipPath id="heartClip08">
+      <path d="M160,258 C112,214 54,182 54,128 C54,90 84,62 118,62
+               C140,62 154,76 160,96 C166,76 180,62 202,62
+               C236,62 266,90 266,128 C266,182 208,214 160,258 Z"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#heartClip08)">
+    <path d="M160,258 C112,214 54,182 54,128 C54,90 84,62 118,62
+             C140,62 154,76 160,96 C166,76 180,62 202,62
+             C236,62 266,90 266,128 C266,182 208,214 160,258 Z" fill="#CB3C33"/>
+    <circle cx="118" cy="112" r="82" fill="#9558B2"/>
+    <circle cx="202" cy="112" r="82" fill="#389826"/>
+  </g>
+  <path d="M160,258 C112,214 54,182 54,128 C54,90 84,62 118,62
+           C140,62 154,76 160,96 C166,76 180,62 202,62
+           C236,62 266,90 266,128 C266,182 208,214 160,258 Z"
+        fill="none" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Ultra-minimal: just three beats + explicit gap marks; the comb is only implied -->
+  <line x1="50" y1="170" x2="260" y2="170" stroke="#1A1A1A" stroke-width="2" opacity="0.2" stroke-linecap="round"/>
+
+  <line x1="80"  y1="205" x2="150" y2="205" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+  <line x1="80"  y1="198" x2="80"  y2="212" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+  <line x1="150" y1="198" x2="150" y2="212" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+
+  <line x1="150" y1="205" x2="240" y2="205" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+  <line x1="240" y1="198" x2="240" y2="212" stroke="#1A1A1A" stroke-width="3" stroke-linecap="round"/>
+
+  <circle cx="80"  cy="170" r="19" fill="#9558B2"/>
+  <circle cx="150" cy="170" r="19" fill="#CB3C33"/>
+  <circle cx="240" cy="170" r="19" fill="#389826"/>
+</svg>

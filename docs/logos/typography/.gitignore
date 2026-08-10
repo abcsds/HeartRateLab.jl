@@ -1,0 +1,3 @@
+# JuliaMono weights are OFL fonts fetched via fonts/get-fonts.sh, not vendored.
+# The report's @font-face falls back to a system-installed JuliaMono.
+fonts/*.ttf

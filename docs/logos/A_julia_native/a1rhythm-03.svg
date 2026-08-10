@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Tachogram Steps: beat-to-beat interval series, three of the beats are the Julia dots -->
+  <line x1="30" y1="260" x2="290" y2="260" stroke="#1A1A1A" stroke-width="3" opacity="0.35"/>
+  <line x1="60"  y1="260" x2="60"  y2="266" stroke="#1A1A1A" stroke-width="3" opacity="0.5"/>
+  <line x1="260" y1="260" x2="260" y2="266" stroke="#1A1A1A" stroke-width="3" opacity="0.5"/>
+
+  <polyline points="60,196 110,140 160,182 210,124 260,168"
+            fill="none" stroke="#1A1A1A" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
+
+  <circle cx="60"  cy="196" r="7"  fill="#8A8F98"/>
+  <circle cx="110" cy="140" r="18" fill="#9558B2"/>
+  <circle cx="160" cy="182" r="18" fill="#CB3C33"/>
+  <circle cx="210" cy="124" r="18" fill="#389826"/>
+  <circle cx="260" cy="168" r="7"  fill="#8A8F98"/>
+</svg>

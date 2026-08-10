@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Pulse Ellipses: a beat rippling outward along the Poincaré diagonal, ellipse after ellipse -->
+  <g transform="rotate(-45 160 160)">
+    <ellipse cx="160" cy="160" rx="110" ry="40" fill="none" stroke="#389826" stroke-width="7" opacity="0.55"/>
+    <ellipse cx="160" cy="160" rx="80"  ry="29" fill="none" stroke="#9558B2" stroke-width="8" opacity="0.85"/>
+    <ellipse cx="160" cy="160" rx="50"  ry="18" fill="none" stroke="#CB3C33" stroke-width="10" opacity="1"/>
+    <circle cx="160" cy="160" r="11" fill="#CB3C33"/>
+  </g>
+</svg>

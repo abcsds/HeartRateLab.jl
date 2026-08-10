@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Caliper on a Beat: a drafting caliper pinches the gap between two R-peaks -->
+  <line x1="55" y1="225" x2="265" y2="225" stroke="#1A1A1A" stroke-width="4" stroke-linecap="round"/>
+  <polygon points="100,225 110,150 120,225" fill="#9558B2"/>
+  <polygon points="200,225 210,150 220,225" fill="#389826"/>
+  <line x1="160" y1="78" x2="110" y2="150" stroke="#4063D8" stroke-width="6" stroke-linecap="round"/>
+  <line x1="160" y1="78" x2="210" y2="150" stroke="#4063D8" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="160" cy="78" r="11" fill="#CB3C33" stroke="#1A1A1A" stroke-width="1.5"/>
+</svg>

@@ -1145,7 +1145,7 @@ version = "8.5.1+0"
 deps = ["DFA", "DSP", "DataFrames", "DataInterpolations", "Distributed", "EntropyHub", "GLMakie", "Hurst", "LSL", "LombScargle", "MacroTools", "Memoization", "Plots", "StatsBase", "Trapz", "XDF"]
 git-tree-sha1 = "c0d7d5cbd70824605a05bbaedba22c5ffbda3685"
 repo-rev = "main"
-repo-url = "."
+repo-url = "../.."
 uuid = "ac0e5f2a-24d1-4b35-a8b3-775c05ea78ca"
 version = "1.0.0"
 

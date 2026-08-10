@@ -101,15 +101,29 @@ hlines!(ax_nn, 0, color=:black);
 lines!(ax_nn, t, nn, color=:red);
 band!(ax_nn, t, 0, nn_negative, color=:deeppink);
 band!(ax_nn, t, 0, nn_positive, color=:blueviolet);
-scatter!(ax_nn, nn50, color=:maroon, markersize=10);
+# NN50 markers as an explicit Vector{Point2f} (time, Δnn), filtered to the current window.
+# ROOT-CAUSE FIX (d-26): the old `scatter!(ax_nn, nn50)` passed a raw N×2 MATRIX, which Makie
+# mis-converts — the Δnn values (column 2) leak into the x-coordinates, producing a negative x
+# (≈ the Δnn of an NN50 event) that stretched the shared x-axis to ~0 and squashed the live
+# signal whenever an NN50 event was in the window. Building Point2f points fixes the x-range;
+# the window filter additionally drops markers that have scrolled off the left.
+nn50_visible = lift(nn50, t) do m, tt
+    (m === nothing || size(m, 1) == 0) && return Point2f[]
+    [Point2f(m[i, 1], m[i, 2]) for i in axes(m, 1) if (m[i, 1] > 0 && m[i, 1] >= tt[1])]
+end
+scatter!(ax_nn, nn50_visible, color=:maroon, markersize=10);
 
 # HRV features
 lines!(ax_sd, t, sdnn, color=:teal);
 lines!(ax_rm, t, rmssd, color=:coral);
 
-# Poincare plot
-scatter!(ax_pp, pp_x, pp_y, color=:purple);
-lines!(ax_pp, ellipse_x, ellipse_y, color=:limegreen)
+# Poincare plot — age-faded points + comet trajectory (newest beat opaque, older
+# beats fade out), with the SD1/SD2 ellipse. The alpha gradient is positional (index 1
+# = oldest in the sliding window, end = newest), so it tracks recency as the window slides.
+pp_colors = [RGBAf(0.5, 0.0, 0.5, a) for a in range(0.08, 1.0, length=sample_size - 1)]
+lines!(ax_pp, pp_x, pp_y, color=pp_colors, linewidth=1.5);   # comet trail
+scatter!(ax_pp, pp_x, pp_y, color=pp_colors, markersize=8);  # age-faded points
+lines!(ax_pp, ellipse_x, ellipse_y, color=:limegreen, linewidth=2)
 
 # Frequency
 scatter!(ax_ff, [peak_freq[]], [peak_powr[]], marker=:cross, color=:coral)
@@ -162,10 +176,14 @@ while true
 
         empty!(ax_ff)
         ls=lomb_scargle(Float64.(rr[]))
-        vlines!(ax_ff, [0.003, 0.04, 0.15, 0.4], color=:black)
-        lines!(ax_ff, ls.freq, ls.power, color=:teal)
+        # HRV frequency bands as colour-shaded regions (drawn first, behind the spectrum)
+        vspan!(ax_ff, 0.0, 0.0033; color=(:gray, 0.15))        # ULF
+        vspan!(ax_ff, 0.0033, 0.04; color=(:blueviolet, 0.16)) # VLF
+        vspan!(ax_ff, 0.04, 0.15; color=(:teal, 0.18))         # LF
+        vspan!(ax_ff, 0.15, 0.4; color=(:coral, 0.20))         # HF
+        lines!(ax_ff, ls.freq, ls.power, color=:black)
         f, p  = find_peak(ls)
-        scatter!(ax_ff, [f], [p], marker=:cross, color=:coral)
+        scatter!(ax_ff, [f], [p], marker=:cross, color=:red)
 
     end
     # fill the rest of the arrays
@@ -227,9 +245,9 @@ while true
     nn[] = [nn[][2:end]; sample[1] - rr[][end-1]];
     nn_negative[] = [nn_negative[][2:end]; nn[][end] < 0 ? nn[][end] : 0];
     nn_positive[] = [nn_positive[][2:end]; nn[][end] > 0 ? nn[][end] : 0];
-    if nn50[][1] < t[][1]
+    if !isempty(nn50[]) && nn50[][1, 1] < t[][1]
         idx = findlast(x -> x < t[][1], nn50[][1:end, 1])
-        a = nn50[][idx+1:end, :]
+        a = idx === nothing ? nn50[] : nn50[][idx+1:end, :]
     else
         a = nn50[]
     end
@@ -237,13 +255,12 @@ while true
         b = zeros(Float32, 1, 2) + [t[][end] Float32(nn[][end])]
         nn50[] = [a; b]
     else
-        if isempty(a)
-            nn50[] = zeros(Float32, 1, 2) + [t[][end] Float32(nn[][end])]
-        else
-            nn50[] = a
-        end
+        # Sub-threshold beat: NOT an NN50 event — keep the trimmed set, don't fabricate
+        # a marker (the old `else` branch created a spurious marker here).
+        nn50[] = a
     end
-    pnn50[] = 100 * (length(nn50[]) / length(nn[]));
+    # NN50 count = number of marker ROWS (length(matrix) counts all elements = 2×rows).
+    pnn50[] = 100 * (size(nn50[], 1) / length(nn[]));
     sdnn[] = [sdnn[][2:end]; std(rr[])];
     rmssd[] = [rmssd[][2:end]; std(nn[])];
     pp_x[] = [pp_x[][2:end]; rr[][end-1]];
@@ -257,11 +274,15 @@ while true
 
     empty!(ax_ff)
     ls=lomb_scargle(Float64.(rr[]))
-    lines!(ax_ff, ls.freq, ls.power, color=:teal)
-    vlines!(ax_ff, [0.003, 0.04, 0.15, 0.4], color=:black)
+    # HRV frequency bands as colour-shaded regions (drawn first, behind the spectrum)
+    vspan!(ax_ff, 0.0, 0.0033; color=(:gray, 0.15))        # ULF
+    vspan!(ax_ff, 0.0033, 0.04; color=(:blueviolet, 0.16)) # VLF
+    vspan!(ax_ff, 0.04, 0.15; color=(:teal, 0.18))         # LF
+    vspan!(ax_ff, 0.15, 0.4; color=(:coral, 0.20))         # HF
+    lines!(ax_ff, ls.freq, ls.power, color=:black)
 
     f, p  = find_peak(ls)
-    scatter!(ax_ff, [f], [p], marker=:cross, color=:coral)
+    scatter!(ax_ff, [f], [p], marker=:cross, color=:red)
     vlf=get_power(ls,0.003,0.04)
     lf=get_power(ls,0.04,0.15)
     hf=get_power(ls,0.15,0.4)
@@ -278,5 +299,8 @@ while true
     autolimits!(ax_pp)
     autolimits!(ax_sd)
     autolimits!(ax_rm)
+    # Defence-in-depth: pin the shared time axis to the live window so no stray geometry can
+    # ever stretch it (ax_rr is x-linked to ax_nn/ax_sd/ax_rm). y stays auto from above.
+    xlims!(ax_rr, t[][1], t[][end])
     # autolimits!(ax_ff)
 end

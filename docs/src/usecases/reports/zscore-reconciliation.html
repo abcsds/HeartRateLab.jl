@@ -1,0 +1,131 @@
+<meta charset="utf-8">
+<title>Case A z-score reconciliation — JuliaCon 2026 poster</title>
+<style>
+  :root{--bg:#fff;--fg:#1a1c22;--mut:#5a6172;--line:#dfe3ec;--card:#f6f8fc;
+        --good:#0a7d3b;--goodbg:#e6f6ec;--bad:#b3261e;--badbg:#fdecea;--warn:#8a5b00;--warnbg:#fbf3e0;--code:#eef1f7;}
+  @media (prefers-color-scheme:dark){:root{--bg:#14161c;--fg:#e8eaf0;--mut:#a0a7b8;--line:#2c313d;--card:#1c1f27;
+        --good:#5fd68e;--goodbg:#13311f;--bad:#ff8a80;--badbg:#3a1714;--warn:#f2c46b;--warnbg:#332a12;--code:#22262f;}}
+  body{background:var(--bg);color:var(--fg);font:16px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+       max-width:960px;margin:0 auto;padding:32px 22px 80px;}
+  h1{font-size:26px;line-height:1.2;margin:0 0 4px} h2{font-size:20px;margin:34px 0 10px;border-bottom:2px solid var(--line);padding-bottom:5px}
+  h3{font-size:16px;margin:22px 0 8px} .sub{color:var(--mut);margin:0 0 20px}
+  code{background:var(--code);padding:1px 5px;border-radius:4px;font:13.5px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px}
+  th,td{border:1px solid var(--line);padding:6px 9px;text-align:right} th{background:var(--card);text-align:right}
+  th:first-child,td:first-child{text-align:left}
+  .good{color:var(--good);font-weight:700} .bad{color:var(--bad);font-weight:700}
+  .hit{background:var(--goodbg)} .miss{background:var(--badbg)}
+  .box{border:1px solid var(--line);border-radius:9px;padding:14px 18px;margin:14px 0;background:var(--card)}
+  .rec{border-left:5px solid var(--good);background:var(--goodbg)}
+  .warnbox{border-left:5px solid var(--warn);background:var(--warnbg)}
+  .badbox{border-left:5px solid var(--bad);background:var(--badbg)}
+  .wrap{overflow-x:auto} ul{margin:8px 0 8px 4px;padding-left:20px} li{margin:4px 0}
+  .small{color:var(--mut);font-size:13px}
+</style>
+
+<h1>Case A z-score reconciliation</h1>
+<p class="sub">JuliaCon 2026 poster · <em>Heart Rate Oscillations during Meditation</em> cohort · read-only forensic analysis, 2026-07-29</p>
+
+<div class="box badbox">
+<strong>The discrepancy.</strong> The accepted abstract reports Case A (meditation) z-scores of
+<strong>Mean IBI +1.019, pNN50 +1.353, RMSSD +0.624, SDNN +0.776</strong>, drawn on the poster forest
+(<code>juliacon2026_poster.tex</code> lines 223–226 as <code>1.35 / 1.02 / 0.78 / 0.62</code>).
+Recomputing from the shipped data (<code>test/testdata/meditation/windowed_w360_s120_features.csv</code>,
+2686 windows, vs <code>docs/normative_priors.csv</code>, 56 472 pooled nsrdb+nsr2db windows):
+<strong>Mean IBI reproduces exactly</strong>, <strong>pNN50 reproduces exactly under one method</strong>, but
+<strong>RMSSD and SDNN do not reproduce under any aggregation × method</strong> (best current estimate +0.94 / +0.90).
+The accepted abstract also calls pNN50 <em>"reduced"</em> while <code>+1.353</code> is an <em>increase</em> — an internal contradiction.
+</div>
+
+<h2>1. Method definitions tested</h2>
+<p>For feature value <code>x</code> and healthy-prior CDF <code>F</code> (params from <code>docs/normative_priors.csv</code>):</p>
+<ul>
+<li><strong>Quantile z-equiv</strong> (the method the poster + <code>docs/specs/2026-07-06-…-poster-design.md</code> claim): <code>z = Φ⁻¹(F(x))</code>.</li>
+<li><strong>Moment z</strong>: <code>z = (x − μ_prior) / σ_prior</code>. For a <em>Normal</em> prior the two are identical — so Mean IBI cannot distinguish them.</li>
+</ul>
+<p class="small">Priors used: mean = Normal(778.07, 143.71); pnn50 = Beta(0.4272, 10.3405); rmssd = Gamma(2.7000, 12.1746); sdnn = Gamma(4.0192, 13.1164). Feature aggregate = median (or mean) across the cohort's windows.</p>
+
+<h2>2. Aggregation × feature × z matrix</h2>
+<p>Green = reproduces the abstract value (±0.01); red = &gt;0.05 off. Abstract target row is bold.</p>
+
+<div class="wrap">
+<table>
+<thead><tr><th>Method (all quantile z unless noted)</th><th>n</th><th>Mean IBI</th><th>pNN50</th><th>RMSSD</th><th>SDNN</th></tr></thead>
+<tbody>
+<tr><td><strong>Abstract target</strong></td><td>—</td><td><strong>+1.019</strong></td><td><strong>+1.353</strong></td><td><strong>+0.624</strong></td><td><strong>+0.776</strong></td></tr>
+<tr><td><strong>All windows, MEDIAN</strong> (poster's stated method)</td><td>2686</td><td class="hit good">+1.019</td><td>+1.323</td><td class="miss bad">+0.937</td><td class="miss bad">+0.903</td></tr>
+<tr><td><strong>All windows, MEDIAN — moment z</strong></td><td>2686</td><td class="hit good">+1.019</td><td class="hit good">+1.353</td><td class="miss bad">+0.855</td><td class="miss bad">+0.835</td></tr>
+<tr><td>All windows, MEAN</td><td>2686</td><td>+1.201</td><td>+1.470</td><td>+1.523</td><td>+1.205</td></tr>
+<tr><td>Meditation-state windows only, MEDIAN</td><td>263</td><td>+0.227</td><td>+0.841</td><td>+0.382</td><td>+0.806</td></tr>
+<tr><td>Meditation-state windows only, MEAN</td><td>263</td><td>−0.028</td><td>+0.927</td><td>+0.675</td><td class="hit">+0.767</td></tr>
+<tr><td>w60/s30 windows, MEDIAN</td><td>11235</td><td>+0.994</td><td>+1.323</td><td>+0.794</td><td>+0.426</td></tr>
+<tr><td>Participant window-medians → MEDIAN (all)</td><td>56</td><td>+0.923</td><td>+1.203</td><td>+0.732</td><td>+0.669</td></tr>
+<tr><td>Participant window-medians → MEDIAN (med-only)</td><td>11</td><td>−0.207</td><td class="hit">+0.776</td><td>+0.417</td><td>+0.862</td></tr>
+</tbody>
+</table>
+</div>
+
+<p class="small">The <code>participant_features.csv</code> whole-recording columns are all-<code>NaN</code> for these four features, so that path yields nothing. The near-hits on SDNN (+0.767) and the pNN50/SDNN "+0.776" coincidences arise under methods that <em>fail</em> Mean IBI, so no single method reproduces all four abstract numbers.</p>
+
+<h3>Reverse-solve: what observed value each abstract z implies</h3>
+<div class="wrap">
+<table>
+<thead><tr><th>Feature</th><th>Abstract z</th><th>x needed (quantile)</th><th>x needed (moment)</th><th>x actually observed (all-win median)</th></tr></thead>
+<tbody>
+<tr><td>Mean IBI</td><td>+1.019</td><td>924.5</td><td>924.5</td><td class="good">924.5 ✓</td></tr>
+<tr><td>pNN50</td><td>+1.353</td><td>0.1203</td><td>0.1167</td><td class="good">0.1167 (= moment ✓)</td></tr>
+<tr><td>RMSSD</td><td>+0.624</td><td>42.1</td><td>45.4</td><td class="bad">49.98 (too high → z 0.86–0.94)</td></tr>
+<tr><td>SDNN</td><td>+0.776</td><td>70.5</td><td>73.1</td><td class="bad">74.68 (too high → z 0.84–0.90)</td></tr>
+</tbody>
+</table>
+</div>
+<p class="small">RMSSD/SDNN abstract z's require observed medians <em>lower</em> than the shipped CSV provides (~42–45 ms vs 49.98 ms; ~70–73 ms vs 74.68 ms) — i.e. they came from a different, lower-variability feature set, not from a different aggregation of this one.</p>
+
+<h2>3. File &amp; history evidence</h2>
+<ul>
+<li><strong>Priors</strong> <code>docs/normative_priors.csv</code> — single git commit (<code>5904497 "Add normative dataset parameters"</code>). No regeneration history; the shipped priors are the only version in git.</li>
+<li><strong>Meditation features</strong> <code>test/testdata/meditation/windowed_w360_s120_features.csv</code> — single git commit (<code>06419d5 "Add testdata for w360s120"</code>). Likewise no prior version tracked.</li>
+<li><strong>Poster / spec</strong> untracked (working tree only). The spec <code>docs/specs/2026-07-06-juliacon2026-poster-design.md</code> (lines 87–95) already carries a reconciliation note: "reproduces Mean IBI +1.019 exactly … but yields RMSSD +0.94 / SDNN +0.90 … the abstract's RMSSD/SDNN do not fall out of any single aggregation tested."</li>
+<li><strong>Accepted abstract wording</strong> (recovered from session transcripts): "increased Mean IBIs (z=+1.019) and <em>reduced PNN50</em> (z=+1.353), but other features commonly used in resonant frequency training presented relatively normal values: RMSSD (z=+0.624), SDNN (z=+0.776)." So +0.624/+0.776 are genuinely the <em>meditation-cohort</em> abstract values — not mis-transferred Case-B numbers (the Case-B resonant-breathing participant reports RMSSD +0.03 / SDNN +1.12, entirely different).</li>
+<li>The poster's <em>Abstract box</em> (tex line 158) silently corrected "reduced" → "increased pNN50"; the poster <em>forest</em> (lines 223–226) still draws the non-reproducing +0.62 / +0.78.</li>
+</ul>
+
+<h2>4. Root cause</h2>
+<div class="box">
+<ol>
+<li><strong>RMSSD/SDNN are stale/preliminary.</strong> Their abstract z's map to observed medians (~42–45 / ~70–73 ms) below what the shipped CSV yields (49.98 / 74.68 ms). They were computed from an <em>earlier meditation feature extraction</em> (different preprocessing or a smaller record subset) that is not committed to this repo. They are <strong>not recoverable</strong> from the shipped data under any aggregation × method.</li>
+<li><strong>Latent method drift.</strong> The abstract's pNN50 (+1.353) reproduces <em>exactly</em> only under <strong>moment z</strong> on the all-windows median; the poster's declared <strong>quantile z-equiv</strong> gives +1.323. Mean IBI is identical under both, which masked the difference. So even the pNN50 number was produced by a method the poster no longer claims.</li>
+<li><strong>Wording error.</strong> "reduced pNN50" contradicts <code>z=+1.353</code> (an increase). pNN50 sits ~1.3σ <em>above</em> the healthy-population mean, coherent with the elevated Mean IBI (vagally-dominant meditation state).</li>
+</ol>
+</div>
+
+<h2>5. Recommendation</h2>
+
+<div class="box rec">
+<strong>Primary (a) — regenerate the two non-reproducing numbers with the poster's own documented method.</strong>
+Use <strong>all-windows median + quantile z-equiv</strong> <code>Φ⁻¹(F(x))</code> — the method the poster and spec already claim — so every drawn number is reproducible from the shipped CSVs:
+<div class="wrap">
+<table>
+<thead><tr><th>Feature</th><th>Poster now</th><th>Use instead</th></tr></thead>
+<tbody>
+<tr><td>Mean IBI</td><td>+1.02</td><td class="good">+1.02 (unchanged, exact)</td></tr>
+<tr><td>pNN50</td><td>+1.35</td><td class="good">+1.32</td></tr>
+<tr><td>RMSSD</td><td>+0.62</td><td class="good">+0.94</td></tr>
+<tr><td>SDNN</td><td>+0.78</td><td class="good">+0.90</td></tr>
+</tbody>
+</table>
+</div>
+Edit forest rows <code>juliacon2026_poster.tex:223–226</code> to <code>1.32 / 1.02 / 0.90 / 0.94</code>. Because RMSSD/SDNN then read ~+0.9σ (mildly elevated) rather than "typical," soften the caption "short-term vagal tone (RMSSD, SDNN) stays within the typical band" to <strong>"RMSSD/SDNN are modestly elevated but well within physiological range (&lt;1σ)."</strong>
+<br><span class="small">Variant: to keep the abstract's exact Mean/pNN50 (1.019/1.353), declare the method as <em>moment z</em> and use RMSSD +0.86 / SDNN +0.84 — but then update the methods panel, which currently says quantile z-equiv.</span>
+</div>
+
+<div class="box warnbox">
+<strong>Secondary (b) — if the accepted-abstract text box must stay verbatim (+0.624/+0.776).</strong>
+The Abstract card may keep the submitted numbers, but do <em>not</em> present +0.624/+0.776 as current results in the forest. Draw the reproducible +0.94/+0.90 in the forest and add a one-line footnote: <em>"Abstract RMSSD/SDNN (+0.62/+0.78) are preliminary submission values; the reproducible recompute from the shipped cohort is +0.94/+0.90."</em> This preserves the accepted abstract while keeping the poster's own data self-consistent and auditable.
+</div>
+
+<div class="box badbox">
+<strong>The "reduced pNN50" line.</strong> It must read <strong>"increased" / "elevated" pNN50</strong>. <code>z=+1.353</code> (or +1.32 under quantile) places pNN50 ~1.3σ <em>above</em> the healthy-population mean — a rise, consistent with the longer Mean IBI. (The poster's Abstract box already made this correction; only the original accepted-abstract text and any verbatim quotation of it still say "reduced.")
+</div>
+
+<p class="small">Recompute scripts: <code>scratchpad/zrecon.jl</code>, <code>scratchpad/zhunt.jl</code> (session scratchpad). All numbers above are from <code>julia --project=.</code> against the shipped CSVs — pure CSV stats, no display/WFDB needed.</p>

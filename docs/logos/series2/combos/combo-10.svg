@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220">
+  <text x="125" y="100" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="70" textLength="390" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+
+  <line x1="115" y1="185" x2="525" y2="185" stroke="#1A1A1A" stroke-width="2" opacity="0.3" stroke-linecap="round"/>
+
+  <rect x="125" y="167" width="14" height="18" rx="2" fill="#8A8F98"/>
+  <rect x="150" y="150" width="14" height="35" rx="2" fill="#9558B2"/>
+  <rect x="175" y="173" width="14" height="12" rx="2" fill="#8A8F98"/>
+  <rect x="205" y="157" width="14" height="28" rx="2" fill="#8A8F98"/>
+  <rect x="235" y="143" width="14" height="42" rx="2" fill="#CB3C33"/>
+  <rect x="260" y="170" width="14" height="15" rx="2" fill="#8A8F98"/>
+  <rect x="290" y="152" width="14" height="33" rx="2" fill="#8A8F98"/>
+  <rect x="320" y="165" width="14" height="20" rx="2" fill="#8A8F98"/>
+  <rect x="350" y="140" width="14" height="45" rx="2" fill="#389826"/>
+  <rect x="380" y="169" width="14" height="16" rx="2" fill="#8A8F98"/>
+  <rect x="410" y="155" width="14" height="30" rx="2" fill="#8A8F98"/>
+  <rect x="440" y="163" width="14" height="22" rx="2" fill="#8A8F98"/>
+  <rect x="470" y="147" width="14" height="38" rx="2" fill="#8A8F98"/>
+  <rect x="500" y="171" width="14" height="14" rx="2" fill="#8A8F98"/>
+</svg>

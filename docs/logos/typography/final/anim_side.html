@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset='utf-8'><style>@font-face{font-family:JMB;src:local('JuliaMono Black'),url('../fonts/JuliaMono-Black.ttf')} html,body{margin:0;background:#fff}svg{display:block;width:100vw;height:100vh}text{font-family:JMB,monospace}</style></head><body><svg viewBox="-1891 -920 9193 1040" preserveAspectRatio="xMidYMid meet"><line x1="-1770.9" y1="0" x2="-273.1" y2="0" stroke="#8A8F98" stroke-width="61.0" stroke-linecap="round"/><line x1="-1553.2" y1="0" x2="-1553.2" y2="-166.6" stroke="#9558B2" stroke-width="61.0" stroke-linecap="round"/><circle id="d0" cx="-1553.2" cy="-480.1" r="217.7" fill="#9558B2" opacity="0"/><line x1="-1022.0" y1="0" x2="-1022.0" y2="-203.2" stroke="#CB3C33" stroke-width="61.0" stroke-linecap="round"/><circle id="d1" cx="-1022.0" cy="-516.7" r="217.7" fill="#CB3C33" opacity="0"/><line x1="-490.8" y1="0" x2="-490.8" y2="-117.8" stroke="#389826" stroke-width="61.0" stroke-linecap="round"/><circle id="d2" cx="-490.8" cy="-431.3" r="217.7" fill="#389826" opacity="0"/><g><text x="0" y="0" font-size="1000" fill="#1b1b1f">HeartRateLab</text></g><ellipse class="ball" cx="-1553.2" cy="-480.1" rx="217.701581027668" ry="217.701581027668" fill="#9558B2"/></svg><script>const CFG={"ring": false, "timeUnit": 0.55, "apexK": 0.22, "apexMin": 40, "wrapApexK": 0.16, "ball": {"r": 217.701581027668}, "targets": [{"x": -1553.205296442688, "y": -480.1045533596838, "col": "#9558B2", "circ": "d0"}, {"x": -1022.0134387351779, "y": -516.6784189723321, "col": "#CB3C33", "circ": "d1"}, {"x": -490.821581027668, "y": -431.3393992094862, "col": "#389826", "circ": "d2"}]};
+(function(){const c=CFG,el=document.querySelector('svg'),ball=el.querySelector('.ball');
+const T=c.targets,n=T.length,lerp=(a,b,u)=>a+(b-a)*u,hops=[];
+if(c.ring){for(let i=0;i<n;i++){const a=T[i],b=T[(i+1)%n];let d=b.ang-a.ang;while(d<=1e-6)d+=2*Math.PI;
+  hops.push({ang0:a.ang,dang:d,col:b.col,dur:Math.max(260,c.timeUnit*c.ringR*d)});}}
+else{for(let i=0;i<n;i++){const a=T[i],b=T[(i+1)%n],dx=b.x-a.x,dist=Math.abs(dx)||1,wrap=(i===n-1);
+  hops.push({a,b,col:b.col,dist,dur:Math.max(260,c.timeUnit*dist),apex:(wrap?c.wrapApexK:c.apexK)*dist+c.apexMin});}}
+let acc=0;hops.forEach(h=>{h.t0=acc;acc+=h.dur;});
+const cycle=acc,wrapStart=hops[n-1].t0,wrapDur=hops[n-1].dur;
+const arrive=new Array(n);arrive[0]=0;for(let i=0;i<n-1;i++)arrive[i+1]=hops[i].t0+hops[i].dur;
+T.forEach(t=>{const q=el.querySelector('#'+t.circ);if(q)q.setAttribute('opacity','0');});
+const SQ=190;window.__cycle=cycle;
+function render(t){let hi=n-1;for(let i=0;i<hops.length;i++){if(t<hops[i].t0+hops[i].dur){hi=i;break;}}
+ const h=hops[hi],u=Math.min(1,Math.max(0,(t-h.t0)/h.dur));let x,y;
+ if(c.ring){const th=h.ang0+h.dang*u;x=c.ringR*Math.cos(th);y=c.ringR*Math.sin(th);}
+ else{x=lerp(h.a.x,h.b.x,u);y=lerp(h.a.y,h.b.y,u)-4*h.apex*u*(1-u);}
+ const since=t-h.t0,bs=since<SQ?Math.exp(-4.5*since/SQ):0,R=c.ball.r;let rx,ry,cy;
+ if(c.ring){rx=R*(1+0.16*bs);ry=R*(1-0.16*bs);cy=y;}else{rx=R*(1+0.26*bs);ry=R*(1-0.32*bs);cy=y+(R-ry);}
+ ball.setAttribute('cx',x.toFixed(1));ball.setAttribute('cy',cy.toFixed(1));ball.setAttribute('rx',rx.toFixed(1));ball.setAttribute('ry',ry.toFixed(1));ball.setAttribute('fill',h.col);ball.setAttribute('opacity','1');
+ T.forEach((tg,j)=>{const q=el.querySelector('#'+tg.circ);if(!q)return;let o;
+  if(c.depositMode==='single'){o=(hi===j)?1:0;}                       // one beat at a time, continuous handoff
+  else{o=(t>=arrive[j])?1:0;if(t>=wrapStart)o*=Math.max(0,1-(t-wrapStart)/wrapDur);}
+  q.setAttribute('opacity',o.toFixed(3));});}
+const HM=location.hash.match(/[#&]t=(\d+)/);
+if(HM){render((+HM[1])%cycle);}else{let t0=null;function fr(ts){if(t0===null)t0=ts;render((ts-t0)%cycle);requestAnimationFrame(fr);}requestAnimationFrame(fr);}
+})();
+</script></body></html>

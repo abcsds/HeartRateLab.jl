@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 300">
+  <!-- Stacked: IBI tick-comb icon above the wordmark -->
+  <line x1="54" y1="190" x2="306" y2="190" stroke="#1A1A1A" stroke-width="3" opacity="0.4" stroke-linecap="round"/>
+  <line x1="72"  y1="190" x2="72"  y2="154" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="100" y1="190" x2="100" y2="130" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/>
+  <line x1="124" y1="190" x2="124" y2="154" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="184" y1="190" x2="184" y2="130" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/>
+  <line x1="210" y1="190" x2="210" y2="154" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <line x1="242" y1="190" x2="242" y2="130" stroke="#1A1A1A" stroke-width="7" stroke-linecap="round"/>
+  <line x1="278" y1="190" x2="278" y2="154" stroke="#8A8F98" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="100" cy="120" r="18" fill="#9558B2"/>
+  <circle cx="184" cy="120" r="18" fill="#CB3C33"/>
+  <circle cx="242" cy="120" r="18" fill="#389826"/>
+  <text x="30" y="270" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="54" textLength="300" lengthAdjust="spacingAndGlyphs" fill="#1A1A1A">HeartRateLab</text>
+</svg>

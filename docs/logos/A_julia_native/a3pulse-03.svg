@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Heart of Three: a thin heart outline threads through the three Julia dots -->
+  <path d="M160,242 C100,190 62,150 62,112 C62,80 90,58 120,58
+           C142,58 156,72 160,90 C164,72 178,58 200,58
+           C230,58 258,80 258,112 C258,150 220,190 160,242 Z"
+        fill="none" stroke="#1A1A1A" stroke-width="6" stroke-linejoin="round" opacity="0.55"/>
+  <circle cx="95"  cy="80"  r="34" fill="#9558B2"/>
+  <circle cx="225" cy="80"  r="34" fill="#389826"/>
+  <circle cx="160" cy="222" r="28" fill="#CB3C33"/>
+</svg>

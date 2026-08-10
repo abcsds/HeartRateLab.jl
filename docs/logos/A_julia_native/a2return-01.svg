@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Limit-cycle ring binding the Julia triad: a closed orbit loop threads through the three dots -->
+  <ellipse cx="160" cy="170" rx="92" ry="78" fill="none" stroke="#1A1A1A" stroke-width="5" opacity="0.55"/>
+  <!-- directional arrowhead on the orbit, upper-right, indicating motion -->
+  <path d="M 231,122 L 244,110 L 250,127 Z" fill="#1A1A1A" opacity="0.55"/>
+  <circle cx="160" cy="92" r="36" fill="#9558B2"/>
+  <circle cx="239.7" cy="209" r="36" fill="#389826"/>
+  <circle cx="80.3" cy="209" r="36" fill="#CB3C33"/>
+</svg>

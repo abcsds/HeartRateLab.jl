@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Tachogram: interval duration vs beat number, step-line with three colored beats -->
+  <line x1="40" y1="250" x2="280" y2="250" stroke="#1A1A1A" stroke-width="3" opacity="0.35" stroke-linecap="round"/>
+  <polyline points="60,190 90,150 120,175 150,120 180,160 210,100 240,140 270,170"
+            fill="none" stroke="#1A1A1A" stroke-width="3" opacity="0.55" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="60"  cy="190" r="5" fill="#8A8F98"/>
+  <circle cx="90"  cy="150" r="5" fill="#8A8F98"/>
+  <circle cx="120" cy="175" r="14" fill="#9558B2"/>
+  <circle cx="150" cy="120" r="5" fill="#8A8F98"/>
+  <circle cx="180" cy="160" r="14" fill="#CB3C33"/>
+  <circle cx="210" cy="100" r="5" fill="#8A8F98"/>
+  <circle cx="240" cy="140" r="14" fill="#389826"/>
+  <circle cx="270" cy="170" r="5" fill="#8A8F98"/>
+</svg>

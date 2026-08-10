@@ -1,0 +1,31 @@
+[normative]
+sigma_threshold = 4
+reference = "Evaluate new values: flag if |x - μ| > 4σ for any feature."
+description = "Use participant_features.csv for recording-level normative ranges."
+
+[files]
+windowed_features = "windowed_w360_s120_features.csv"
+participant_features = "participant_features.csv"
+
+[dataset]
+name = "mvtdb"
+physionet_url = "https://physionet.org/content/mvtdb/"
+format = "wfdb"
+population = "arrhythmia"
+files_url = "https://physionet.org/files/mvtdb/1.0/data"
+all_records = ["0003_mr1", "0008_mr1", "0013_mr1", "0015_mr1", "0026_mr1", "0029_mr1", "0030_mr1", "0039_mr1", "0040_mr1", "0041_mr1", "0043_mr1", "0044_mr1", "0050_mr1", "0051_mr1", "0059_mr1", "0062_mr1", "0065_mr1", "0067_mr1", "0071_mr1", "0072_mr1", "0074_mr1", "0075_mr1", "0078_mr1", "0079_mr1", "0081_mr1", "0082_mr1", "0086_mr1", "0088_mr1", "0094_mr1", "0095_mr1", "0097_mr1", "0115_mr1", "0135_mr1", "0159_mr1", "0164_mr1", "0174_mr1", "0175_mr1", "0182_mr1", "0183_mr1", "0196_mr1", "0201_mr1", "0209_mr1", "0210_mr1", "0213_mr1", "0216_mr1", "0217_mr1", "0231_mr1", "0243_mr1", "0251_mr1", "0263_mr1", "0269_mr1", "0284_mr1", "0293_mr1", "0315_mr1", "0340_mr1", "0358_mr1", "0369_mr1", "8005_mr1", "8006_mr1", "8007_mr1", "8009_mr1", "8010_mr1", "8013_mr1", "8014_mr2", "8015_mr1", "8019_mr1", "8021_mr1", "8022_mr1", "8023_mr1", "8024_mr1", "8031_mr1", "8036_mr1", "8049_mr1", "8051_mr1", "8075_mr1", "8076_mr1", "8079_mr1", "8096_mr1"]
+license = "Open Data Commons Attribution License v1.0"
+description = "Spontaneous Ventricular Tachyarrhythmia Database — baseline sinus rhythm recordings"
+version = "1.0"
+annotator = "qrs"
+
+[collection]
+n_records_attempted = 78
+heartrateLab_version = "1.0.0"
+window_size = 360
+stride = 120
+date = "2026-02-28T09:29:34.747"
+n_records_collected = 78
+overlap = 240
+n_records_failed = 0
+elapsed_seconds = 81.7

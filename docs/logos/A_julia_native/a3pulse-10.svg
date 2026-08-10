@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Beat Steps: dot height sketches a minimal beat -- low, peak, low -->
+  <path d="M70,208 L100,208 L160,120 L220,208 L250,208"
+        fill="none" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+  <circle cx="100" cy="208" r="36" fill="#9558B2"/>
+  <circle cx="160" cy="120" r="40" fill="#CB3C33"/>
+  <circle cx="220" cy="208" r="36" fill="#389826"/>
+</svg>

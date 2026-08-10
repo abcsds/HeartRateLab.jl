@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Heart from a Heartbeat: ECG line bends into an abstract heart silhouette, its two lobes plus dip are the triad -->
+  <path d="M160,262 C86,206 50,158 50,116 C50,80 78,58 108,58 C132,58 150,74 160,96
+           C170,74 188,58 212,58 C242,58 270,80 270,116 C270,158 234,206 160,262 Z"
+        fill="none" stroke="#1A1A1A" stroke-width="6.5" stroke-linejoin="round"/>
+  <circle cx="108" cy="60" r="24" fill="#CB3C33"/>
+  <circle cx="212" cy="60" r="24" fill="#389826"/>
+  <circle cx="160" cy="150" r="24" fill="#9558B2"/>
+</svg>

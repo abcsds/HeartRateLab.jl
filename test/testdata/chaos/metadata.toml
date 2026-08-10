@@ -1,0 +1,31 @@
+[normative]
+sigma_threshold = 4
+reference = "Evaluate new values: flag if |x - μ| > 4σ for any feature."
+description = "Use participant_features.csv for recording-level normative ranges."
+
+[files]
+windowed_features = "windowed_w360_s120_features.csv"
+participant_features = "participant_features.csv"
+
+[dataset]
+name = "chaos"
+physionet_url = "https://physionet.org/content/chaos-heart-rate/"
+format = "txt"
+population = "mixed"
+files_url = "https://physionet.org/files/chaos-heart-rate/1.0.0"
+all_records = ["n1rr", "n2rr", "n3rr", "n4rr", "n5rr", "c1rr", "c2rr", "c3rr", "c4rr", "c5rr", "a1rr", "a2rr", "a3rr", "a4rr", "a5rr"]
+license = "Open Data Commons Open Database License v1.0"
+description = "Is the Normal Heart Rate Chaotic? — ~24h RR series (healthy, CHF, AF)"
+version = "1.0.0"
+annotator = ""
+
+[collection]
+n_records_attempted = 15
+heartrateLab_version = "1.0.0"
+window_size = 360
+stride = 120
+date = "2026-02-28T09:28:12.952"
+n_records_collected = 15
+overlap = 240
+n_records_failed = 0
+elapsed_seconds = 501.6

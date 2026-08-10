@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Direction A seed: classic Julia three-dot triangle, ECG baseline threading underneath -->
+  <path d="M30,258 H108 Q124,232 140,258 L150,266 L160,196 L170,270 L182,258 Q206,242 226,258 H290"
+        fill="none" stroke="#1A1A1A" stroke-width="6"
+        stroke-linejoin="round" stroke-linecap="round" opacity="0.78"/>
+  <circle cx="160" cy="86" r="46" fill="#9558B2"/>
+  <circle cx="104" cy="182" r="46" fill="#CB3C33"/>
+  <circle cx="216" cy="182" r="46" fill="#389826"/>
+</svg>

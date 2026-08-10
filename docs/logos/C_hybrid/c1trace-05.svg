@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <!-- Beat Graph: three data points wired into a triangle, each edge carrying a small beat-blip; wordmark -->
+  <path d="M100,110 L134,110 L142,88 L150,132 L158,110 L214,110" fill="none" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M214,110 L206,140 L222,140 L210,168 L198,140 L172,190" fill="none" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M172,190 L138,168 L126,190 L110,150 L98,168 L100,110" fill="none" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="100" cy="110" r="26" fill="#9558B2"/>
+  <circle cx="214" cy="110" r="26" fill="#389826"/>
+  <circle cx="172" cy="190" r="26" fill="#CB3C33"/>
+  <text x="160" y="252" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="30" fill="#1A1A1A">HRL</text>
+</svg>
