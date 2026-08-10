@@ -55,6 +55,7 @@ plot_ibi_series(ibis; backend=:plots)
 
 ```julia
 julia> using Pkg
+julia> Pkg.add(url="https://github.com/abcsds/DFA.jl")  # unregistered dependency, add first
 julia> Pkg.add(url="https://github.com/abcsds/HeartRateLab.jl")
 ```
 
