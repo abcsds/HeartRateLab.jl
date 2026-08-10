@@ -14,7 +14,7 @@
 \usepackage[sfdefault]{FiraSans}
 \usepackage[paperwidth=841mm,paperheight=1189mm,top=15mm,bottom=12mm,left=18mm,right=18mm]{geometry}
 \usepackage{tikz}
-\usetikzlibrary{calc,positioning,shapes.geometric,backgrounds,fadings}
+\usetikzlibrary{calc,positioning,shapes.geometric,backgrounds,fadings,arrows.meta}
 \usepackage[most]{tcolorbox}
 \usepackage{qrcode}
 \usepackage{graphicx}
@@ -42,27 +42,28 @@
 \tcbset{
   card/.style={
     enhanced, colback=white, colframe=jcpurple,
-    boxrule=0pt, arc=6mm, top=4.5mm, bottom=4.5mm, left=8mm, right=8mm,
+    boxrule=0pt, arc=6mm, top=3.2mm, bottom=3.2mm, left=8mm, right=8mm,
     fontupper=\color{inkdark},
     borderline west={5mm}{0mm}{jcgreen},
     drop fuzzy shadow=black!35,
   },
   darkcard/.style={
     enhanced, colback=cardnavy, colframe=jcpurple,
-    boxrule=0pt, arc=6mm, top=4.5mm, bottom=4.5mm, left=8mm, right=8mm,
+    boxrule=0pt, arc=6mm, top=3.2mm, bottom=3.2mm, left=8mm, right=8mm,
     fontupper=\color{white},
     borderline west={5mm}{0mm}{jcgreen},
     drop fuzzy shadow=black!45,
   },
 }
 % card title macro
-\newcommand{\ctitle}[2][jcgreen]{{\color{#1}\bfseries\LARGE #2}\par\vspace{3mm}}
+\newcommand{\ctitle}[2][jcgreen]{{\color{#1}\bfseries\LARGE #2}\par\vspace{4mm}}
 
 % ---------- z-score forest plot ----------
 % \zrow{ypos}{z}{dotcolor}{feature name}
 \newcommand{\zrow}[4]{%
-  \draw[gray!45,line width=1.6pt] (0,#2) -- (#3,#2);
-  \shade[ball color=#4] (#3,#2) circle (9pt);
+  \draw[gray!60,line width=2.4pt] (0,#2) -- (#3,#2);
+  \fill[#4] (#3,#2) circle (8pt);
+  \draw[white,line width=1pt] (#3,#2) circle (8pt);
   \node[anchor=east,text=white,font=\bfseries] at (-3.05,#2) {#1};
   \node[anchor=west,text=white,font=\bfseries] at (3.65,#2)
         {\pgfmathprintnumber[print sign,fixed,fixed zerofill,precision=2]{#3}$\sigma$};
@@ -123,20 +124,20 @@
 \vspace{-6mm}
 \begin{minipage}[t]{0.775\linewidth}
   \raggedright
-  {\setlength{\fboxsep}{6pt}\colorbox{jcgreen}{\color{white}\bfseries\Large\ POSTER\ }}\\[6mm]
+  {\setlength{\fboxsep}{6pt}\colorbox{jcgreen}{\color{white}\bfseries\Large\ POSTER\ }}\\[3mm]
   {\color{white}\bfseries\fontsize{52}{57}\selectfont
    Using The HeartRateLab.jl for\\ Normative Evaluation of Heart\\ Rate Variability
-   from Open Datasets}\\[5mm]
+   from Open Datasets}\\[3mm]
   {\color{jclav}\Large\bfseries Alberto Barradas\, (abcsds)}\quad
   {\color{white!75}\large — Heart Rate Variability analysis, entirely in Julia}
 \end{minipage}\hfill
 \begin{minipage}[t]{0.20\linewidth}
   \raggedleft
-  \vspace{2mm}
+  \vspace{4mm}
   \begin{tcolorbox}[enhanced,colback=white,colframe=white,boxrule=0pt,arc=4mm,
        width=52mm,height=52mm,halign=center,valign=center,left=3mm,right=3mm,top=3mm,bottom=3mm]
      \qrcode[height=44mm]{https://github.com/abcsds/HeartRateLab.jl}
-  \end{tcolorbox}\par\vspace{2mm}
+  \end{tcolorbox}\par\vspace{4mm}
   {\color{white!85}\small\bfseries github.com/abcsds/HeartRateLab.jl}
 \end{minipage}
 
@@ -146,25 +147,24 @@
 \begin{tcbraster}[raster columns=2, raster column skip=8mm, raster equal height=rows]
   \begin{tcolorbox}[card]
      \ctitle{Abstract}
-     {\large
+     {
      A common method in the evaluation of human biosignals is comparing experimental
      signals against datasets of normative values. Thanks to the open scientific
      resources for heart rate analysis, and the resilient network of scientific
      programming functionality that the Julia community enables, the normative
      analysis of Heart Rate Variability (HRV) can be done \textbf{completely in Julia}.
      By contrasting features in windows of \textbf{360 heart beats} against normative
-     datasets we identified that meditators from the \emph{Heart Rate Oscillations
-     during Meditation} dataset (PhysioNet) presented indicators of increased
-     \textbf{Mean IBI} (z\,$=\!+1.02$) and \textbf{pNN50} (z\,$=\!+1.32$), with
-     smaller but consistent increases in other features common in
-     resonant-frequency training that remained under 1$\sigma$:
-     \textbf{RMSSD} (z\,$=\!+0.94$), \textbf{SDNN} (z\,$=\!+0.90$). Results
-     demonstrate how correctly implemented open science can answer contextual
+     datasets we find that, during meditation, practitioners from the
+     \emph{Heart Rate Oscillations during Meditation} dataset (PhysioNet) show modest
+     increases in \textbf{pNN50} (z\,$=\!+0.84$) and \textbf{SDNN} (z\,$=\!+0.81$),
+     while \textbf{Mean IBI} (z\,$=\!+0.23$) and \textbf{RMSSD} (z\,$=\!+0.38$) stay
+     near the healthy median --- a mild, coherent vagal shift within normal range.
+     Results demonstrate how correctly implemented open science can answer contextual
      questions such as: \emph{``Is this new experimental data normal?''}}
   \end{tcolorbox}
   \begin{tcolorbox}[card, borderline west={5mm}{0mm}{jublue}]
      \ctitle[jublue]{Why context matters}
-     {\large
+     {
      We contrast a time series of \textbf{Inter-Beat Intervals (IBIs)} against the
      feature distributions of existing open datasets, emphasising the
      \textbf{contextual nature} of scientific inquiry. This capability is a novel
@@ -179,148 +179,112 @@
 
 \vspace{4mm}
 
-% ================= METHODS =================
+% ================= COMPUTATIONAL GRAPH (before method) =================
 \begin{tcolorbox}[card, borderline west={5mm}{0mm}{jupurple}]
-  \ctitle[jupurple]{Method — a normative pipeline, end to end in Julia}
-  \begin{minipage}[t]{0.70\linewidth}\large\vspace{-2mm}
-   \textbf{\color{jured}1.}~Read IBIs \small(\texttt{read\_txt} / \texttt{read\_wfdb} /
-   \texttt{read\_xdf}).\normalsize\\[2mm]
-   \textbf{\color{jured}2.}~Preprocess: replace bio-outliers, ectopic \& zero beats;
-   interpolate \texttt{NaN}s.\\[2mm]
-   \textbf{\color{jured}3.}~Extract \textbf{53 HRV features} (time / frequency /
-   nonlinear) via the \texttt{@register}\,+\,\texttt{@memoize} registry.\\[2mm]
-   \textbf{\color{jured}4.}~\textbf{Window} each recording: 360 beats, 120-beat stride.\\[2mm]
-   \textbf{\color{jured}5.}~Fit a \textbf{normative prior} per feature
-   (Normal / Gamma / Beta / LogNormal) by MLE over \textbf{56{,}472 windows from
-   66 healthy subjects} (PhysioNet \texttt{nsrdb}\,+\,\texttt{nsr2db}).\\[2mm]
-   \textbf{\color{jured}6.}~Score any new window:
-   $\ \text{percentile}=F_{\text{prior}}(x),\quad
-   z_{\text{equiv}}=\Phi^{-1}(\text{percentile}).$
-   \par\vspace{4mm}
-   {\itshape\color{jcpurple} 68\,/\,95\,/\,99.7\% dispersion bands below come from the
-   fitted priors --- \textmd{these are \textbf{window-level} (windows within a
-   recording are correlated), so a $z$ is descriptive, not a per-subject
-   inferential test.}}
-  \end{minipage}\hfill
-  \begin{minipage}[t]{0.275\linewidth}\vspace{-3mm}
-    \centering
-    \includegraphics[height=118mm]{figs/between_dataset_kde.png}\\[1mm]
-    {\footnotesize\color{inkdark}\textbf{Validity check:} the two healthy reference
-    databases (\texttt{nsrdb}, \texttt{nsr2db}) agree feature-by-feature, so the
-    pooled prior is well-defined.}
-  \end{minipage}
+  \ctitle[jupurple]{The feature computational graph --- 53 features computed from each other}
+  \centering\includegraphics[width=\linewidth]{figs/computational_graph.png}
+  \par\vspace{1.5mm}
+  {\raggedright\normalsize\color{inkdark}
+   HRV features are \textbf{not independent measurements} --- one IBI series feeds \textbf{11 memoised
+   representations} which feed \textbf{53 scalar features}; every arrow is an ``is computed from''
+   dependency read from the live \texttt{Features.jl} registry. RMSSD, SD1 and SDSD are the \emph{same}
+   quantity up to a constant; LF/HF, LF\% and LF-rel are all functions of LF and HF --- reporting them
+   as independent evidence multiplies one fact, the \textbf{definitional} root of the empirical
+   redundancy the clustermap shows below.\par}
 \end{tcolorbox}
 
-\vspace{4mm}
-{\color{white}\bfseries\huge Results — two contextual cases}\\[4mm]
+\vspace{2mm}
 
-% ================= RESULTS: two z-forests =================
+% ================= METHOD + PIPELINE =================
+\begin{tcolorbox}[card, borderline west={5mm}{0mm}{jupurple}]
+  \ctitle[jupurple]{Method — one reproducible pipeline, end to end in Julia}
+  \begin{minipage}[t]{0.66\linewidth}\large
+   \textbf{Read} IBIs $\rightarrow$ \textbf{preprocess} (bio-outliers, ectopic \& zero beats)
+   $\rightarrow$ \textbf{53 HRV features} (time / frequency / geometric / nonlinear)
+   $\rightarrow$ \textbf{window} (360 beats / 120 stride) $\rightarrow$ fit a \textbf{normative prior}
+   per feature (Normal / Gamma / Beta / LogNormal) by MLE over \textbf{56{,}472 windows from 66 healthy
+   subjects} $\rightarrow$ \textbf{score}: percentile $=F_{\text{prior}}(x)$,
+   $z=\Phi^{-1}(\text{percentile})$.
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.32\linewidth}\normalsize\color{inkdark}
+   {\color{jcpurple}\bfseries Scope.} Priors are MLE approximations (KS-rejected at n\,=\,56k); a $z$
+   is a percentile re-expressed on a standard normal, window-level and descriptive --- not a
+   per-subject inferential test.
+  \end{minipage}
+  \par\vspace{3mm}
+  \centering\includegraphics[width=0.995\linewidth]{figs/pipeline_chain.png}
+  \par\vspace{1mm}
+  {\small\color{inkdark} One real recording (Participant~P1) through every step. \textbf{Features}
+  spans all domains (Poincar\'e, spectrum, histogram, successive differences $\to$ 53 numbers); here
+  the window's LF/HF lands at the 99th percentile of the healthy prior ($z=+2.5$).}
+\end{tcolorbox}
+
+\vspace{2mm}
+{\color{white}\bfseries\huge Results}\\[3mm]
+
+% ── Feature analysis: stability + clustermap ──
 \begin{tcbraster}[raster columns=2, raster column skip=8mm, raster equal height=rows]
-  % ---- Case A: meditation cohort ----
-  \begin{tcolorbox}[darkcard, colback=cardnavy, borderline west={5mm}{0mm}{jcgreen}]
-     \ctitle{Case A — Meditation cohort}
-     {\color{white!85}\large PhysioNet \emph{Heart Rate Oscillations during
-     Meditation} · 58 records · median window vs healthy prior.}\par\vspace{6mm}
-     \centering
-     \zforest{3}{
-        \zrow{pNN50}{3}{1.32}{zgold}
-        \zrow{Mean IBI}{2}{1.02}{zgold}
-        \zrow{RMSSD}{1}{0.94}{jcgreen}
-        \zrow{SDNN}{0}{0.90}{jcgreen}
-     }
-     \par\vspace{5mm}
-     {\raggedright\color{white!85}\large Meditators trend to \textbf{longer IBIs} and
-     \textbf{elevated pNN50}; short-term vagal tone (RMSSD, SDNN) is
-     \textbf{modestly elevated but under 1$\sigma$} --- a mild, coherent shift, not
-     pathology.\par}
+  \begin{tcolorbox}[card, borderline west={5mm}{0mm}{jcgreen}]
+    \ctitle[jcgreen]{Which features distinguish meditation}
+    \centering\includegraphics[height=143mm]{figs/stability_selection.png}
+    \par\vspace{1mm}
+    {\raggedright\normalsize\color{inkdark} L1-logistic \textbf{stability selection} (meditation vs
+    healthy, 200 subject-grouped resamples): the $\sim$0.1\,Hz LF-band features are selected most
+    often. Grouped 5-fold CV \textbf{AUC $=0.73\pm0.27$} --- modest (only 11 meditators). Features are
+    chosen by the model, not by hand.\par}
   \end{tcolorbox}
-  % ---- Case B: anonymous longitudinal participant ----
-  \begin{tcolorbox}[darkcard, colback=cardnavy, borderline west={5mm}{0mm}{jured}]
-     \ctitle[jured]{Case B — Anonymous longitudinal participant}
-     {\color{white!85}\large A \textbf{daily HRV monitor}: 148 windows across
-     \textbf{88 recording dates}, 2019--2025, vs the same healthy prior.}\par\vspace{5mm}
-     \centering
-     \zforest{8}{
-        \zrow{LF/HF ratio}{8}{2.64}{jured}
-        \zrow{LF Power}{7}{2.55}{jured}
-        \zrow{SD2}{6}{1.19}{zgold}
-        \zrow{SDNN}{5}{1.12}{zgold}
-        \zrow{pNN50}{4}{0.74}{jcgreen}
-        \zrow{Mean IBI}{3}{0.07}{jcgreen}
-        \zrow{SD1}{2}{0.03}{jcgreen}
-        \zrow{RMSSD}{1}{0.03}{jcgreen}
-        \zrow{HF Power}{0}{-0.17}{jcgreen}
-     }
-     \par\vspace{4mm}
-     {\raggedright\color{white!90}\large\bfseries The resonance signature:
-     \normalfont\color{white!85} the $\sim$0.1\,Hz \textbf{LF band} is strongly elevated
-     (LF power \& the LF/HF ratio derived from it, $>\!+2.5\sigma$) while parasympathetic
-     \& short-term metrics (RMSSD, HF, SD1, Mean IBI) stay near the healthy median. The
-     monitor's $z$-scores \emph{track the practice} --- consistent with slow, resonant
-     breathing.\par\vspace{2mm}
-     {\footnotesize\color{white!70} Single participant; 148 correlated windows
-     (descriptive, not inferential). Features are not independent
-     --- SD1\,$\equiv$\,RMSSD$/\sqrt2$, SD2 tracks SDNN, LF/HF derives from LF power
-     --- so nine labels span $\sim$5 axes.}\par}
+  \begin{tcolorbox}[card, borderline west={5mm}{0mm}{jupurple}]
+    \ctitle[jupurple]{HRV features are largely redundant}
+    \centering\includegraphics[height=143mm]{figs/feature_clustermap.png}
+    \par\vspace{1mm}
+    {\raggedright\normalsize\color{inkdark} Clustered $|$correlation$|$ on the healthy reference; the
+    dendrogram groups near-duplicates. Dark blocks: SD1$\equiv$RMSSD$\equiv$SDSD ($r=1.00$),
+    LF\%$\equiv$LF-rel, SDNN$\approx$SD2 --- one variability axis wearing many names.\par}
   \end{tcolorbox}
 \end{tcbraster}
 
-\vspace{4mm}
+\vspace{2mm}
 
-% ================= HERO FIGURE =================
-\begin{tcolorbox}[card, borderline west={5mm}{0mm}{jured}]
-  \ctitle[jured]{Participant vs.\ healthy population — all nine features}
-  \begin{minipage}[c]{0.615\linewidth}
-    \centering\includegraphics[height=190mm]{figs/hero_participant_vs_normative.png}
-  \end{minipage}\hfill
-  \begin{minipage}[c]{0.355\linewidth}\large\color{inkdark}
-    \textbf{How to read.} Each panel is one HRV feature. \textcolor{jublue}{\textbf{Blue
-    dash-dot}} = this participant's 148 windows; \textcolor{jured}{\textbf{red}} = the
-    fitted \emph{parametric} prior; grey dashed = empirical KDE of the same pooled data
-    (fit-quality check). Shaded bands = central \textbf{68 / 95 / 99.7\%}.\par\vspace{4mm}
-    \textcolor{jured}{\textbf{Right of reference (elevated):}} LF Power, LF/HF, SD2,
-    SDNN.\par\vspace{2mm}
-    \textcolor{jcgreen}{\textbf{Inside reference (typical):}} RMSSD, HF, SD1, Mean IBI,
-    pNN50.\par\vspace{4mm}
-    {\footnotesize\itshape The $\sigma$-equivalent is a percentile re-expressed on a
-    standard normal (e.g.\ LF Power $+2.55\sigma\equiv$ 99.5th percentile of healthy
-    windows), not standard deviations of the skewed feature.}\par\vspace{4mm}
-    {\bfseries$\rightarrow$ A selective boost in the low-frequency band --- consistent
-    with slow, resonant breathing, not a change in short-term vagal markers.}
-  \end{minipage}
-\end{tcolorbox}
-
-\vspace{3mm}
-
-% ==================== OVER-TIME PANELS =================
+% ── Participant + population ──
 \begin{tcbraster}[raster columns=2, raster column skip=8mm, raster equal height=rows]
   \begin{tcolorbox}[card, borderline west={5mm}{0mm}{jured}]
-     \ctitle[jured]{LF/HF over time — above +2$\sigma$}
-     \centering\includegraphics[height=132mm]{figs/lfhf_over_time.png}\\[1mm]
-     {\small\color{inkdark} Nearly every session rides \emph{above} the normative
-     $\pm2\sigma$ band --- the practice is visible for years.}
+    \ctitle[jured]{Participant P1 scored against two references}
+    \centering\includegraphics[width=\linewidth]{figs/participant_zscores.png}
+    \par\vspace{1mm}
+    {\raggedright\normalsize\color{inkdark} P1's deviation ($\sigma$-equivalent) from the
+    \textcolor{jublue}{\textbf{healthy population}} and from the
+    \textcolor{jcgreen}{\textbf{meditators}}. On the LF-band features P1 is extreme vs the general
+    population (LF/HF $+2.6\sigma$) but close to a typical meditator ($+1.7\sigma$) --- the line is
+    the gap between the two references.\par}
   \end{tcolorbox}
-  \begin{tcolorbox}[card, borderline west={5mm}{0mm}{jcgreen}]
-     \ctitle[jcgreen]{RMSSD over time — inside $\pm1\sigma$}
-     \centering\includegraphics[height=132mm]{figs/rmssd_over_time.png}\\[1mm]
-     {\small\color{inkdark} The same recordings' short-term vagal tone stays
-     \emph{within} the healthy $\pm1\sigma$ band --- typical, as expected.}
+  \begin{tcolorbox}[card, borderline west={5mm}{0mm}{jublue}]
+    \ctitle[jublue]{Distributions: population, meditators, participant}
+    \centering\includegraphics[width=0.99\linewidth]{figs/three_way_comparison.png}
+    \par\vspace{1mm}
+    {\raggedright\normalsize\color{inkdark} \textcolor{gray}{\textbf{Grey}} = healthy reference (66
+    subjects); \textcolor{jcgreen}{\textbf{green}} = meditators (11 practitioners);
+    \textcolor{jublue}{\textbf{blue}} = P1. Both meditators and P1 shift the LF-band features right of
+    healthy; short-term time-domain spread (SDNN) separates them much less.\par}
   \end{tcolorbox}
 \end{tcbraster}
 
-\vspace{3mm}
+\vspace{2mm}
 
-% ==================== TAKEAWAY =================
+% ==================== TAKEAWAY + LIMITS =================
 \begin{tcolorbox}[enhanced,colback=jcgreen,colframe=jcgreen,arc=6mm,
-     fontupper=\color{white},drop fuzzy shadow=black!45,top=6mm,bottom=6mm,left=9mm,right=9mm]
+     fontupper=\color{white},drop fuzzy shadow=black!45,top=5mm,bottom=5mm,left=9mm,right=9mm]
   {\bfseries\LARGE ``Is this new experimental data normal?''}\quad
-  {\large HeartRateLab.jl answers it \textbf{in context} --- fitting open-data priors
-  and scoring any recording, from a clinical cohort to your own daily practice, with
-  one reproducible pipeline.}
+  {\large HeartRateLab.jl answers it \textbf{in context} --- open-data priors and a principled,
+  reproducible pipeline. Meditation (n\,=\,263 windows): LF-band $\uparrow$, discrimination modest.
+  Participant~P1 (n\,=\,1): LF-band strongly $\uparrow$ vs the population, meditator-like.}\par\vspace{2mm}
+  {\normalsize\color{white!85}\textbf{Limitations:} priors are KS-rejected approximations; windows are
+  correlated (descriptive, not inferential); meditation n\,=\,11; P1 is a single self-tracked
+  participant. Full detail + the 44-feature table in the notes handout.}
 \end{tcolorbox}
 
+
 % ================= FOOTER (on lavender band) =================
-\vspace{4mm}
+\vfill
 \begin{minipage}[b]{0.34\linewidth}
    \raisebox{-1mm}{\juliadots{0.9}}\hspace{3mm}%
    {\color{inkdark}\bfseries\fontsize{46}{48}\selectfont julia}%
@@ -335,5 +299,6 @@
    {\color{inkdark}\large\faGithub~\textbf{abcsds/HeartRateLab.jl}}\\[1mm]
    {\color{jcpurple}\large Open data · Open source · Julia 1.11}
 \end{minipage}
+\vspace*{14mm}
 
 \end{document}

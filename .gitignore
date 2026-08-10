@@ -61,6 +61,10 @@ __pycache__/
 *.aux
 *.vrb
 docs/poster/*.log
+docs/poster/aux/
+docs/poster/*.fls
+docs/poster/*.fdb_latexmk
+docs/poster/*.synctex.gz
 docs/slides/aux/
 
 # Generated normative windowed tiers — private branch only (w360_s120 ships;
