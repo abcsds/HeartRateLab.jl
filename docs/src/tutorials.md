@@ -1,20 +1,37 @@
 # Tutorials and Examples
 
+```@example tut
+# hidden setup: deterministic sample recording, so examples run during the docs build # hide
+using HeartRateLab # hide
+# make the package's own deps (DataFrames) loadable inside the docs sandbox # hide
+pkgdir(HeartRateLab) in LOAD_PATH || push!(LOAD_PATH, pkgdir(HeartRateLab)) # hide
+using Random # hide
+rng = Xoshiro(42) # hide
+open("data.txt", "w") do io # hide
+    t = 0.0 # hide
+    for i in 1:600 # hide
+        t += 2π * 0.25 * 0.8 # hide
+        println(io, round(800 + 40 * sin(t) + 25 * randn(rng); digits=1)) # hide
+    end # hide
+end # hide
+nothing # hide
+```
+
 ## Tutorial 1: Feature Extraction Deep Dive
 
 Learn to extract, filter, and analyze HRV features.
 
 ### Extract Feature Sets
 
-```julia
+```@example tut
 using HeartRateLab
 using DataFrames
 
 ibis = read_txt("data.txt")
 
 # Extract preset feature sets (each returns a one-row DataFrame)
-default_features = extract_feature_set(ibis)                       # time, frequency, geometric
-all_features = extract_feature_set(ibis; features=:all)            # all 53 (adds nonlinear)
+default_features = extract_feature_set(ibis)                        # fast features
+all_features = extract_feature_set(ibis; features=:all)             # all 53 (adds nonlinear)
 nonlinear_features = extract_feature_set(ibis; features=:nonlinear) # entropy/fractal measures only
 custom_features = extract_feature_set(ibis; features=["mean", "sdnn", "rmssd"])
 
@@ -26,32 +43,34 @@ println("Custom subset: $(ncol(custom_features)) features")
 
 ### Handle Signal Length Constraints
 
-```julia
+```@example tut
 # Not all features work with short signals
 short_ibis = ibis[1:20]
 long_ibis = ibis
 
 # Check valid features
-valid_short = valid_features(length(short_ibis))  # ~11 features
-valid_long = valid_features(length(long_ibis))   # ~53 features
+valid_short = valid_features(length(short_ibis))
+valid_long = valid_features(length(long_ibis))
 
 println("Features for $(length(short_ibis)) beats: $(length(valid_short))")
 println("Features for $(length(long_ibis)) beats: $(length(valid_long))")
 
 # Compute only valid features
-features_short = extract_feature_set(short_ibis)
-features_long = extract_feature_set(long_ibis)
+features_short = extract_feature_set(short_ibis; features=valid_short)
+features_long = extract_feature_set(long_ibis; features=valid_long)
+
+println("Computed $(ncol(features_short)) features (short) and $(ncol(features_long)) features (long)")
 ```
 
 ### Windowed Analysis
 
-```julia
+```@example tut
 # Compute features in sliding windows
 window_size = 100
 overlap = 50
 n_windows = div(length(ibis) - window_size, window_size - overlap) + 1
 
-all_window_features = []
+all_window_features = DataFrame[]
 
 for i in 1:n_windows
     start_idx = 1 + (i-1) * (window_size - overlap)
@@ -60,19 +79,23 @@ for i in 1:n_windows
     if end_idx <= length(ibis)
         window_ibis = ibis[start_idx:end_idx]
         features = extract_feature_set(window_ibis)
-        features["window"] = i
-        features["time_start"] = start_idx / 1000  # Convert to seconds
+        features[!, :window] .= i
+        features[!, :beat_start] .= start_idx
         push!(all_window_features, features)
     end
 end
 
-println("Analyzed $n_windows windows of $window_size beats")
+window_df = vcat(all_window_features...)
+println("Analyzed $(nrow(window_df)) windows of $window_size beats")
+first(window_df[:, [:window, :beat_start, :rmssd, :sdnn]], 5)
+```
 
+*(not executed in the docs build — requires a display)*
+
+```julia
 # Plot feature evolution
 using GLMakie
-windows = [f["window"] for f in all_window_features]
-rmssd = [f["rmssd"] for f in all_window_features]
-lines(windows, rmssd; title="RMSSD Evolution")
+lines(window_df.window, window_df.rmssd)
 ```
 
 ## Tutorial 2: Model Fitting and Comparison
@@ -80,6 +103,8 @@ lines(windows, rmssd; title="RMSSD Evolution")
 Learn to fit mechanistic models and evaluate reproduction quality.
 
 ### Fit Multiple Models
+
+*(not executed in the docs build — model fitting is too slow and the figures require a display)*
 
 ```julia
 using HeartRateLab, DifferentialEquations, GLMakie
@@ -174,6 +199,8 @@ Use Dynamic Mode Decomposition for data-driven modeling.
 
 ### Fit and Reconstruct
 
+*(not executed in the docs build — model fitting)*
+
 ```julia
 using HeartRateLab, LinearAlgebra, GLMakie
 
@@ -222,6 +249,8 @@ display(fig3)
 Create figures suitable for research papers.
 
 ### Single Plot
+
+*(not executed in the docs build — requires a display)*
 
 ```julia
 using HeartRateLab, GLMakie
@@ -300,6 +329,8 @@ save("publication_figure.pdf", fig; pt_per_unit=1)
 
 Process multiple subjects and compute group statistics.
 
+*(not executed in the docs build — requires multi-subject recordings not shipped with the docs)*
+
 ```julia
 using HeartRateLab
 using CSV, DataFrames, Statistics
@@ -354,7 +385,7 @@ CSV.write("group_analysis.csv", df)
 
 ### Error Handling
 
-```julia
+```@example tut
 function safe_extract_features(filename::String)
     try
         ibis = read_txt(filename)
@@ -379,7 +410,7 @@ end
 # Use it
 features, status = safe_extract_features("data.txt")
 if status == "success"
-    println("Extracted $(length(features)) features")
+    println("Extracted $(ncol(features)) features")
 else
     println("Error: $status")
 end
