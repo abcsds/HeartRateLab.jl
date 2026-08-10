@@ -14,13 +14,7 @@ reconciliation, we say so explicitly and quote the corrected value.
 | Use case | Question answered | Headline result |
 |----------|-------------------|-----------------|
 | [Is my data normal?](normative.md) | Where does one HRV window sit relative to a healthy population? | A quantile *z*-equivalent against **56 472** pooled healthy windows, live-overlaid in `default_normative()`. |
-| [Meditation & resonant breathing](meditation.md) | What does a vagally-dominant / resonance state look like in HRV space? | Meditation cohort: elevated Mean IBI (+1.02σ) & pNN50 (+1.32σ). A longitudinal participant: a **selective LF-band boost** (LF/HF +2.64σ). |
-
-![JuliaCon 2026 poster — normative evaluation of HRV from open datasets](figs/poster-full.png)
-
-*The normative-evaluation and meditation use cases were assembled into a JuliaCon
-Global 2026 poster, "Using HeartRateLab.jl for Normative Evaluation of Heart Rate
-Variability from Open Datasets."*
+| [Meditation & paced breathing](meditation.md) | What does a vagally-dominant state look like in HRV space? | Meditation cohort: elevated Mean IBI (+1.02σ) & pNN50 (+1.32σ) against 56 472 pooled healthy windows. |
 
 ## How these relate to the rest of the docs
 
