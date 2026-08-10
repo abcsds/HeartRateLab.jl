@@ -12,7 +12,6 @@ Open the Julia REPL and type:
 
 ```julia
 julia> using Pkg
-julia> Pkg.add(url="https://github.com/abcsds/DFA.jl")  # unregistered dependency, add first
 julia> Pkg.add(url="https://github.com/abcsds/HeartRateLab.jl")
 ```
 
@@ -205,7 +204,6 @@ CSV.write("output.csv", df)
 **Solution:** Make sure HeartRateLab is installed (from the GitHub URL — the package is not yet in the General registry):
 ```julia
 using Pkg
-Pkg.add(url="https://github.com/abcsds/DFA.jl")  # unregistered dependency, add first
 Pkg.add(url="https://github.com/abcsds/HeartRateLab.jl")
 ```
 
