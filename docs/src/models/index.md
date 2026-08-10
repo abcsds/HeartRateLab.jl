@@ -21,7 +21,7 @@ All models implement a common interface via [`AbstractHRVModel`](@ref):
 
 ```julia
 # Create a model
-model = LIF()           # or VanDerPol(), Lorenz(), DMD(rank=5)
+model = LIF()           # or VanDerPol(), Lorenz(), DMD()
 
 # Fit to IBI data (milliseconds)
 result = fit(model, ibis; method=:gradient)

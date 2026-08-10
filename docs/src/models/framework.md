@@ -38,7 +38,7 @@ each model defines which keys it reads.
 | `diagnostics` | `Dict{String,Any}` | Convergence info, iterations, loss, R-hat values, etc. |
 | `data` | `Vector{Float64}` | Original IBI data used for fitting (milliseconds) |
 
-```@doctest
+```julia
 julia> using HeartRateLab
 
 julia> vdp = VanDerPol()

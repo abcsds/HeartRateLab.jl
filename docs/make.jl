@@ -58,7 +58,6 @@ makedocs(;
             "Overview"                       => "usecases/index.md",
             "Is my data normal?"             => "usecases/normative.md",
             "Meditation & resonant breathing" => "usecases/meditation.md",
-            "Forecasting the next heartbeats" => "usecases/forecasting.md",
             "What do reported effects look like?" => "usecases/effect-distributions.md",
         ],
         "Tutorials" => "tutorials.md",

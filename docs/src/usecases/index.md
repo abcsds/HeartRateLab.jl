@@ -15,7 +15,6 @@ reconciliation, we say so explicitly and quote the corrected value.
 |----------|-------------------|-----------------|
 | [Is my data normal?](normative.md) | Where does one HRV window sit relative to a healthy population? | A quantile *z*-equivalent against **56 472** pooled healthy windows, live-overlaid in `default_normative()`. |
 | [Meditation & resonant breathing](meditation.md) | What does a vagally-dominant / resonance state look like in HRV space? | Meditation cohort: elevated Mean IBI (+1.02σ) & pNN50 (+1.32σ). A longitudinal participant: a **selective LF-band boost** (LF/HF +2.64σ). |
-| [Forecasting the next heartbeats](forecasting.md) | How well can we predict upcoming RR intervals, with honest uncertainty? | A parsimonious **AR(8)** ties the best of 42 models and transfers to personal data with a near-nominal 90% band. |
 
 ![JuliaCon 2026 poster — normative evaluation of HRV from open datasets](figs/poster-full.png)
 
@@ -30,6 +29,3 @@ Variability from Open Datasets."*
   seminal citation.
 - The normative and personal-baseline machinery is documented under
   [Visualization](../visualization.md).
-- The forecasting study used a module that lives on a **separate branch**
-  (`forecasting-integration`); it is presented here as a results narrative
-  excerpted from its shipped reports, not as runnable code in this checkout.

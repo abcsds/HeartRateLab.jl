@@ -48,6 +48,7 @@ IBI is $60000 / \text{heart\_rate}$ ms.
 |-----------|-------|---------|-------------|
 | `μ` | 0.1 – 3.0 | 1.0 | Nonlinearity; controls oscillation strength |
 | `heart_rate` | 40 – 120 BPM | 70 | Base heart rate in beats per minute |
+| `σ_noise` | 1 – 50 | — (fitted) | Observation-noise scale (ms); prior `Exponential(10)`, inferred during fitting |
 
 ## Fitting Methods
 
@@ -60,7 +61,7 @@ IBI is $60000 / \text{heart\_rate}$ ms.
 
 ### Create and Simulate
 
-```@doctest
+```julia
 julia> using HeartRateLab
 
 julia> vdp = VanDerPol()

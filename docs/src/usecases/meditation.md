@@ -17,7 +17,7 @@ quantile z-equivalent ``z = \Phi^{-1}(F_{\text{prior}}(x))``.
 ## Case A — Meditation cohort
 
 **Dataset.** PhysioNet *Heart Rate Oscillations during Meditation*
-[mietus2002](@cite) — **58 records** (meditators and comparison groups; record
+[peng1999](@cite) — **58 records** (meditators and comparison groups; record
 labels `C*`, `Y*`, `M*`, `N*`, `I*`), cut into **2 686** windows
 (`test/testdata/meditation/windowed_w360_s120_features.csv`).
 

@@ -58,7 +58,7 @@ display(fig)
 
 **Features:**
 - Welch periodogram with log scales
-- VLF band (0.0-0.04 Hz) - Red shading
+- VLF band (0.003–0.04 Hz) - Red shading
 - LF band (0.04-0.15 Hz) - Green shading
 - HF band (0.15-0.4 Hz) - Blue shading
 

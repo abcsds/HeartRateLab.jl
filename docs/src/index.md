@@ -100,6 +100,16 @@ julia> Pkg.add("Turing")
 Modules = [HeartRateLab]
 ```
 
+### Evaluation
+
+Ensemble simulation, model evaluation, and information-criterion ranking
+(`simulate_ensemble`, `extract_ensemble_features`, `eval_distributional`,
+`eval_scalar`, `eval_distance`, `information_criteria`, `rank_models`):
+
+```@autodocs
+Modules = [HeartRateLab.Evaluation]
+```
+
 ## Citation
 
 If you use HeartRateLab in your research, please cite:
