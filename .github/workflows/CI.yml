@@ -91,6 +91,11 @@ jobs:
   docs:
     name: Documentation
     runs-on: ubuntu-latest
+    # Serialize docs deploys: a push to main and a tag push both deploy to
+    # gh-pages; without this the second push loses the race and fails.
+    concurrency:
+      group: docs-deploy
+      cancel-in-progress: false
     permissions:
       actions: write # needed to allow julia-actions/cache to proactively delete old caches that it has created
       contents: write
