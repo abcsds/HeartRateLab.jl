@@ -58,7 +58,6 @@ julia> using Pkg
 julia> Pkg.add(url="https://github.com/abcsds/HeartRateLab.jl")
 ```
 
-> HeartRateLab is not yet registered in the Julia General registry (registration is planned), so install it directly from the GitHub URL.
 
 For visualization, optionally install:
 ```julia
