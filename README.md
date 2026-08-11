@@ -149,11 +149,10 @@ df = windowed_feature_set(ibis; window_size=60, stride=30, features=:all)
 stats = describe(df, :mean, :std, :min, :max, :median)
 
 # 3. Flag outlier windows: |x − μ| > 4σ
-μ = describe(df, :mean).mean
-σ = describe(df, :std).std
 for col in names(df)
-    outliers = abs.(df[!, col] .- μ[col]) .> 4 * σ[col]
-    println("$col: $(sum(outliers)) outlier windows out of $(nrow(df))")
+    v = filter(!isnan, df[!, col])
+    μ, σ = mean(v), std(v)
+    println("$col: ", count(x -> abs(x - μ) > 4σ, v), " outlier windows out of $(length(v))")
 end
 
 # 4. Aggregate to participant level (robust to recording length)
@@ -175,12 +174,12 @@ Every feature in the registry carries an **analytical distribution family** deri
 
 | Transform | Distribution | Features |
 |-----------|-------------|----------|
-| Mean / sum of Normals | **Normal** | `mean`, `median`, `max`, `min`, `mean_hr`, `max_hr`, `min_hr`, `lf_peak`, `hf_peak`, `cvi` |
-| √Var (sample std dev) | **Gamma** | `sdnn`, `rmssd`, `sdsd`, `sdann`, `range`, `cvsd`, `rRR`, `std_hr`, `sd1`, `sd2`, `triangular_index`, `tinn` |
+| Mean / sum of Normals | **Normal** | `mean`, `median`, `max`, `min`, `mean_hr`, `max_hr`, `min_hr`, `median_hr`, `cvnni`, `lf_peak`, `hf_peak`, `cvi` |
+| √Var (sample std dev) | **Gamma** | `sdnn`, `rmssd`, `sdsd`, `sdann`, `range`, `range_hr`, `cvsd`, `rRR`, `std_hr`, `sd1`, `sd2`, `triangular_index`, `tinn` |
 | ∫\|P(f)\|² df (spectral band power: sum of squared spectral components → sum of Exp → Gamma) | **Gamma** | `ulf`, `vlf`, `lf`, `hf`, `tp`, `lf_percentage`, `hf_percentage` |
 | Proportion in \[0,1\] | **Beta** | `pnn50`, `pnn20`, `lf_relative`, `hf_relative`, `hurst` |
 | Ratio of Gamma RVs (log is ≈ Normal) | **LogNormal** | `lf_hf_ratio`, `sd2_sd1`, `sd1_sd2_area`, `ccsi` |
-| Entropy / regression slope (CLT) | **Normal** | `apen`, `sampen`, `dfa2`, `renyi0`, `renyi1`, `renyi2` |
+| Entropy / regression slope (CLT) | **Normal** | `apen`, `sampen`, `fuzzyen`, `shan_en`, `svd_en`, `spec_en`, `perm_en`, `mse`, `dfa2`, `renyi0`, `renyi1`, `renyi2` |
 
 Distribution families are stored in each `HRFeature.distribution` field and are accessible via the feature registry:
 
@@ -208,11 +207,11 @@ DATASETS=nsrdb,nsr2db WINDOW_SIZE=360 STRIDE=120 \
   julia --project=. test/tools/fit_normative_distributions.jl
 ```
 
-The fitted distributions encode population-level normative ranges.  For example, if `sdnn ~ Gamma(α=3.2, θ=16.5)`, you can compute percentiles, z-scores, and probability of observing a given SDNN value under the healthy-population reference:
+The fitted distributions encode population-level normative ranges. The shipped fit for SDNN (`docs/normative_priors.csv`, pooled nsrdb+nsr2db, n = 61 715 windows) is `Gamma(α=3.795, θ=14.03)`, from which you can compute percentiles, z-scores, and the probability of observing a given SDNN value under the healthy-population reference:
 
 ```julia
 using Distributions
-d = Gamma(3.2, 16.5)       # Fitted normative distribution for SDNN
+d = Gamma(3.795, 14.03)    # Fitted normative distribution for SDNN
 cdf(d, 30.0)               # P(SDNN ≤ 30 ms) under normative reference
 quantile(d, [0.05, 0.95])  # 90% normative interval
 ```
