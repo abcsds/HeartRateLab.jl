@@ -2,7 +2,7 @@ using GLMakie
 using LSL
 using StatsBase
 using HeartRateLab.Frequency: lomb_scargle, get_power
-using HeartRateLab.Visualization: getellipsepoints
+# using HeartRateLab.Visualization: getellipsepoints
 
 # Get the available streams
 streams = LSL.resolve_streams(timeout=1.0)
@@ -14,16 +14,16 @@ while isempty(streams)
 end
 
 
-# function getellipsepoints(cx, cy, rx, ry, θ; length=100)
-# 	t = range(0, 2*pi, length=length)
-# 	ellipse_x_r = @. rx * cos(t)
-# 	ellipse_y_r = @. ry * sin(t)
-# 	R = [cos(θ) sin(θ); -sin(θ) cos(θ)]
-# 	r_ellipse = [ellipse_x_r ellipse_y_r] * R
-# 	x = @. cx + r_ellipse[:,1]
-# 	y = @. cy + r_ellipse[:,2]
-# 	(x,y)
-# end
+function getellipsepoints(cx, cy, rx, ry, θ; length=100)
+	t = range(0, 2*pi, length=length)
+	ellipse_x_r = @. rx * cos(t)
+	ellipse_y_r = @. ry * sin(t)
+	R = [cos(θ) sin(θ); -sin(θ) cos(θ)]
+	r_ellipse = [ellipse_x_r ellipse_y_r] * R
+	x = @. cx + r_ellipse[:,1]
+	y = @. cy + r_ellipse[:,2]
+	(x,y)
+end
 
 function find_peak(pgram)
     freq = pgram.freq
