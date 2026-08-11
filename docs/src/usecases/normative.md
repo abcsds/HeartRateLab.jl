@@ -78,6 +78,41 @@ These priors are descriptive references from healthy cohorts, not clinical
 thresholds. A large ``|z|`` means unusual relative to this reference
 population, not abnormal in any medical sense.
 
+## Build your own personal baseline
+
+The personal-baseline band in `default_normative()` comes from a per-feature
+quantile grid (101 points, q0 to q100) computed over your own recording
+history. The artifact is not shipped with the package because it is personal
+data; you generate it once, locally, and the repository ignores the output
+path so it cannot be committed by accident.
+
+You need a folder of your own IBI recordings as plain-text files, one
+inter-beat interval per line in milliseconds (the `read_txt` format), laid out
+as `<EXPORT_DIR>/<PARTICIPANT>/*.txt`. Then run:
+
+```bash
+PARTICIPANT=YourName EXPORT_DIR=path/to/your/exports \
+  julia --project=. test/tools/generate_personal_baseline.jl
+```
+
+The tool preprocesses each recording (`replace_zeros`,
+`replace_bio_outliers`, `interpolate_nans`), cuts it into 100-beat windows
+with a 25-beat stride to match the live visualization, computes the windowed
+quantities, and writes the quantile grids to
+`docs/personal_baseline_w100.csv`, the default path `default_normative()`
+reads. `WINDOW_SIZE`, `STRIDE`, and `OUTPUT` can be overridden with
+environment variables; if you write to a custom location, pass it explicitly:
+
+```julia
+using HeartRateLab, GLMakie, LSL
+HeartRateLab.Visualization.default_normative(; baseline="path/to/my_baseline.csv")
+```
+
+More recordings make a better baseline: the band is only as representative as
+the history behind it. Without a baseline file, `default_normative()` stops
+with a message pointing here, and the plain `default()` visualization works
+with no setup.
+
 ## Reproduce / where the data lives
 
 - **Fitted priors:** `docs/normative_priors.csv` (family, parameters, KS p-value,
@@ -86,8 +121,8 @@ population, not abnormal in any medical sense.
 - **Scoring API:** `HeartRateLab.Features.normative_prior(name)` returns the fitted
   `Distribution`; the quantile z-equivalent is `Φ⁻¹(cdf(prior, x))`.
 - **Live overlay:** `HeartRateLab.Visualization.default_normative(; low=10, high=90)`
-  (needs GLMakie + an LSL RR stream; personal-baseline artifact built by
-  `test/tools/generate_personal_baseline.jl`).
+  (needs GLMakie + an LSL RR stream; personal-baseline artifact built as
+  described above).
 - **Offline plot:** `HeartRateLab.Visualization.plot_normative_kde_comparison`.
 - **Dataset collection:** `test/tools/collect_normative_datasets.jl`.
 
