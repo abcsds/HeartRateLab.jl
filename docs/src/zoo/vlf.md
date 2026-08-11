@@ -8,7 +8,7 @@
 | **Domain** | `frequency` |
 | **Distribution family** | `Gamma` |
 | **Equation** | `integral(PSD; 0.003; 0.04) Hz` |
-| **Resource intensity** | ◍◍◍◌◌  moderate — _Frequency subgraph (requires a Welch/Lomb–Scargle periodogram first). Warm (shared representation cached) is 14× cheaper._ (measured, see §Resources) |
+| **Resource intensity** | ◍◍◍◌◌  moderate, _Frequency subgraph (requires a Welch/Lomb–Scargle periodogram first). Warm (shared representation cached) is 14× cheaper._ (measured, see §Resources) |
 
 ## Definition
 
@@ -16,10 +16,9 @@ Very low frequency power (0.003-0.04 Hz). Formally: `integral(PSD; 0.003; 0.04) 
 
 ## What does *normal* look like?
 
-Fitted normative prior: **Gamma(α = 1.268, θ = 1016)**  —  KS p < 1e-300, n = 58892.
+Fitted normative prior: **Gamma(α = 1.268, θ = 1016)**, KS p < 1e-300, n = 58892.
 
-!!! warning "Degenerate on short (360-beat) windows — indicative only"
-    **VLF (0.003–0.04 Hz) is degenerate on 360-beat windows.** A 360-beat window (~5–6 min) barely reaches the band's own lower edge, so Welch's frequency resolution cannot resolve power inside it for most windows — the empirical median/IQR collapse to 0 below. Treat the plot and normal-range table as **indicative only**; a real VLF estimate needs much longer windows (≥5 min, ideally tens of minutes to hours) or a full-length recording.
+**VLF (0.003–0.04 Hz) is degenerate on 360-beat windows.** A 360-beat window (about 5 to 6 min) barely reaches the band's own lower edge, so Welch's frequency resolution cannot resolve power inside it for most windows, and the empirical median and IQR collapse to 0 below. Treat the plot and normal-range table as indicative only; a real VLF estimate needs much longer windows, ideally tens of minutes to hours, or a full-length recording.
 
 ![Normative distribution of vlf](figs/vlf.png)
 
@@ -47,21 +46,19 @@ _n varies by feature only through per-window validity over the full pooled nsrdb
 
 *Evidence is reported at the measure-family level; a specific variant may not be the exact index measured in every cited study.*
 
-The three areas below are the application fields of the consolidated [HRV knowledge base](references.md) (clinical · sports & peak-performance · contemplative practice); the fourth KB field, *methods & foundations*, is this measure's seminal lineage — see [§Citation](#Citation).
-
 ### Clinical
 
-**Coverage: statistics** — a large/pooled literature (reviews or meta-analyses exist).
+**Coverage: statistics.** A pooled literature; reviews or meta-analyses exist.
 
 ULF/VLF power is extensively studied in mortality risk stratification: lower ULF/VLF consistently predicts higher all-cause/cardiac/arrhythmic mortality post-MI, in CHF, ACS and elderly cohorts. A 2024 meta-analysis, however, found time-domain measures (SDNN, HTI) the strongest post-MI predictors rather than VLF/ULF specifically, and the band's own physiological interpretation (thermoregulation vs. renin–angiotensin vs. artifact) remains unsettled.
 
-*Dominant reported direction:* down — lower ULF/VLF → higher mortality (contested against time-domain predictors).
+*Dominant reported direction:* down: lower ULF/VLF → higher mortality (contested against time-domain predictors).
 
 **Key references:** [shaffer2017](@cite); [rueda2024](@cite); [yuda2021](@cite).
 
 ### Sports & peak performance
 
-**Coverage: individual papers** — a small, scattered literature (no pooled meta-analysis).
+**Coverage: individual papers.** A small, scattered literature with no pooled meta-analysis.
 
 Uncommon as a headline sports metric. Acute dose-response is consistent and strong (ULF/VLF falls monotonically with rising exercise intensity; ambulatory ULF rises sharply with movement, largely a motion-artifact/thermoregulatory effect), but chronic-training/overtraining findings are weak, inconsistent, and even sex-reversed within a single small study.
 
@@ -71,9 +68,9 @@ Uncommon as a headline sports metric. Acute dose-response is consistent and stro
 
 ### Contemplative practice
 
-**Coverage: individual papers** — a small, scattered literature (no pooled meta-analysis).
+**Coverage: individual papers.** A small, scattered literature with no pooled meta-analysis.
 
-A minor, seldom-isolated component of meditation HRV research: one classic study reports dramatic, exaggerated VLF-spanning oscillations tied to extremely slow breathing during Chi/Kundalini meditation, while a more careful spectral study found no change in normalized VLF power but a significant drop in the residual (non-harmonic) component — illustrating strong method-dependence (raw vs. normalized vs. residual power).
+A minor, seldom-isolated component of meditation HRV research: one classic study reports dramatic, exaggerated VLF-spanning oscillations tied to extremely slow breathing during Chi/Kundalini meditation, while a more careful spectral study found no change in normalized VLF power but a significant drop in the residual (non-harmonic) component: illustrating strong method-dependence (raw vs. normalized vs. residual power).
 
 *Dominant reported direction:* method-dependent (raw vs. normalized vs. residual).
 
@@ -83,7 +80,7 @@ See the [effect-distribution meta-analysis](../usecases/effect-distributions.md)
 
 ## Resources
 
-Resource-intensity rank **◍◍◍◌◌  moderate** is **measured** — median wall-clock time + allocations over a 360-beat window on synthetic realistic RR (`docs/zoo_gen/bench_resources.jl`; full grid in `resource_bench.csv`).
+Resource-intensity rank **◍◍◍◌◌  moderate** is measured: median wall-clock time and allocations over a 360-beat window on synthetic realistic RR (`docs/zoo_gen/bench_resources.jl`; full grid in `resource_bench.csv`).
 
 | metric (360-beat window) | value |
 |---|---|

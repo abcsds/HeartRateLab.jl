@@ -61,9 +61,9 @@ const DIST_FAMILY_DISPLAY_OVERRIDE = Dict("hurst" => "Normal*")
 family_for(e) = get(DIST_FAMILY_DISPLAY_OVERRIDE, e.name, e.family)
 
 const DOMAINS = [
-    ("time",      "Time domain",      "Statistics of the NN/RR intervals and their successive differences — the classic, cheapest, most-reported HRV panel."),
-    ("frequency", "Frequency domain", "Power in the ULF/VLF/LF/HF bands of the RR power spectrum — Welch periodogram on the resampled series by default (`config[\"freq_method\"] == :welch`), with Lomb–Scargle on the raw unevenly-sampled series available as an alternative — plus band ratios and peak frequencies."),
-    ("geometric", "Geometric",        "Shape descriptors of the Poincaré / Lorenz return map and the RR histogram — robust to occasional artifacts."),
+    ("time",      "Time domain",      "Statistics of the NN/RR intervals and their successive differences: the classic, cheapest, most-reported HRV panel."),
+    ("frequency", "Frequency domain", "Power in the ULF/VLF/LF/HF bands of the RR power spectrum, plus band ratios and peak frequencies. Welch periodogram on the resampled series by default (`config[\"freq_method\"] == :welch`); Lomb–Scargle on the raw unevenly-sampled series is available as an alternative."),
+    ("geometric", "Geometric",        "Shape descriptors of the Poincaré / Lorenz return map and the RR histogram, robust to occasional artifacts."),
     ("nonlinear", "Nonlinear",        "Entropy, complexity and fractal-scaling measures probing the nonlinear structure of cardiac control (need adequate record length)."),
 ]
 
@@ -74,27 +74,24 @@ println(io, "A browsable **\"Pokédex\"** of every heart-rate-variability featur
 println(io, "computes: **53 registered measures** across four domains. Each entry answers the")
 println(io, "same three questions:")
 println(io)
-println(io, "1. **What is it?** — definition, equation, aliases, and declared distribution family.")
-println(io, "2. **What does *normal* look like?** — the empirical distribution over the pooled")
+println(io, "1. **What is it?** Definition, equation, aliases, and declared distribution family.")
+println(io, "2. **What does *normal* look like?** The empirical distribution over the pooled")
 println(io, "   [nsrdb](https://physionet.org/content/nsrdb/) + [nsr2db](https://physionet.org/content/nsr2db/)")
 println(io, "   normal-sinus-rhythm cohorts (360-beat windows, n up to 61 715), overlaid with a")
 println(io, "   fitted normative prior, plus a normal-range table.")
-println(io, "3. **What does it cost, and who introduced it?** — a *measured* wall-clock + allocation")
+println(io, "3. **What does it cost, and who introduced it?** A measured wall-clock and allocation")
 println(io, "   resource tier, curated use-cases, and the seminal citation.")
 println(io)
 println(io, "Priors and normal-range statistics are descriptive references from a healthy cohort,")
-println(io, "**not** clinical thresholds. See the [References](references.md) page for the full")
+println(io, "not clinical thresholds. See the [References](references.md) page for the full")
 println(io, "bibliography. Resource tiers are measured on synthetic realistic RR at a 360-beat")
-println(io, "window (`docs/zoo_gen/bench_resources.jl`).")
+println(io, "window (`docs/zoo_gen/bench_resources.jl`), from `◍◌◌◌◌` (very low) to `◍◍◍◍◍`")
+println(io, "(very high).")
 println(io)
-println(io, "**Resource tiers:** `◍◌◌◌◌` very low · `◍◍◌◌◌` low · `◍◍◍◌◌` moderate · `◍◍◍◍◌` high · `◍◍◍◍◍` very high.")
-println(io)
-println(io, "**Fields** — each entry's *Applications by area* and *Citation* sections tie it to the")
-println(io, "four fields of the consolidated [HRV knowledge base](references.md): the `C S P M`")
-println(io, "column below marks per-field evidence coverage for **C**linical, **S**ports &")
-println(io, "peak-performance, contemplative **P**ractice (● pooled/meta-analytic literature ·")
-println(io, "◐ individual papers · ○ sparse/none), and **M**ethods & foundations (✔ seminal")
-println(io, "reference on file).")
+println(io, "The `C S P M` column marks each feature's evidence coverage in the four fields of")
+println(io, "the [HRV knowledge base](references.md): Clinical, Sports & peak-performance, and")
+println(io, "contemplative Practice (● pooled literature, ◐ individual papers, ○ sparse), and")
+println(io, "Methods & foundations (✔ seminal reference on file).")
 println(io)
 
 for (dom, title, blurb) in DOMAINS
@@ -115,15 +112,15 @@ for (dom, title, blurb) in DOMAINS
     if dom == "nonlinear"
         println(io, "\\* `hurst` declares `Beta` (theoretically bounded to (0,1)); the table shows",
                     " the empirically-fitted `Normal` family instead, since observed values leave",
-                    " that interval — see [`hurst`](hurst.md#What-does-*normal*-look-like?).")
+                    " that interval. See [`hurst`](hurst.md#What-does-*normal*-look-like?).")
         println(io)
     end
 end
 
 println(io, "## All entries")
 println(io)
-println(io, "The reference dex entry is [`rmssd`](rmssd.md). Full per-feature detail — figure,")
-println(io, "normal-range table, resource benchmark, and citation — lives on each entry page")
+println(io, "The reference dex entry is [`rmssd`](rmssd.md). Full per-feature detail (figure,")
+println(io, "normal-range table, resource benchmark, and citation) lives on each entry page")
 println(io, "linked above.")
 
 open(joinpath(ZOO_DIR, "index.md"), "w") do f

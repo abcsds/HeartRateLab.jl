@@ -4,7 +4,7 @@ CurrentModule = HeartRateLab
 
 # [Lorenz Chaotic Attractor](@id lorenz-page)
 
-The Lorenz system is a 3-dimensional ODE exhibiting **deterministic chaos** — bounded,
+The Lorenz system is a 3-dimensional ODE exhibiting **deterministic chaos**: bounded,
 aperiodic trajectories with sensitive dependence on initial conditions (Lorenz, 1963).
 HeartRateLab uses threshold crossings of the z-coordinate to extract inter-beat intervals.
 
@@ -24,7 +24,7 @@ The Lorenz equations model atmospheric convection:
 \frac{dZ}{dt} = XY - \beta Z
 ```
 
-The trajectory traces the **butterfly attractor** — two lobes in 3D phase space with
+The trajectory traces the **butterfly attractor**: two lobes in 3D phase space with
 chaotic switching between them.
 
 ### IBI Extraction
@@ -64,11 +64,10 @@ space stochastically, making it the only supported fitting method.
 | `β` | 1 – 4 | 8/3 ≈ 2.667 | Aspect ratio (dissipation) |
 | `threshold` | 5 – 15 | 10.0 | Z-value for IBI detection |
 
-!!! note
-    `parameter_space(::Lorenz)` also defines a `σ_noise` likelihood parameter used
-    internally by the Bayesian sampler. It is not an ODE parameter and is not returned
-    in `result.params`, but its convergence is reported in
-    `result.diagnostics["rhat_sigma_noise"]`.
+`parameter_space(::Lorenz)` also defines a `σ_noise` likelihood parameter used
+internally by the Bayesian sampler. It is not an ODE parameter and is not
+returned in `result.params`, but its convergence is reported in
+`result.diagnostics["rhat_sigma_noise"]`.
 
 ## Examples
 

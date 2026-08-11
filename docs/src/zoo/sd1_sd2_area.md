@@ -8,7 +8,7 @@
 | **Domain** | `geometric` |
 | **Distribution family** | `LogNormal` |
 | **Equation** | `pi * SD1 * SD2` |
-| **Resource intensity** | ◍◍◌◌◌  low — _Geometric subgraph (Poincaré coords / RR histogram + reductions). Warm (shared representation cached) is 10× cheaper._ (measured, see §Resources) |
+| **Resource intensity** | ◍◍◌◌◌  low, _Geometric subgraph (Poincaré coords / RR histogram + reductions). Warm (shared representation cached) is 10× cheaper._ (measured, see §Resources) |
 
 ## Definition
 
@@ -16,7 +16,7 @@ Poincare plot ellipse area. Formally: `pi * SD1 * SD2`.
 
 ## What does *normal* look like?
 
-Fitted normative prior: **LogNormal(μ = 8.214, σ = 1.011)**  —  KS p = 7.4e-16, n = 61715.
+Fitted normative prior: **LogNormal(μ = 8.214, σ = 1.011)**, KS p = 7.4e-16, n = 61715.
 
 ![Normative distribution of sd1_sd2_area](figs/sd1_sd2_area.png)
 
@@ -44,21 +44,19 @@ _n varies by feature only through per-window validity over the full pooled nsrdb
 
 *Evidence is reported at the measure-family level; a specific variant may not be the exact index measured in every cited study.*
 
-The three areas below are the application fields of the consolidated [HRV knowledge base](references.md) (clinical · sports & peak-performance · contemplative practice); the fourth KB field, *methods & foundations*, is this measure's seminal lineage — see [§Citation](#Citation).
-
 ### Clinical
 
-**Coverage: statistics** — a large/pooled literature (reviews or meta-analyses exist).
+**Coverage: statistics.** A pooled literature; reviews or meta-analyses exist.
 
 A well-established clinical output across cardiology, endocrinology and psychiatry: lower SD1/SD2 (reduced beat-to-beat and long-term variability) consistently marks worse disease state, though most reported sample sizes are small (n = 18–95). SD1 is mathematically identical to RMSSD (SD1 = RMSSD/√2), so papers reporting both as independently "significant" double-count the same statistic, and the SD2/SD1 ratio's billing as a "sympathovagal balance" surrogate is directly contested.
 
-*Dominant reported direction:* down — lower SD1/SD2 → worse disease state.
+*Dominant reported direction:* down: lower SD1/SD2 → worse disease state.
 
 **Key references:** [ciccone2017](@cite); [rahman2018](@cite); [stuckey2014](@cite).
 
 ### Sports & peak performance
 
-**Coverage: individual papers** — a small, scattered literature (no pooled meta-analysis).
+**Coverage: individual papers.** A small, scattered literature with no pooled meta-analysis.
 
 Largely restates RMSSD-based vagal-tone monitoring in geometric form (SD1 = RMSSD/√2), plus an SD2/SD1 "stress score" aimed at overreaching detection; SD1 rises with aerobic training and falls with acute intensity/overtraining, though overtraining shows a non-monotonic pattern (higher than sedentary, far below trained) and no meta-analysis isolates a Poincaré-specific effect size distinct from RMSSD.
 
@@ -68,9 +66,9 @@ Largely restates RMSSD-based vagal-tone monitoring in geometric form (SD1 = RMSS
 
 ### Contemplative practice
 
-**Coverage: individual papers** — a small, scattered literature (no pooled meta-analysis).
+**Coverage: individual papers.** A small, scattered literature with no pooled meta-analysis.
 
-A handful of small, likely underpowered studies (n = 8–18) report SD1/SD2-ratio changes across meditation traditions, but the direction of SD2 and total Poincaré-plot area disagrees between the two studies that report it — exploratory, not established.
+A handful of small, likely underpowered studies (n = 8–18) report SD1/SD2-ratio changes across meditation traditions, but the direction of SD2 and total Poincaré-plot area disagrees between the two studies that report it: exploratory, not established.
 
 *Dominant reported direction:* inconsistent across the two available small studies.
 
@@ -80,7 +78,7 @@ See the [effect-distribution meta-analysis](../usecases/effect-distributions.md)
 
 ## Resources
 
-Resource-intensity rank **◍◍◌◌◌  low** is **measured** — median wall-clock time + allocations over a 360-beat window on synthetic realistic RR (`docs/zoo_gen/bench_resources.jl`; full grid in `resource_bench.csv`).
+Resource-intensity rank **◍◍◌◌◌  low** is measured: median wall-clock time and allocations over a 360-beat window on synthetic realistic RR (`docs/zoo_gen/bench_resources.jl`; full grid in `resource_bench.csv`).
 
 | metric (360-beat window) | value |
 |---|---|

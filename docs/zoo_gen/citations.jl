@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# citations.jl — feature → seminal-reference map + light per-feature use-cases.
+# citations.jl: feature → seminal-reference map + light per-feature use-cases.
 #
 # Consumed by make_entry.jl to fill the `## Citation` and `## Use cases` sections
 # of every dex entry. The feature→key mapping mirrors docs/src/zoo/_citations.md;
@@ -12,7 +12,7 @@
 #                                          falls back to the domain template)
 #
 # NB: this file covers the "## Citation" section (who *introduced* the
-# measure) — the "methods & foundations" field of the consolidated HRV
+# measure): the "methods & foundations" field of the consolidated HRV
 # knowledge base. The "## Applications by area" section (real-world clinical /
 # sports-&-peak-performance / contemplative-practice literature) is a SEPARATE map in
 # `docs/zoo_gen/applications.jl` (`FAMILY_APPLICATIONS` / `VARIABLE_FAMILY` /
@@ -97,10 +97,10 @@ const CITATION_BLURB = Dict{String,String}(
     "sdsd"      => "SD of successive differences, Task Force (1996) short-term panel. Successive-difference HRV measures predate the Task Force standard: Ewing et al. (1984) used them clinically, and the underlying statistic traces to von Neumann's (1941) mean-square successive difference (not independently on file here).",
     "rmssd"     => "Task Force (1996) consensus short-term vagal index. Successive-difference HRV measures predate the Task Force standard: Ewing et al. (1984) used them clinically, and the underlying statistic traces to von Neumann's (1941) mean-square successive difference (not independently on file here).",
     "pnn50"     => "Ewing et al. (1984) introduced the NN50 count; pNN50 was formalised by the Task Force (1996).",
-    "pnn20"     => "Mietus et al. (2002), \"The pNNx files\" — generalised the pNNx family including pNN20.",
+    "pnn20"     => "Mietus et al. (2002), \"The pNNx files\": generalised the pNNx family including pNN20.",
     "cvnni"     => "Coefficient of variation of NN (SDNN/mean), Task Force (1996).",
     "cvsd"      => "CV of successive differences (RMSSD/mean), Task Force (1996).",
-    "rRR"       => "Vollmer (2015) — a robust, simple relative-RR measure of HRV.",
+    "rRR"       => "Vollmer (2015): a robust, simple relative-RR measure of HRV.",
     "mean_hr"   => "BPM re-expression of the Task Force (1996) time-domain panel.",
     "std_hr"    => "BPM re-expression of the Task Force (1996) time-domain panel.",
     "max_hr"    => "BPM re-expression of the Task Force (1996) time-domain panel.",
@@ -226,7 +226,7 @@ const USE_CASES = Dict{String,String}(
               "- Companion to the triangular index.",
     "apen" => "- Regularity / predictability of the RR series (Pincus 1991).\n" *
               "- Discriminating pathological from healthy dynamics (use adequate N).\n" *
-              "- Note the self-match bias — prefer SampEn when possible.",
+              "- Note the self-match bias: prefer SampEn when possible.",
     "sampen" => "- Bias-corrected regularity measure (Richman & Moorman 2000).\n" *
                 "- Distinguishing CHF / AF from healthy dynamics.\n" *
                 "- Preferred over ApEn for short records.",

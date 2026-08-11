@@ -5,10 +5,10 @@
 | | |
 |---|---|
 | **Aliases** | `pnn50` |
-| **Domain** | `time` · `statistics` |
+| **Domain** | `time`, `statistics` |
 | **Distribution family** | `Beta` |
 | **Equation** | `sum(|diff(IBI)| > 50) / N` |
-| **Resource intensity** | ◍◍◌◌◌  low — _Level 1–2 (base statistics over successive differences)._ (measured, see §Resources) |
+| **Resource intensity** | ◍◍◌◌◌  low, _Level 1–2 (base statistics over successive differences)._ (measured, see §Resources) |
 
 ## Definition
 
@@ -16,7 +16,7 @@ Proportion of successive differences > 50 ms. Formally: `sum(|diff(IBI)| > 50) /
 
 ## What does *normal* look like?
 
-Fitted normative prior: **Beta(α = 0.3211, β = 3.563)**  —  KS p = 2.1e-98, n = 61715.
+Fitted normative prior: **Beta(α = 0.3211, β = 3.563)**, KS p = 2.1e-98, n = 61715.
 
 ![Normative distribution of pnn50](figs/pnn50.png)
 
@@ -44,35 +44,33 @@ _n varies by feature only through per-window validity over the full pooled nsrdb
 
 *Evidence is reported at the measure-family level; a specific variant may not be the exact index measured in every cited study.*
 
-The three areas below are the application fields of the consolidated [HRV knowledge base](references.md) (clinical · sports & peak-performance · contemplative practice); the fourth KB field, *methods & foundations*, is this measure's seminal lineage — see [§Citation](#Citation).
-
 ### Clinical
 
-**Coverage: statistics** — a large/pooled literature (reviews or meta-analyses exist).
+**Coverage: statistics.** A pooled literature; reviews or meta-analyses exist.
 
 RMSSD/pNN50 are among the most heavily studied HRV measures in psychiatry: two independent meta-analyses converge on significantly reduced RMSSD/pNN50 in major depression vs. healthy controls (g ≈ −0.46 to −0.51, thousands of patients pooled), extending to broader cardiovascular-risk and mental-disorder populations.
 
-*Dominant reported direction:* down — reduced in depression/anxiety (g ≈ −0.3 to −0.5).
+*Dominant reported direction:* down: reduced in depression/anxiety (g ≈ −0.3 to −0.5).
 
 **Key references:** [koch2019](@cite); [wu2023](@cite).
 
 ### Sports & peak performance
 
-**Coverage: statistics** — a large/pooled literature (reviews or meta-analyses exist).
+**Coverage: statistics.** A pooled literature; reviews or meta-analyses exist.
 
-RMSSD is the dominant, most-meta-analyzed short-term vagal index in sports science for training-load, recovery and overreaching monitoring — but its direction under overload is genuinely context-dependent: it can rise *or* fall depending on overload type/timing, an ambiguity documented across multiple competing meta-analyses rather than settled.
+RMSSD is the dominant, most-meta-analyzed short-term vagal index in sports science for training-load, recovery and overreaching monitoring, but its direction under overload is genuinely context-dependent: it can rise *or* fall depending on overload type/timing, an ambiguity documented across multiple competing meta-analyses rather than settled.
 
-*Dominant reported direction:* context-dependent — rises with some overreaching patterns, falls with others (pre-competition taper).
+*Dominant reported direction:* context-dependent: rises with some overreaching patterns, falls with others (pre-competition taper).
 
 **Key references:** [bellenger2016](@cite).
 
 ### Contemplative practice
 
-**Coverage: individual papers** — a small, scattered literature (no pooled meta-analysis).
+**Coverage: individual papers.** A small, scattered literature with no pooled meta-analysis.
 
-The one dedicated meta-analysis pooled only 3 studies and found a null RMSSD effect, explicitly citing too few large RCTs — yet several individually-reported trials claim significant RMSSD/pNN50 increases with practice, the largest reported-vs-pooled gap of the three application domains.
+The one dedicated meta-analysis pooled only 3 studies and found a null RMSSD effect, explicitly citing too few large RCTs, yet several individually-reported trials claim significant RMSSD/pNN50 increases with practice, the largest reported-vs-pooled gap of the three application domains.
 
-*Dominant reported direction:* contested — meta-analytic null vs. positive individual trials.
+*Dominant reported direction:* contested: meta-analytic null vs. positive individual trials.
 
 **Key references:** [radmark2019](@cite).
 
@@ -80,7 +78,7 @@ See the [effect-distribution meta-analysis](../usecases/effect-distributions.md)
 
 ## Resources
 
-Resource-intensity rank **◍◍◌◌◌  low** is **measured** — median wall-clock time + allocations over a 360-beat window on synthetic realistic RR (`docs/zoo_gen/bench_resources.jl`; full grid in `resource_bench.csv`).
+Resource-intensity rank **◍◍◌◌◌  low** is measured: median wall-clock time and allocations over a 360-beat window on synthetic realistic RR (`docs/zoo_gen/bench_resources.jl`; full grid in `resource_bench.csv`).
 
 | metric (360-beat window) | value |
 |---|---|

@@ -4,31 +4,28 @@ A browsable **"Pokédex"** of every heart-rate-variability feature HeartRateLab
 computes: **53 registered measures** across four domains. Each entry answers the
 same three questions:
 
-1. **What is it?** — definition, equation, aliases, and declared distribution family.
-2. **What does *normal* look like?** — the empirical distribution over the pooled
+1. **What is it?** Definition, equation, aliases, and declared distribution family.
+2. **What does *normal* look like?** The empirical distribution over the pooled
    [nsrdb](https://physionet.org/content/nsrdb/) + [nsr2db](https://physionet.org/content/nsr2db/)
    normal-sinus-rhythm cohorts (360-beat windows, n up to 61 715), overlaid with a
    fitted normative prior, plus a normal-range table.
-3. **What does it cost, and who introduced it?** — a *measured* wall-clock + allocation
+3. **What does it cost, and who introduced it?** A measured wall-clock and allocation
    resource tier, curated use-cases, and the seminal citation.
 
 Priors and normal-range statistics are descriptive references from a healthy cohort,
-**not** clinical thresholds. See the [References](references.md) page for the full
+not clinical thresholds. See the [References](references.md) page for the full
 bibliography. Resource tiers are measured on synthetic realistic RR at a 360-beat
-window (`docs/zoo_gen/bench_resources.jl`).
+window (`docs/zoo_gen/bench_resources.jl`), from `◍◌◌◌◌` (very low) to `◍◍◍◍◍`
+(very high).
 
-**Resource tiers:** `◍◌◌◌◌` very low · `◍◍◌◌◌` low · `◍◍◍◌◌` moderate · `◍◍◍◍◌` high · `◍◍◍◍◍` very high.
-
-**Fields** — each entry's *Applications by area* and *Citation* sections tie it to the
-four fields of the consolidated [HRV knowledge base](references.md): the `C S P M`
-column below marks per-field evidence coverage for **C**linical, **S**ports &
-peak-performance, contemplative **P**ractice (● pooled/meta-analytic literature ·
-◐ individual papers · ○ sparse/none), and **M**ethods & foundations (✔ seminal
-reference on file).
+The `C S P M` column marks each feature's evidence coverage in the four fields of
+the [HRV knowledge base](references.md): Clinical, Sports & peak-performance, and
+contemplative Practice (● pooled literature, ◐ individual papers, ○ sparse), and
+Methods & foundations (✔ seminal reference on file).
 
 ## Time domain (20)
 
-Statistics of the NN/RR intervals and their successive differences — the classic, cheapest, most-reported HRV panel.
+Statistics of the NN/RR intervals and their successive differences: the classic, cheapest, most-reported HRV panel.
 
 | Feature | Definition | Dist. family | Resource tier | C S P M |
 |---------|------------|--------------|---------------|---------|
@@ -55,7 +52,7 @@ Statistics of the NN/RR intervals and their successive differences — the class
 
 ## Frequency domain (12)
 
-Power in the ULF/VLF/LF/HF bands of the RR power spectrum — Welch periodogram on the resampled series by default (`config["freq_method"] == :welch`), with Lomb–Scargle on the raw unevenly-sampled series available as an alternative — plus band ratios and peak frequencies.
+Power in the ULF/VLF/LF/HF bands of the RR power spectrum, plus band ratios and peak frequencies. Welch periodogram on the resampled series by default (`config["freq_method"] == :welch`); Lomb–Scargle on the raw unevenly-sampled series is available as an alternative.
 
 | Feature | Definition | Dist. family | Resource tier | C S P M |
 |---------|------------|--------------|---------------|---------|
@@ -74,7 +71,7 @@ Power in the ULF/VLF/LF/HF bands of the RR power spectrum — Welch periodogram 
 
 ## Geometric (8)
 
-Shape descriptors of the Poincaré / Lorenz return map and the RR histogram — robust to occasional artifacts.
+Shape descriptors of the Poincaré / Lorenz return map and the RR histogram, robust to occasional artifacts.
 
 | Feature | Definition | Dist. family | Resource tier | C S P M |
 |---------|------------|--------------|---------------|---------|
@@ -107,10 +104,10 @@ Entropy, complexity and fractal-scaling measures probing the nonlinear structure
 | [`mse`](mse.md) | Calculate the Multiscale Entropy (MSE) complexity index of the IBIs… | `Normal` | ◍◍◍◍◌  high | ● ◐ ◐ ✔ |
 | [`dfa2`](dfa2.md) | DFA long-term scaling exponent alpha2 | `Normal` | ◍◍◍◍◌  high | ◐ ○ ◐ ✔ |
 
-\* `hurst` declares `Beta` (theoretically bounded to (0,1)); the table shows the empirically-fitted `Normal` family instead, since observed values leave that interval — see [`hurst`](hurst.md#What-does-*normal*-look-like?).
+\* `hurst` declares `Beta` (theoretically bounded to (0,1)); the table shows the empirically-fitted `Normal` family instead, since observed values leave that interval. See [`hurst`](hurst.md#What-does-*normal*-look-like?).
 
 ## All entries
 
-The reference dex entry is [`rmssd`](rmssd.md). Full per-feature detail — figure,
-normal-range table, resource benchmark, and citation — lives on each entry page
+The reference dex entry is [`rmssd`](rmssd.md). Full per-feature detail (figure,
+normal-range table, resource benchmark, and citation) lives on each entry page
 linked above.

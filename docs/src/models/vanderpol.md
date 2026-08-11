@@ -23,7 +23,7 @@ equations:
 
 The nonlinear damping term $\mu(1 - V^2)$ acts as **negative damping** near $V = 0$
 (amplifying small oscillations) and **positive damping** far from $V = 0$
-(suppressing large excursions). This produces a **limit cycle** — a stable closed
+(suppressing large excursions). This produces a **limit cycle**: a stable closed
 orbit that trajectories converge to regardless of initial conditions.
 
 ### Effect of μ
@@ -48,7 +48,7 @@ IBI is $60000 / \text{heart\_rate}$ ms.
 |-----------|-------|---------|-------------|
 | `μ` | 0.1 – 3.0 | 1.0 | Nonlinearity; controls oscillation strength |
 | `heart_rate` | 40 – 120 BPM | 70 | Base heart rate in beats per minute |
-| `σ_noise` | 1 – 50 | — (fitted) | Observation-noise scale (ms); prior `Exponential(10)`, inferred during fitting |
+| `σ_noise` | 1 – 50 | (fitted) | Observation-noise scale (ms); prior `Exponential(10)`, inferred during fitting |
 
 ## Fitting Methods
 

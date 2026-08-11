@@ -8,7 +8,7 @@
 | **Domain** | `geometric` |
 | **Distribution family** | `Gamma` |
 | **Equation** | `N / max(histogram_weights)` |
-| **Resource intensity** | ◍◍◌◌◌  low — _Geometric subgraph (Poincaré coords / RR histogram + reductions). Warm (shared representation cached) is 3× cheaper._ (measured, see §Resources) |
+| **Resource intensity** | ◍◍◌◌◌  low, _Geometric subgraph (Poincaré coords / RR histogram + reductions). Warm (shared representation cached) is 3× cheaper._ (measured, see §Resources) |
 
 ## Definition
 
@@ -16,7 +16,7 @@ HRV triangular index. Formally: `N / max(histogram_weights)`.
 
 ## What does *normal* look like?
 
-Fitted normative prior: **Gamma(α = 5.937, θ = 1.737)**  —  KS p = 1.2e-14, n = 61715.
+Fitted normative prior: **Gamma(α = 5.937, θ = 1.737)**, KS p = 1.2e-14, n = 61715.
 
 ![Normative distribution of triangular_index](figs/triangular_index.png)
 
@@ -44,23 +44,21 @@ _n varies by feature only through per-window validity over the full pooled nsrdb
 
 *Evidence is reported at the measure-family level; a specific variant may not be the exact index measured in every cited study.*
 
-The three areas below are the application fields of the consolidated [HRV knowledge base](references.md) (clinical · sports & peak-performance · contemplative practice); the fourth KB field, *methods & foundations*, is this measure's seminal lineage — see [§Citation](#Citation).
-
 ### Clinical
 
-**Coverage: statistics** — a large/pooled literature (reviews or meta-analyses exist).
+**Coverage: statistics.** A pooled literature; reviews or meta-analyses exist.
 
-HTI (and TINN) are original 1996 Task Force geometric measures that remain recurring prognostic markers: reduced HTI/TINN is associated with higher post-MI and atrial-fibrillation mortality and reduced diabetic autonomic integrity — except one hemodialysis-AF cohort reporting a U-shaped, not monotonic, relationship.
+HTI (and TINN) are original 1996 Task Force geometric measures that remain recurring prognostic markers: reduced HTI/TINN is associated with higher post-MI and atrial-fibrillation mortality and reduced diabetic autonomic integrity: except one hemodialysis-AF cohort reporting a U-shaped, not monotonic, relationship.
 
-*Dominant reported direction:* down — lower HTI/TINN → worse outcome (one U-shaped exception).
+*Dominant reported direction:* down: lower HTI/TINN → worse outcome (one U-shaped exception).
 
 **Key references:** [taskforce1996](@cite); [stuckey2014](@cite).
 
 ### Sports & peak performance
 
-**Coverage: individual papers** — a small, scattered literature (no pooled meta-analysis).
+**Coverage: individual papers.** A small, scattered literature with no pooled meta-analysis.
 
-Not the sports-science metric of choice — a 138-athlete profiling study and dedicated exercise-HRV meta-analyses bypass HTI/TINN entirely in favor of SDNN/RMSSD/LF-HF. Where it is reported, HTI rises with higher aerobic/endurance training status.
+Not the sports-science metric of choice: a 138-athlete profiling study and dedicated exercise-HRV meta-analyses bypass HTI/TINN entirely in favor of SDNN/RMSSD/LF-HF. Where it is reported, HTI rises with higher aerobic/endurance training status.
 
 *Dominant reported direction:* up with endurance training status (rarely reported).
 
@@ -68,9 +66,9 @@ Not the sports-science metric of choice — a 138-athlete profiling study and de
 
 ### Contemplative practice
 
-**Coverage: sparse-or-none** — essentially no dedicated application literature found.
+**Coverage: sparse or none.** Essentially no dedicated application literature found.
 
-Six targeted searches of the most relevant meditation/mindfulness HRV papers found none reporting HTI or TINN — these studies uniformly use SDNN/RMSSD/LF-HF instead, plausibly because typical meditation-session recordings (5–20 min) are too short for a stable NN-interval histogram (the Task Force recommends ≥20 min, ideally 24 h).
+Six targeted searches of the most relevant meditation/mindfulness HRV papers found none reporting HTI or TINN: these studies uniformly use SDNN/RMSSD/LF-HF instead, plausibly because typical meditation-session recordings (5–20 min) are too short for a stable NN-interval histogram (the Task Force recommends ≥20 min, ideally 24 h).
 
 *Dominant reported direction:* no data harvested for this domain.
 
@@ -80,7 +78,7 @@ See the [effect-distribution meta-analysis](../usecases/effect-distributions.md)
 
 ## Resources
 
-Resource-intensity rank **◍◍◌◌◌  low** is **measured** — median wall-clock time + allocations over a 360-beat window on synthetic realistic RR (`docs/zoo_gen/bench_resources.jl`; full grid in `resource_bench.csv`).
+Resource-intensity rank **◍◍◌◌◌  low** is measured: median wall-clock time and allocations over a 360-beat window on synthetic realistic RR (`docs/zoo_gen/bench_resources.jl`; full grid in `resource_bench.csv`).
 
 | metric (360-beat window) | value |
 |---|---|

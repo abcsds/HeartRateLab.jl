@@ -8,7 +8,7 @@
 | **Domain** | `nonlinear` |
 | **Distribution family** | `Normal` |
 | **Equation** | `log(A / B)  (template matches)` |
-| **Resource intensity** | ◍◍◍◍◌  high — _Nonlinear subgraph (template matching / embedding — O(N²) worst case)._ (measured, see §Resources) |
+| **Resource intensity** | ◍◍◍◍◌  high, _Nonlinear subgraph (template matching / embedding — O(N²) worst case)._ (measured, see §Resources) |
 
 ## Definition
 
@@ -16,7 +16,7 @@ Sample entropy. Formally: `log(A / B)  (template matches)`.
 
 ## What does *normal* look like?
 
-Fitted normative prior: **Normal(μ = 2.036, σ = 0.4879)**  —  KS p = 7.8e-42, n = 61390.
+Fitted normative prior: **Normal(μ = 2.036, σ = 0.4879)**, KS p = 7.8e-42, n = 61390.
 
 ![Normative distribution of sampen](figs/sampen.png)
 
@@ -44,23 +44,21 @@ _n varies by feature only through per-window validity over the full pooled nsrdb
 
 *Evidence is reported at the measure-family level; a specific variant may not be the exact index measured in every cited study.*
 
-The three areas below are the application fields of the consolidated [HRV knowledge base](references.md) (clinical · sports & peak-performance · contemplative practice); the fourth KB field, *methods & foundations*, is this measure's seminal lineage — see [§Citation](#Citation).
-
 ### Clinical
 
-**Coverage: statistics** — a large/pooled literature (reviews or meta-analyses exist).
+**Coverage: statistics.** A pooled literature; reviews or meta-analyses exist.
 
-Commonly used for autonomic-complexity/regularity assessment (diabetic neuropathy, CHF, depression, aging mortality); the dominant "loss of complexity with disease" narrative is *not* universal — several well-cited studies report the opposite (higher/more erratic entropy in CHF, higher blood-pressure SampEn predicting higher mortality in a large aging cohort), and a 2026 scoping review of 55 studies explicitly withholds a pooled effect size due to methodological heterogeneity.
+Commonly used for autonomic-complexity/regularity assessment (diabetic neuropathy, CHF, depression, aging mortality); the dominant "loss of complexity with disease" narrative is *not* universal: several well-cited studies report the opposite (higher/more erratic entropy in CHF, higher blood-pressure SampEn predicting higher mortality in a large aging cohort), and a 2026 scoping review of 55 studies explicitly withholds a pooled effect size due to methodological heterogeneity.
 
-*Dominant reported direction:* mixed — mostly down (loss of complexity) in disease, reversed in some CHF/BP-signal studies.
+*Dominant reported direction:* mixed: mostly down (loss of complexity) in disease, reversed in some CHF/BP-signal studies.
 
 **Key references:** [yang2026](@cite); [richman2000](@cite).
 
 ### Sports & peak performance
 
-**Coverage: individual papers** — a small, scattered literature (no pooled meta-analysis).
+**Coverage: individual papers.** A small, scattered literature with no pooled meta-analysis.
 
-Used only sporadically — a 19-study systematic review of HRV and overtraining in soccer found *zero* studies used any nonlinear/entropy index. Where used, reduced entropy/increased regularity tracks fatigue and intense training load, and higher resting entropy loosely tracks fitness, but samples are small (n = 11–34) and often only descriptive.
+Used only sporadically: a 19-study systematic review of HRV and overtraining in soccer found *zero* studies used any nonlinear/entropy index. Where used, reduced entropy/increased regularity tracks fatigue and intense training load, and higher resting entropy loosely tracks fitness, but samples are small (n = 11–34) and often only descriptive.
 
 *Dominant reported direction:* down with fatigue/training load (sparse literature).
 
@@ -68,11 +66,11 @@ Used only sporadically — a 19-study systematic review of HRV and overtraining 
 
 ### Contemplative practice
 
-**Coverage: individual papers** — a small, scattered literature (no pooled meta-analysis).
+**Coverage: individual papers.** A small, scattered literature with no pooled meta-analysis.
 
 Most studies report increased entropy/complexity with meditation practice (a "healthy variability" framing), but effect sizes are frequently small and non-significant in small pilots, and at least one apparent SampEn increase disappeared after covariate adjustment; no dedicated meta-analysis of entropy in meditation exists.
 
-*Dominant reported direction:* up (fragile — often non-significant or vanishes on adjustment).
+*Dominant reported direction:* up (fragile: often non-significant or vanishes on adjustment).
 
 **Key references:** [yang2026](@cite).
 
@@ -80,7 +78,7 @@ See the [effect-distribution meta-analysis](../usecases/effect-distributions.md)
 
 ## Resources
 
-Resource-intensity rank **◍◍◍◍◌  high** is **measured** — median wall-clock time + allocations over a 360-beat window on synthetic realistic RR (`docs/zoo_gen/bench_resources.jl`; full grid in `resource_bench.csv`).
+Resource-intensity rank **◍◍◍◍◌  high** is measured: median wall-clock time and allocations over a 360-beat window on synthetic realistic RR (`docs/zoo_gen/bench_resources.jl`; full grid in `resource_bench.csv`).
 
 | metric (360-beat window) | value |
 |---|---|

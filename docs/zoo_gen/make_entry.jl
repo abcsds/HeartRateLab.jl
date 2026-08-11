@@ -171,9 +171,9 @@ const APPLICATION_DOMAIN_TITLE = Dict(
     :meditation => "Contemplative practice",
 )
 const APPLICATION_COVERAGE_LABEL = Dict(
-    "statistics"        => "**Coverage: statistics** — a large/pooled literature (reviews or meta-analyses exist)",
-    "individual-papers" => "**Coverage: individual papers** — a small, scattered literature (no pooled meta-analysis)",
-    "sparse-or-none"    => "**Coverage: sparse-or-none** — essentially no dedicated application literature found",
+    "statistics"        => "**Coverage: statistics.** A pooled literature; reviews or meta-analyses exist",
+    "individual-papers" => "**Coverage: individual papers.** A small, scattered literature with no pooled meta-analysis",
+    "sparse-or-none"    => "**Coverage: sparse or none.** Essentially no dedicated application literature found",
 )
 
 # Render the "## Applications by area" section for one dex entry, from the
@@ -182,12 +182,10 @@ function applications_block(entry)
     info = applications_for(entry.name)
     io = IOBuffer()
     if info.apps === nothing
-        println(io, "No applications literature was harvested for `$(entry.name)` in the 2026-07",
-                    " clinical / sports-&-peak-performance / contemplative-practice literature sweep",
-                    " (`hrv-applications-bibliography`",
-                    " workflow) — treat this measure as **sparse-or-none** on real-world application",
-                    " evidence until a dedicated search is done. Its aliases and closest relatives may",
-                    " have their own applications; see the [HRV Variable Zoo](index.md) overview.")
+        println(io, "No dedicated applications literature was harvested for `$(entry.name)`;",
+                    " treat its application evidence as sparse until a dedicated search is done.",
+                    " Its aliases and closest relatives may have their own applications; see the",
+                    " [HRV Variable Zoo](index.md) overview.")
         println(io)
     else
         for dom in APPLICATION_DOMAINS
@@ -208,8 +206,7 @@ function applications_block(entry)
         end
     end
     for note in info.notes
-        println(io, "!!! note")
-        println(io, "    ", render_citerefs(note))
+        println(io, render_citerefs(note))
         println(io)
     end
     println(io, "See the",
@@ -246,7 +243,7 @@ const RESOURCE_RANK = Dict(
     "time"      => (rank = "◍◌◌◌◌  very low", note = "O(N) reduction over successive differences"),
     "frequency" => (rank = "◍◍◍◌◌  moderate", note = "requires a Lomb–Scargle/Welch periodogram first"),
     "geometric" => (rank = "◍◍◌◌◌  low",      note = "O(N) Poincaré coordinates + reductions"),
-    "nonlinear" => (rank = "◍◍◍◍◌  high",      note = "template matching / embedding — O(N²) worst case"),
+    "nonlinear" => (rank = "◍◍◍◍◌  high",      note = "template matching / embedding, O(N²) worst case"),
 )
 
 # ── Measured per-feature resource ranks (docs/zoo_gen/bench_resources.jl) ──────
@@ -314,7 +311,7 @@ function render_figure(entry, v, prior, figpath; src = "pooled nsrdb+nsr2db, w36
         color = Plots.RGBA(0.20, 0.45, 0.70, 0.55), linecolor = :white, linewidth = 0.3,
         xlabel = isempty(unit) ? entry.name : "$(entry.name) [$unit]",
         ylabel = "density",
-        title  = "$(entry.name) — normative distribution ($src)",
+        title  = "$(entry.name): normative distribution ($src)",
         titlefontsize = 9, legend = :topright, legendfontsize = 7,
         grid = true, gridalpha = 0.15, size = (760, 440), dpi = 130,
     )
@@ -346,17 +343,17 @@ const FAMILY_RECONCILE_NOTE = Dict{String,String}(
 #    and is indicative only. See docs/src/zoo/index.md frequency-domain note. ──
 const SHORT_WINDOW_CAVEAT = Dict{String,String}(
     "vlf" => "**VLF (0.003–0.04 Hz) is degenerate on 360-beat windows.** A 360-beat window" *
-             " (~5–6 min) barely reaches the band's own lower edge, so Welch's frequency" *
-             " resolution cannot resolve power inside it for most windows — the empirical" *
-             " median/IQR collapse to 0 below. Treat the plot and normal-range table as" *
-             " **indicative only**; a real VLF estimate needs much longer windows (≥5 min," *
-             " ideally tens of minutes to hours) or a full-length recording.",
-    "sdann" => "**SDANN is degenerate on 360-beat windows.** SDANN is the SD of *multiple*" *
-               " non-overlapping 5-minute segment means; a single 360-beat window (~5–6 min)" *
-               " usually spans only one segment, so most windows yield `NaN` (silently filtered" *
-               " out of the summary below — see the reduced \"n windows\" count vs. the pooled" *
-               " total). Treat the plot and normal-range table as **indicative only**; a real" *
-               " SDANN needs ≥25–30 min (several 5-min blocks), ideally the full 24-h recording.",
+             " (about 5 to 6 min) barely reaches the band's own lower edge, so Welch's frequency" *
+             " resolution cannot resolve power inside it for most windows, and the empirical" *
+             " median and IQR collapse to 0 below. Treat the plot and normal-range table as" *
+             " indicative only; a real VLF estimate needs much longer windows, ideally tens of" *
+             " minutes to hours, or a full-length recording.",
+    "sdann" => "**SDANN is degenerate on 360-beat windows.** SDANN is the SD of multiple" *
+               " non-overlapping 5-minute segment means; a single 360-beat window (about 5 to 6 min)" *
+               " usually spans only one segment, so most windows yield `NaN` and are filtered" *
+               " out of the summary below (see the reduced n)." *
+               " Treat the plot and normal-range table as indicative only; a real" *
+               " SDANN needs at least 25 to 30 min, ideally the full 24-h recording.",
 )
 
 # ── Emit the Documenter-markdown dex entry ───────────────────────────────────
@@ -365,9 +362,9 @@ function write_entry(entry, s, figrel, has_plot; src_label = "pooled nsrdb+nsr2d
     res = resource_for(entry)
     measured = is_measured(entry)
     aliases = isempty(entry.aliases) ? "_none_" : join("`" .* entry.aliases .* "`", ", ")
-    dombadge = join("`" .* entry.domains .* "`", " · ")
+    dombadge = join("`" .* entry.domains .* "`", ", ")
     prior_line = if entry.prior_status == "ok" && !isnan(entry.param1_value)
-        @sprintf("**%s(%s = %.4g, %s = %.4g)**  —  KS p %s, n = %d",
+        @sprintf("**%s(%s = %.4g, %s = %.4g)**, KS p %s, n = %d",
             entry.prior_family, entry.param1_name, entry.param1_value,
             entry.param2_name, entry.param2_value, format_ksp(entry.ks_pvalue), entry.n_valid)
     else
@@ -385,7 +382,7 @@ function write_entry(entry, s, figrel, has_plot; src_label = "pooled nsrdb+nsr2d
     println(io, "| **Domain** | $dombadge |")
     println(io, "| **Distribution family** | `$(entry.family)` |")
     println(io, "| **Equation** | `$(entry.equation)` |")
-    println(io, "| **Resource intensity** | $(res.rank) — _$(res.note)_ ($(measured ? "measured" : "placeholder"), see §Resources) |")
+    println(io, "| **Resource intensity** | $(res.rank), _$(res.note)_ ($(measured ? "measured" : "placeholder"), see §Resources) |")
     println(io)
     println(io, "## Definition")
     println(io)
@@ -403,10 +400,7 @@ function write_entry(entry, s, figrel, has_plot; src_label = "pooled nsrdb+nsr2d
         println(io)
     end
     if haskey(SHORT_WINDOW_CAVEAT, entry.name)
-        println(io, "!!! warning \"Degenerate on short (360-beat) windows — indicative only\"")
-        for line in split(SHORT_WINDOW_CAVEAT[entry.name], "\n")
-            println(io, "    ", line)
-        end
+        println(io, SHORT_WINDOW_CAVEAT[entry.name])
         println(io)
     end
     if has_plot
@@ -450,18 +444,13 @@ function write_entry(entry, s, figrel, has_plot; src_label = "pooled nsrdb+nsr2d
     println(io, "*Evidence is reported at the measure-family level; a specific variant may not be the",
                 " exact index measured in every cited study.*")
     println(io)
-    println(io, "The three areas below are the application fields of the consolidated",
-                " [HRV knowledge base](references.md) (clinical · sports & peak-performance ·",
-                " contemplative practice); the fourth KB field, *methods & foundations*, is this",
-                " measure's seminal lineage — see [§Citation](#Citation).")
-    println(io)
     println(io, applications_block(entry))
 
     println(io, "## Resources")
     println(io)
     if measured
-        println(io, "Resource-intensity rank **$(res.rank)** is **measured** — median wall-clock",
-                    " time + allocations over a 360-beat window on synthetic realistic RR",
+        println(io, "Resource-intensity rank **$(res.rank)** is measured: median wall-clock",
+                    " time and allocations over a 360-beat window on synthetic realistic RR",
                     " (`docs/zoo_gen/bench_resources.jl`; full grid in `resource_bench.csv`).")
         println(io)
         println(io, "| metric (360-beat window) | value |")

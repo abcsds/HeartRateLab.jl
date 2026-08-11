@@ -8,7 +8,7 @@
 | **Domain** | `nonlinear` |
 | **Distribution family** | `Normal` |
 | **Equation** | `alpha2 from DFA (scales 4-64)` |
-| **Resource intensity** | ◍◍◍◍◌  high — _Nonlinear subgraph (template matching / embedding — O(N²) worst case). Warm (shared representation cached) is 1018× cheaper._ (measured, see §Resources) |
+| **Resource intensity** | ◍◍◍◍◌  high, _Nonlinear subgraph (template matching / embedding — O(N²) worst case). Warm (shared representation cached) is 1018× cheaper._ (measured, see §Resources) |
 
 ## Definition
 
@@ -16,7 +16,7 @@ DFA long-term scaling exponent alpha2. Formally: `alpha2 from DFA (scales 4-64)`
 
 ## What does *normal* look like?
 
-Fitted normative prior: **Normal(μ = 0.9749, σ = 0.2498)**  —  KS p = 5e-30, n = 61715.
+Fitted normative prior: **Normal(μ = 0.9749, σ = 0.2498)**, KS p = 5e-30, n = 61715.
 
 ![Normative distribution of dfa2](figs/dfa2.png)
 
@@ -44,21 +44,19 @@ _n varies by feature only through per-window validity over the full pooled nsrdb
 
 *Evidence is reported at the measure-family level; a specific variant may not be the exact index measured in every cited study.*
 
-The three areas below are the application fields of the consolidated [HRV knowledge base](references.md) (clinical · sports & peak-performance · contemplative practice); the fourth KB field, *methods & foundations*, is this measure's seminal lineage — see [§Citation](#Citation).
-
 ### Clinical
 
-**Coverage: individual papers** — a small, scattered literature (no pooled meta-analysis).
+**Coverage: individual papers.** A small, scattered literature with no pooled meta-analysis.
 
 The DFA mortality literature is overwhelmingly about the short-term exponent α1 (`dfa1`); where studies additionally measured the long-term exponent α2, evidence is thin and inconsistent. One ESRD cohort measured α2 alongside α1 and found it carried *no significant* mortality effect once α1 was accounted for; one elderly community cohort (LILAC) reported both α1 and α2 associated with mortality without isolating which exponent drove the effect. No dedicated α2 meta-analysis or systematic review exists.
 
-*Dominant reported direction:* weak/mostly null — α2 rarely reaches significance on its own; no independent α2 effect size is established in the harvested literature.
+*Dominant reported direction:* weak/mostly null: α2 rarely reaches significance on its own; no independent α2 effect size is established in the harvested literature.
 
 **Key references:** [sen2018](@cite).
 
 ### Sports & peak performance
 
-**Coverage: sparse-or-none** — essentially no dedicated application literature found.
+**Coverage: sparse or none.** Essentially no dedicated application literature found.
 
 The DFA-based aerobic/anaerobic exercise-threshold research program is specifically built on the short-term exponent α1 (declining from ~1.5 at rest toward ~0.5 near exhaustion); none of the harvested threshold-detection studies isolate α2 as a distinct sports metric, so no application evidence was harvested for α2 in this domain.
 
@@ -66,22 +64,21 @@ The DFA-based aerobic/anaerobic exercise-threshold research program is specifica
 
 ### Contemplative practice
 
-**Coverage: individual papers** — a small, scattered literature (no pooled meta-analysis).
+**Coverage: individual papers.** A small, scattered literature with no pooled meta-analysis.
 
 One small study (deep-meditation practitioners) explicitly measured both α1 and α2 and reported a contrary, significant *increase* in both during deep meditation; the broader meditation-DFA literature synthesized in the review below is otherwise dominated by α1-only findings, so this single α2 data point cannot establish a reliable direction.
 
-*Dominant reported direction:* unresolved — one small study reports an increase; otherwise essentially unstudied.
+*Dominant reported direction:* unresolved: one small study reports an increase; otherwise essentially unstudied.
 
 **Key references:** [deka2023](@cite).
 
-!!! note
-    **The strong prognostic DFA evidence in the literature is specific to the short-term exponent α1** (`dfa1`) — α2 (long-term) associations are weak, inconsistent, or explicitly non-significant in the harvested literature; treat any "lower DFA exponent → higher mortality" claim you encounter elsewhere as an α1 claim, not an α2 one, unless the source specifically isolates α2.
+**The strong prognostic DFA evidence in the literature is specific to the short-term exponent α1** (`dfa1`): α2 (long-term) associations are weak, inconsistent, or explicitly non-significant in the harvested literature; treat any "lower DFA exponent → higher mortality" claim you encounter elsewhere as an α1 claim, not an α2 one, unless the source specifically isolates α2.
 
 See the [effect-distribution meta-analysis](../usecases/effect-distributions.md) page for the harvested per-study effect sizes/p-values behind these domain summaries (`docs/zoo_gen/effect_stats.csv`).
 
 ## Resources
 
-Resource-intensity rank **◍◍◍◍◌  high** is **measured** — median wall-clock time + allocations over a 360-beat window on synthetic realistic RR (`docs/zoo_gen/bench_resources.jl`; full grid in `resource_bench.csv`).
+Resource-intensity rank **◍◍◍◍◌  high** is measured: median wall-clock time and allocations over a 360-beat window on synthetic realistic RR (`docs/zoo_gen/bench_resources.jl`; full grid in `resource_bench.csv`).
 
 | metric (360-beat window) | value |
 |---|---|

@@ -109,7 +109,7 @@ result = fit(lif, ibis; method=:analytical)
 println("Mean I:  ", round(result.params.I; digits=4))
 println("Std(I):  ", round(result.diagnostics["I_std"]; digits=4))
 
-# Per-beat current series — same length as ibis
+# Per-beat current series: same length as ibis
 I_series = parameter_series(result, :I)
 println("I range: ", round.(extrema(I_series); digits=4))
 
