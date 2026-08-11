@@ -148,9 +148,13 @@ def write_md(inv):
         "representations, e.g. `diff`/`pgram`/`px`/`histogram`/`dfa`).",
         f"Domain split: **{c['time']} time**, **{c['frequency']} frequency**, "
         f"**{c['geometric']} geometric**, **{c['nonlinear']} nonlinear**.",
-        "**36** features have a fitted normative prior *and* a column in the NSR2DB windowed",
-        "feature table (`test/testdata/nsr2db/windowed_w360_s120_features.csv`); the remaining",
-        "**17** (HR spread, ULF, all entropies, DFA-alpha2) are declared but were not windowed/fitted.",
+        f"**{sum(1 for x in inv if x['prior_status'] == 'ok')}** features have a fitted normative "
+        "prior *and* a column in the pooled windowed feature tables "
+        "(`test/testdata/{nsrdb,nsr2db}/windowed_w360_s120_features.csv`, full 53-feature "
+        "re-extraction).",
+        "The exception is `ulf`: a 360-beat (~5 min) window contains no ULF-band power, so its",
+        "prior is fitted from a long-window NSRDB-only extraction instead",
+        "(`docs/normative_priors_extended.csv`; see its dex page).",
         "",
         "| Feature | Domain | Dist. family | Fitted prior | Normal-plot data? | Definition |",
         "|---------|--------|--------------|--------------|-------------------|------------|",

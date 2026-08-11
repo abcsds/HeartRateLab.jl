@@ -16,7 +16,7 @@ Median relative RR interval distance. Formally: `median(euclidean_dist(relRR; me
 
 ## What does *normal* look like?
 
-Fitted normative prior: **Gamma(α = 4.63, θ = 0.7846)**  —  KS p = 2.9e-215, n = 56472.
+Fitted normative prior: **Gamma(α = 4.165, θ = 0.8806)**  —  KS p = 3.5e-172, n = 61715.
 
 ![Normative distribution of rRR](figs/rRR.png)
 
@@ -26,13 +26,13 @@ Empirical distribution over the **pooled nsrdb+nsr2db** normative windows (360-b
 
 | statistic | value |
 |---|---|
-| median | 3.064 |
-| IQR (25–75%) | 2.437 – 4.092 |
-| 5–95% range | 1.822 – 6.717 |
-| mean ± sd | 3.633 ± 2.7 |
-| n windows | 56472 |
+| median | 3.05 |
+| IQR (25–75%) | 2.424 – 4.05 |
+| 5–95% range | 1.806 – 6.734 |
+| mean ± sd | 3.667 ± 3.108 |
+| n windows | 61715 |
 
-_n varies by feature: pooled time/frequency/geometric features use the full nsrdb+nsr2db table (up to n = 56 472); the 13 nonlinear/entropy features are O(N²)/template-matching and are fit on a fixed-seed ≈3000-window subsample instead (`test/tools/collect_extended_features.jl`, seed 20260729); `ulf` uses a long-window NSRDB-only extraction (see its own page)._
+_n varies by feature only through per-window validity over the full pooled nsrdb+nsr2db table (n up to 61 715; e.g. `sampen`/`mse` drop windows where the statistic is undefined). `ulf` is the one exception: a 360-beat (~5 min) window contains no ULF-band power, so it uses a long-window NSRDB-only extraction (see its own page)._
 
 ## Use cases
 
@@ -44,7 +44,9 @@ _n varies by feature: pooled time/frequency/geometric features use the full nsrd
 
 *Evidence is reported at the measure-family level; a specific variant may not be the exact index measured in every cited study.*
 
-No applications literature was harvested for `rRR` in the 2026-07 clinical / sports / meditation literature sweep (`hrv-applications-bibliography` workflow) — treat this measure as **sparse-or-none** on real-world application evidence until a dedicated search is done. Its aliases and closest relatives may have their own applications; see the [HRV Variable Zoo](index.md) overview.
+The three areas below are the application fields of the consolidated [HRV knowledge base](references.md) (clinical · sports & peak-performance · contemplative practice); the fourth KB field, *methods & foundations*, is this measure's seminal lineage — see [§Citation](#Citation).
+
+No applications literature was harvested for `rRR` in the 2026-07 clinical / sports-&-peak-performance / contemplative-practice literature sweep (`hrv-applications-bibliography` workflow) — treat this measure as **sparse-or-none** on real-world application evidence until a dedicated search is done. Its aliases and closest relatives may have their own applications; see the [HRV Variable Zoo](index.md) overview.
 
 See the [effect-distribution meta-analysis](../usecases/effect-distributions.md) page for the harvested per-study effect sizes/p-values behind these domain summaries (`docs/zoo_gen/effect_stats.csv`).
 

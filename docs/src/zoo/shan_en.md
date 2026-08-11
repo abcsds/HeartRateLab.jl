@@ -16,23 +16,23 @@ Calculate the Shannon entropy of the Inter-Beat-Interval histogram.
 
 ## What does *normal* look like?
 
-Fitted normative prior: **Normal(μ = 2.953, σ = 0.4625)**  —  KS p = 0.81, n = 3000.
+Fitted normative prior: **Normal(μ = 2.997, σ = 0.4672)**  —  KS p = 5.7e-11, n = 61715.
 
 ![Normative distribution of shan_en](figs/shan_en.png)
 
-Empirical distribution over the **NSR2DB** normative windows (360-beat windows, 120-beat stride), overlaid with the fitted `Normal` prior density. Vertical lines mark the median and the 5–95% range.
+Empirical distribution over the **pooled nsrdb+nsr2db** normative windows (360-beat windows, 120-beat stride), overlaid with the fitted `Normal` prior density. Vertical lines mark the median and the 5–95% range.
 
-### Normal-range summary (NSR2DB)
+### Normal-range summary (pooled nsrdb+nsr2db)
 
 | statistic | value |
 |---|---|
-| median | 2.96 |
-| IQR (25–75%) | 2.651 – 3.256 |
-| 5–95% range | 2.165 – 3.706 |
-| mean ± sd | 2.953 ± 0.4626 |
-| n windows | 3000 |
+| median | 3.014 |
+| IQR (25–75%) | 2.688 – 3.315 |
+| 5–95% range | 2.214 – 3.745 |
+| mean ± sd | 2.997 ± 0.4672 |
+| n windows | 61715 |
 
-_n varies by feature: pooled time/frequency/geometric features use the full nsrdb+nsr2db table (up to n = 56 472); the 13 nonlinear/entropy features are O(N²)/template-matching and are fit on a fixed-seed ≈3000-window subsample instead (`test/tools/collect_extended_features.jl`, seed 20260729); `ulf` uses a long-window NSRDB-only extraction (see its own page)._
+_n varies by feature only through per-window validity over the full pooled nsrdb+nsr2db table (n up to 61 715; e.g. `sampen`/`mse` drop windows where the statistic is undefined). `ulf` is the one exception: a 360-beat (~5 min) window contains no ULF-band power, so it uses a long-window NSRDB-only extraction (see its own page)._
 
 ## Use cases
 
@@ -43,6 +43,8 @@ _n varies by feature: pooled time/frequency/geometric features use the full nsrd
 ## Applications by area
 
 *Evidence is reported at the measure-family level; a specific variant may not be the exact index measured in every cited study.*
+
+The three areas below are the application fields of the consolidated [HRV knowledge base](references.md) (clinical · sports & peak-performance · contemplative practice); the fourth KB field, *methods & foundations*, is this measure's seminal lineage — see [§Citation](#Citation).
 
 ### Clinical
 
@@ -64,7 +66,7 @@ Uncommon: no dedicated meta-analyses exist, and a 2025 systematic review of 19 s
 
 **Key references:** [yang2026](@cite).
 
-### Meditation & contemplation
+### Contemplative practice
 
 **Coverage: individual papers** — a small, scattered literature (no pooled meta-analysis).
 

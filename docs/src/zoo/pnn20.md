@@ -16,7 +16,7 @@ Proportion of successive differences > 20 ms. Formally: `sum(|diff(IBI)| > 20) /
 
 ## What does *normal* look like?
 
-Fitted normative prior: **Beta(α = 2.64, β = 12.55)**  —  KS p = 6.6e-29, n = 56472.
+Fitted normative prior: **Beta(α = 1.806, β = 3.301)**  —  KS p = 1.9e-17, n = 61715.
 
 ![Normative distribution of pnn20](figs/pnn20.png)
 
@@ -26,13 +26,13 @@ Empirical distribution over the **pooled nsrdb+nsr2db** normative windows (360-b
 
 | statistic | value |
 |---|---|
-| median | 0.1611 |
-| IQR (25–75%) | 0.1 – 0.2389 |
-| 5–95% range | 0.03889 – 0.3472 |
-| mean ± sd | 0.1738 ± 0.09418 |
-| n windows | 56472 |
+| median | 0.3259 |
+| IQR (25–75%) | 0.2006 – 0.4903 |
+| 5–95% range | 0.08357 – 0.7047 |
+| mean ± sd | 0.3537 ± 0.1935 |
+| n windows | 61715 |
 
-_n varies by feature: pooled time/frequency/geometric features use the full nsrdb+nsr2db table (up to n = 56 472); the 13 nonlinear/entropy features are O(N²)/template-matching and are fit on a fixed-seed ≈3000-window subsample instead (`test/tools/collect_extended_features.jl`, seed 20260729); `ulf` uses a long-window NSRDB-only extraction (see its own page)._
+_n varies by feature only through per-window validity over the full pooled nsrdb+nsr2db table (n up to 61 715; e.g. `sampen`/`mse` drop windows where the statistic is undefined). `ulf` is the one exception: a 360-beat (~5 min) window contains no ULF-band power, so it uses a long-window NSRDB-only extraction (see its own page)._
 
 ## Use cases
 
@@ -43,6 +43,8 @@ _n varies by feature: pooled time/frequency/geometric features use the full nsrd
 ## Applications by area
 
 *Evidence is reported at the measure-family level; a specific variant may not be the exact index measured in every cited study.*
+
+The three areas below are the application fields of the consolidated [HRV knowledge base](references.md) (clinical · sports & peak-performance · contemplative practice); the fourth KB field, *methods & foundations*, is this measure's seminal lineage — see [§Citation](#Citation).
 
 ### Clinical
 
@@ -64,7 +66,7 @@ RMSSD is the dominant, most-meta-analyzed short-term vagal index in sports scien
 
 **Key references:** [bellenger2016](@cite).
 
-### Meditation & contemplation
+### Contemplative practice
 
 **Coverage: individual papers** — a small, scattered literature (no pooled meta-analysis).
 

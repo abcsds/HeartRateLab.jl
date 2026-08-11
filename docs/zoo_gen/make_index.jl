@@ -15,6 +15,28 @@ const REPO    = normpath(joinpath(HERE, "..", ".."))
 const ZOO_DIR = joinpath(REPO, "docs", "src", "zoo")
 
 include(joinpath(HERE, "inventory.jl"))    # -> INVENTORY
+include(joinpath(HERE, "citations.jl"))    # -> CITATION_KEYS (methods & foundations facet)
+include(joinpath(HERE, "applications.jl")) # -> applications_for (field-coverage facet)
+
+# ── Field-coverage facet ──────────────────────────────────────────────────────
+# One glyph per KB application field (clinical · sports & peak-performance ·
+# contemplative practice), from the curated applications data; the fourth KB
+# field (methods & foundations) is ✔ when a seminal reference is on file.
+const COVERAGE_GLYPH = Dict(
+    "statistics"        => "●",  # pooled/meta-analytic literature
+    "individual-papers" => "◐",  # individual papers only
+    "sparse-or-none"    => "○",  # essentially no dedicated literature
+)
+function field_facet(e)
+    info = applications_for(e.name)
+    glyphs = if info.apps === nothing
+        ["○", "○", "○"]
+    else
+        [COVERAGE_GLYPH[getfield(info.apps, d).coverage] for d in (:clinical, :sports, :meditation)]
+    end
+    methods = isempty(get(CITATION_KEYS, e.name, String[])) ? "○" : "✔"
+    return join(glyphs, " ") * " $methods"
+end
 
 const RESOURCE_RANK_FILE = joinpath(HERE, "resource_rank.jl")
 if isfile(RESOURCE_RANK_FILE)
@@ -55,7 +77,7 @@ println(io)
 println(io, "1. **What is it?** — definition, equation, aliases, and declared distribution family.")
 println(io, "2. **What does *normal* look like?** — the empirical distribution over the pooled")
 println(io, "   [nsrdb](https://physionet.org/content/nsrdb/) + [nsr2db](https://physionet.org/content/nsr2db/)")
-println(io, "   normal-sinus-rhythm cohorts (360-beat windows, n up to 56 472), overlaid with a")
+println(io, "   normal-sinus-rhythm cohorts (360-beat windows, n up to 61 715), overlaid with a")
 println(io, "   fitted normative prior, plus a normal-range table.")
 println(io, "3. **What does it cost, and who introduced it?** — a *measured* wall-clock + allocation")
 println(io, "   resource tier, curated use-cases, and the seminal citation.")
@@ -67,6 +89,13 @@ println(io, "window (`docs/zoo_gen/bench_resources.jl`).")
 println(io)
 println(io, "**Resource tiers:** `◍◌◌◌◌` very low · `◍◍◌◌◌` low · `◍◍◍◌◌` moderate · `◍◍◍◍◌` high · `◍◍◍◍◍` very high.")
 println(io)
+println(io, "**Fields** — each entry's *Applications by area* and *Citation* sections tie it to the")
+println(io, "four fields of the consolidated [HRV knowledge base](references.md): the `C S P M`")
+println(io, "column below marks per-field evidence coverage for **C**linical, **S**ports &")
+println(io, "peak-performance, contemplative **P**ractice (● pooled/meta-analytic literature ·")
+println(io, "◐ individual papers · ○ sparse/none), and **M**ethods & foundations (✔ seminal")
+println(io, "reference on file).")
+println(io)
 
 for (dom, title, blurb) in DOMAINS
     feats = filter(e -> e.primary_domain == dom, INVENTORY)
@@ -74,13 +103,13 @@ for (dom, title, blurb) in DOMAINS
     println(io)
     println(io, blurb)
     println(io)
-    println(io, "| Feature | Definition | Dist. family | Resource tier |")
-    println(io, "|---------|------------|--------------|---------------|")
+    println(io, "| Feature | Definition | Dist. family | Resource tier | C S P M |")
+    println(io, "|---------|------------|--------------|---------------|---------|")
     for e in feats
         defn = rstrip(e.definition)
         endswith(defn, ".") && (defn = defn[1:end-1])
         length(defn) > 70 && (defn = defn[1:67] * "…")
-        println(io, "| [`$(e.name)`]($(e.name).md) | $defn | `$(family_for(e))` | $(rank_for(e)) |")
+        println(io, "| [`$(e.name)`]($(e.name).md) | $defn | `$(family_for(e))` | $(rank_for(e)) | $(field_facet(e)) |")
     end
     println(io)
     if dom == "nonlinear"

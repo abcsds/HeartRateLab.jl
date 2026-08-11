@@ -16,7 +16,7 @@ Very low frequency power (0.003-0.04 Hz). Formally: `integral(PSD; 0.003; 0.04) 
 
 ## What does *normal* look like?
 
-Fitted normative prior: **Gamma(α = 1.24, θ = 891.8)**  —  KS p < 1e-300, n = 54083.
+Fitted normative prior: **Gamma(α = 1.268, θ = 1016)**  —  KS p < 1e-300, n = 58892.
 
 !!! warning "Degenerate on short (360-beat) windows — indicative only"
     **VLF (0.003–0.04 Hz) is degenerate on 360-beat windows.** A 360-beat window (~5–6 min) barely reaches the band's own lower edge, so Welch's frequency resolution cannot resolve power inside it for most windows — the empirical median/IQR collapse to 0 below. Treat the plot and normal-range table as **indicative only**; a real VLF estimate needs much longer windows (≥5 min, ideally tens of minutes to hours) or a full-length recording.
@@ -32,10 +32,10 @@ Empirical distribution over the **pooled nsrdb+nsr2db** normative windows (360-b
 | median | 0 |
 | IQR (25–75%) | 0 – 0 |
 | 5–95% range | 0 – 0 |
-| mean ± sd | 15.23 ± 189 |
-| n windows | 54083 |
+| mean ± sd | 21.73 ± 235.3 |
+| n windows | 58892 |
 
-_n varies by feature: pooled time/frequency/geometric features use the full nsrdb+nsr2db table (up to n = 56 472); the 13 nonlinear/entropy features are O(N²)/template-matching and are fit on a fixed-seed ≈3000-window subsample instead (`test/tools/collect_extended_features.jl`, seed 20260729); `ulf` uses a long-window NSRDB-only extraction (see its own page)._
+_n varies by feature only through per-window validity over the full pooled nsrdb+nsr2db table (n up to 61 715; e.g. `sampen`/`mse` drop windows where the statistic is undefined). `ulf` is the one exception: a 360-beat (~5 min) window contains no ULF-band power, so it uses a long-window NSRDB-only extraction (see its own page)._
 
 ## Use cases
 
@@ -46,6 +46,8 @@ _n varies by feature: pooled time/frequency/geometric features use the full nsrd
 ## Applications by area
 
 *Evidence is reported at the measure-family level; a specific variant may not be the exact index measured in every cited study.*
+
+The three areas below are the application fields of the consolidated [HRV knowledge base](references.md) (clinical · sports & peak-performance · contemplative practice); the fourth KB field, *methods & foundations*, is this measure's seminal lineage — see [§Citation](#Citation).
 
 ### Clinical
 
@@ -67,7 +69,7 @@ Uncommon as a headline sports metric. Acute dose-response is consistent and stro
 
 **Key references:** [shaffer2017](@cite).
 
-### Meditation & contemplation
+### Contemplative practice
 
 **Coverage: individual papers** — a small, scattered literature (no pooled meta-analysis).
 

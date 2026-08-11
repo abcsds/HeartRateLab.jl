@@ -16,7 +16,7 @@ Coefficient of variation of successive differences. Formally: `sdsd / mean(IBI)`
 
 ## What does *normal* look like?
 
-Fitted normative prior: **Gamma(α = 3.204, θ = 0.013)**  —  KS p = 2.5e-141, n = 56472.
+Fitted normative prior: **Gamma(α = 2.929, θ = 0.0146)**  —  KS p = 6.3e-44, n = 61715.
 
 ![Normative distribution of cvsd](figs/cvsd.png)
 
@@ -26,13 +26,13 @@ Empirical distribution over the **pooled nsrdb+nsr2db** normative windows (360-b
 
 | statistic | value |
 |---|---|
-| median | 0.0335 |
-| IQR (25–75%) | 0.02376 – 0.04795 |
-| 5–95% range | 0.01726 – 0.09065 |
-| mean ± sd | 0.04166 ± 0.03343 |
-| n windows | 56472 |
+| median | 0.03348 |
+| IQR (25–75%) | 0.02369 – 0.04859 |
+| 5–95% range | 0.01718 – 0.09653 |
+| mean ± sd | 0.04277 ± 0.03589 |
+| n windows | 61715 |
 
-_n varies by feature: pooled time/frequency/geometric features use the full nsrdb+nsr2db table (up to n = 56 472); the 13 nonlinear/entropy features are O(N²)/template-matching and are fit on a fixed-seed ≈3000-window subsample instead (`test/tools/collect_extended_features.jl`, seed 20260729); `ulf` uses a long-window NSRDB-only extraction (see its own page)._
+_n varies by feature only through per-window validity over the full pooled nsrdb+nsr2db table (n up to 61 715; e.g. `sampen`/`mse` drop windows where the statistic is undefined). `ulf` is the one exception: a 360-beat (~5 min) window contains no ULF-band power, so it uses a long-window NSRDB-only extraction (see its own page)._
 
 ## Use cases
 
@@ -43,6 +43,8 @@ _n varies by feature: pooled time/frequency/geometric features use the full nsrd
 ## Applications by area
 
 *Evidence is reported at the measure-family level; a specific variant may not be the exact index measured in every cited study.*
+
+The three areas below are the application fields of the consolidated [HRV knowledge base](references.md) (clinical · sports & peak-performance · contemplative practice); the fourth KB field, *methods & foundations*, is this measure's seminal lineage — see [§Citation](#Citation).
 
 ### Clinical
 
@@ -64,7 +66,7 @@ Comparatively under-used next to RMSSD in sports HRV monitoring — the field's 
 
 **Key references:** [bellenger2016](@cite).
 
-### Meditation & contemplation
+### Contemplative practice
 
 **Coverage: individual papers** — a small, scattered literature (no pooled meta-analysis).
 

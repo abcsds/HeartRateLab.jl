@@ -16,17 +16,17 @@ collections pooled together (`nsrdb` + `nsr2db`). Each recording is cut into
 **360-beat windows with a 120-beat stride**, every window is scored through the
 [53-feature registry](../features.md), and each feature's pooled distribution is
 fitted to an analytical family (`Normal`, `Gamma`, `Beta`, or `LogNormal`, chosen
-per feature). The result is **56 472 pooled healthy windows** summarised as one
+per feature). The result is **61 715 pooled healthy windows** summarised as one
 fitted prior distribution per feature. The fitted priors ship in
 `docs/normative_priors.csv`; a few examples:
 
 | Feature | Family | Fitted prior | n windows |
 |---------|--------|--------------|-----------|
-| [`mean`](../zoo/mean.md) | `Normal` | `Normal(778.07, 143.71)` | 56 472 |
-| [`sdnn`](../zoo/sdnn.md) | `Gamma` | `Gamma(4.019, 13.12)` | 56 472 |
-| [`rmssd`](../zoo/rmssd.md) | `Gamma` | `Gamma(2.700, 12.17)` | 56 472 |
-| [`pnn50`](../zoo/pnn50.md) | `Beta` | `Beta(0.4272, 10.34)` | 56 472 |
-| [`lf_hf_ratio`](../zoo/lf_hf_ratio.md) | `LogNormal` | `LogNormal(0.858, 0.857)` | 56 472 |
+| [`mean`](../zoo/mean.md) | `Normal` | `Normal(779.63, 146.81)` | 61 715 |
+| [`sdnn`](../zoo/sdnn.md) | `Gamma` | `Gamma(3.795, 14.03)` | 61 715 |
+| [`rmssd`](../zoo/rmssd.md) | `Gamma` | `Gamma(2.400, 14.22)` | 61 715 |
+| [`pnn50`](../zoo/pnn50.md) | `Beta` | `Beta(0.3211, 3.563)` | 61 715 |
+| [`lf_hf_ratio`](../zoo/lf_hf_ratio.md) | `LogNormal` | `LogNormal(0.852, 0.869)` | 61 715 |
 
 Given a fitted prior with CDF ``F`` for a feature, a new value ``x`` is scored as
 a **quantile z-equivalent**:

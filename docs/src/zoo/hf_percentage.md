@@ -16,7 +16,7 @@ HF power as percentage of total power. Formally: `100 * HF / TP`.
 
 ## What does *normal* look like?
 
-Fitted normative prior: **Gamma(α = 2.535, θ = 7.592)**  —  KS p = 7.6e-49, n = 56472.
+Fitted normative prior: **Gamma(α = 2.479, θ = 7.843)**  —  KS p = 1.2e-26, n = 61715.
 
 ![Normative distribution of hf_percentage](figs/hf_percentage.png)
 
@@ -26,13 +26,13 @@ Empirical distribution over the **pooled nsrdb+nsr2db** normative windows (360-b
 
 | statistic | value |
 |---|---|
-| median | 14.88 |
-| IQR (25–75%) | 9.894 – 23.64 |
-| 5–95% range | 5.915 – 49.45 |
-| mean ± sd | 19.25 ± 13.89 |
-| n windows | 56472 |
+| median | 14.9 |
+| IQR (25–75%) | 9.897 – 23.8 |
+| 5–95% range | 5.89 – 50.76 |
+| mean ± sd | 19.44 ± 14.22 |
+| n windows | 61715 |
 
-_n varies by feature: pooled time/frequency/geometric features use the full nsrdb+nsr2db table (up to n = 56 472); the 13 nonlinear/entropy features are O(N²)/template-matching and are fit on a fixed-seed ≈3000-window subsample instead (`test/tools/collect_extended_features.jl`, seed 20260729); `ulf` uses a long-window NSRDB-only extraction (see its own page)._
+_n varies by feature only through per-window validity over the full pooled nsrdb+nsr2db table (n up to 61 715; e.g. `sampen`/`mse` drop windows where the statistic is undefined). `ulf` is the one exception: a 360-beat (~5 min) window contains no ULF-band power, so it uses a long-window NSRDB-only extraction (see its own page)._
 
 ## Use cases
 
@@ -43,6 +43,8 @@ _n varies by feature: pooled time/frequency/geometric features use the full nsrd
 ## Applications by area
 
 *Evidence is reported at the measure-family level; a specific variant may not be the exact index measured in every cited study.*
+
+The three areas below are the application fields of the consolidated [HRV knowledge base](references.md) (clinical · sports & peak-performance · contemplative practice); the fourth KB field, *methods & foundations*, is this measure's seminal lineage — see [§Citation](#Citation).
 
 ### Clinical
 
@@ -64,7 +66,7 @@ Heavily used for training-load/overreaching monitoring, anchored by a 27-study m
 
 **Key references:** [bellenger2016](@cite).
 
-### Meditation & contemplation
+### Contemplative practice
 
 **Coverage: statistics** — a large/pooled literature (reviews or meta-analyses exist).
 

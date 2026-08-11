@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Aliases** | _none_ |
-| **Domain** |  |
+| **Domain** | `nonlinear` |
 | **Distribution family** | `Normal` |
 | **Equation** | `H_0(IBI)  (Renyi entropy order 0)` |
 | **Resource intensity** | ◍◍◌◌◌  low — _Nonlinear subgraph (template matching / embedding — O(N²) worst case)._ (measured, see §Resources) |
@@ -16,23 +16,23 @@ Renyi entropy of order 0. Formally: `H_0(IBI)  (Renyi entropy order 0)`.
 
 ## What does *normal* look like?
 
-Fitted normative prior: **Normal(μ = -6.642, σ = 0.1942)**  —  KS p = 0.00077, n = 3000.
+Fitted normative prior: **Normal(μ = -6.641, σ = 0.1881)**  —  KS p = 1.2e-83, n = 61715.
 
 ![Normative distribution of renyi0](figs/renyi0.png)
 
-Empirical distribution over the **NSR2DB** normative windows (360-beat windows, 120-beat stride), overlaid with the fitted `Normal` prior density. Vertical lines mark the median and the 5–95% range.
+Empirical distribution over the **pooled nsrdb+nsr2db** normative windows (360-beat windows, 120-beat stride), overlaid with the fitted `Normal` prior density. Vertical lines mark the median and the 5–95% range.
 
-### Normal-range summary (NSR2DB)
+### Normal-range summary (pooled nsrdb+nsr2db)
 
 | statistic | value |
 |---|---|
-| median | -6.632 |
-| IQR (25–75%) | -6.793 – -6.496 |
-| 5–95% range | -6.956 – -6.339 |
-| mean ± sd | -6.642 ± 0.1942 |
-| n windows | 3000 |
+| median | -6.638 |
+| IQR (25–75%) | -6.782 – -6.506 |
+| 5–95% range | -6.944 – -6.339 |
+| mean ± sd | -6.641 ± 0.1881 |
+| n windows | 61715 |
 
-_n varies by feature: pooled time/frequency/geometric features use the full nsrdb+nsr2db table (up to n = 56 472); the 13 nonlinear/entropy features are O(N²)/template-matching and are fit on a fixed-seed ≈3000-window subsample instead (`test/tools/collect_extended_features.jl`, seed 20260729); `ulf` uses a long-window NSRDB-only extraction (see its own page)._
+_n varies by feature only through per-window validity over the full pooled nsrdb+nsr2db table (n up to 61 715; e.g. `sampen`/`mse` drop windows where the statistic is undefined). `ulf` is the one exception: a 360-beat (~5 min) window contains no ULF-band power, so it uses a long-window NSRDB-only extraction (see its own page)._
 
 ## Use cases
 
@@ -43,6 +43,8 @@ _n varies by feature: pooled time/frequency/geometric features use the full nsrd
 ## Applications by area
 
 *Evidence is reported at the measure-family level; a specific variant may not be the exact index measured in every cited study.*
+
+The three areas below are the application fields of the consolidated [HRV knowledge base](references.md) (clinical · sports & peak-performance · contemplative practice); the fourth KB field, *methods & foundations*, is this measure's seminal lineage — see [§Citation](#Citation).
 
 ### Clinical
 
@@ -64,7 +66,7 @@ Uncommon: no dedicated meta-analyses exist, and a 2025 systematic review of 19 s
 
 **Key references:** [yang2026](@cite).
 
-### Meditation & contemplation
+### Contemplative practice
 
 **Coverage: individual papers** — a small, scattered literature (no pooled meta-analysis).
 

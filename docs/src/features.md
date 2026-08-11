@@ -2,7 +2,7 @@
 
 HeartRateLab extracts **53 HRV features** across **4 analysis domains** from inter-beat-interval (IBI) time series data.
 
-Every feature has a full "Pokédex" entry in the [HRV Variable Zoo](zoo/index.md) — definition, equation, normative distribution, resource cost, and seminal citation.
+Every feature has a full "Pokédex" entry in the [HRV Variable Zoo](zoo/index.md) — definition, equation, normative distribution, resource cost, seminal citation, and per-field application evidence (clinical · sports & peak-performance · contemplative practice), all referenced against the consolidated [HRV knowledge base](zoo/references.md).
 
 ## Feature Domains
 

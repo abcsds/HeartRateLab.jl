@@ -12,8 +12,9 @@
 #                                          falls back to the domain template)
 #
 # NB: this file covers the "## Citation" section (who *introduced* the
-# measure). The "## Applications by area" section (real-world clinical /
-# sports / meditation applications literature) is a SEPARATE map in
+# measure) — the "methods & foundations" field of the consolidated HRV
+# knowledge base. The "## Applications by area" section (real-world clinical /
+# sports-&-peak-performance / contemplative-practice literature) is a SEPARATE map in
 # `docs/zoo_gen/applications.jl` (`FAMILY_APPLICATIONS` / `VARIABLE_FAMILY` /
 # `VARIABLE_NOTES`), with its own reference keys in `docs/references.bib`
 # (zhang2016, bellenger2016, pascoe2017, ciccone2017, billman2013, etc.).
