@@ -16,7 +16,7 @@ Ratio of SD2 to SD1 (cardiac sympathetic index). Formally: `SD2 / SD1`.
 
 ## What does *normal* look like?
 
-Fitted normative prior: **LogNormal(μ = 1.156, σ = 0.5257)**  —  KS p = 3.8e-05, n = 56472.
+Fitted normative prior: **LogNormal(μ = 1.144, σ = 0.5332)**  —  KS p = 1.5e-07, n = 61715.
 
 ![Normative distribution of sd2_sd1](figs/sd2_sd1.png)
 
@@ -26,13 +26,13 @@ Empirical distribution over the **pooled nsrdb+nsr2db** normative windows (360-b
 
 | statistic | value |
 |---|---|
-| median | 3.334 |
-| IQR (25–75%) | 2.307 – 4.499 |
-| 5–95% range | 1.246 – 7.12 |
-| mean ± sd | 3.621 ± 1.889 |
-| n windows | 56472 |
+| median | 3.299 |
+| IQR (25–75%) | 2.269 – 4.477 |
+| 5–95% range | 1.198 – 7.1 |
+| mean ± sd | 3.592 ± 1.895 |
+| n windows | 61715 |
 
-_n varies by feature: pooled time/frequency/geometric features use the full nsrdb+nsr2db table (up to n = 56 472); the 13 nonlinear/entropy features are O(N²)/template-matching and are fit on a fixed-seed ≈3000-window subsample instead (`test/tools/collect_extended_features.jl`, seed 20260729); `ulf` uses a long-window NSRDB-only extraction (see its own page)._
+_n varies by feature only through per-window validity over the full pooled nsrdb+nsr2db table (n up to 61 715; e.g. `sampen`/`mse` drop windows where the statistic is undefined). `ulf` is the one exception: a 360-beat (~5 min) window contains no ULF-band power, so it uses a long-window NSRDB-only extraction (see its own page)._
 
 ## Use cases
 
@@ -43,6 +43,8 @@ _n varies by feature: pooled time/frequency/geometric features use the full nsrd
 ## Applications by area
 
 *Evidence is reported at the measure-family level; a specific variant may not be the exact index measured in every cited study.*
+
+The three areas below are the application fields of the consolidated [HRV knowledge base](references.md) (clinical · sports & peak-performance · contemplative practice); the fourth KB field, *methods & foundations*, is this measure's seminal lineage — see [§Citation](#Citation).
 
 ### Clinical
 
@@ -64,7 +66,7 @@ Largely restates RMSSD-based vagal-tone monitoring in geometric form (SD1 = RMSS
 
 **Key references:** [bellenger2016](@cite); [ciccone2017](@cite).
 
-### Meditation & contemplation
+### Contemplative practice
 
 **Coverage: individual papers** — a small, scattered literature (no pooled meta-analysis).
 

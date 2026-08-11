@@ -16,7 +16,7 @@ Cardiac vagal index. Formally: `log10(SD1 * SD2 * 16)`.
 
 ## What does *normal* look like?
 
-Fitted normative prior: **Normal(μ = 4.269, σ = 0.4244)**  —  KS p = 1.1e-28, n = 56472.
+Fitted normative prior: **Normal(μ = 4.274, σ = 0.4393)**  —  KS p = 7.4e-16, n = 61715.
 
 ![Normative distribution of cvi](figs/cvi.png)
 
@@ -26,13 +26,13 @@ Empirical distribution over the **pooled nsrdb+nsr2db** normative windows (360-b
 
 | statistic | value |
 |---|---|
-| median | 4.258 |
-| IQR (25–75%) | 3.978 – 4.534 |
-| 5–95% range | 3.606 – 4.997 |
-| mean ± sd | 4.269 ± 0.4244 |
-| n windows | 56472 |
+| median | 4.256 |
+| IQR (25–75%) | 3.971 – 4.541 |
+| 5–95% range | 3.602 – 5.037 |
+| mean ± sd | 4.274 ± 0.4393 |
+| n windows | 61715 |
 
-_n varies by feature: pooled time/frequency/geometric features use the full nsrdb+nsr2db table (up to n = 56 472); the 13 nonlinear/entropy features are O(N²)/template-matching and are fit on a fixed-seed ≈3000-window subsample instead (`test/tools/collect_extended_features.jl`, seed 20260729); `ulf` uses a long-window NSRDB-only extraction (see its own page)._
+_n varies by feature only through per-window validity over the full pooled nsrdb+nsr2db table (n up to 61 715; e.g. `sampen`/`mse` drop windows where the statistic is undefined). `ulf` is the one exception: a 360-beat (~5 min) window contains no ULF-band power, so it uses a long-window NSRDB-only extraction (see its own page)._
 
 ## Use cases
 
@@ -43,6 +43,8 @@ _n varies by feature: pooled time/frequency/geometric features use the full nsrd
 ## Applications by area
 
 *Evidence is reported at the measure-family level; a specific variant may not be the exact index measured in every cited study.*
+
+The three areas below are the application fields of the consolidated [HRV knowledge base](references.md) (clinical · sports & peak-performance · contemplative practice); the fourth KB field, *methods & foundations*, is this measure's seminal lineage — see [§Citation](#Citation).
 
 ### Clinical
 
@@ -64,7 +66,7 @@ The one on-topic study (elite football) found CVI differs significantly by playi
 
 **Key references:** [toichi1997](@cite).
 
-### Meditation & contemplation
+### Contemplative practice
 
 **Coverage: sparse-or-none** — essentially no dedicated application literature found.
 

@@ -16,7 +16,7 @@ Mean inter-beat interval. Formally: `mean(IBI)`.
 
 ## What does *normal* look like?
 
-Fitted normative prior: **Normal(μ = 778.1, σ = 143.7)**  —  KS p = 5.3e-42, n = 56472.
+Fitted normative prior: **Normal(μ = 779.6, σ = 146.8)**  —  KS p = 1.4e-64, n = 61715.
 
 ![Normative distribution of mean](figs/mean.png)
 
@@ -26,13 +26,13 @@ Empirical distribution over the **pooled nsrdb+nsr2db** normative windows (360-b
 
 | statistic | value |
 |---|---|
-| median | 762.4 |
-| IQR (25–75%) | 669.2 – 878.4 |
-| 5–95% range | 569.9 – 1030 |
-| mean ± sd | 778.1 ± 143.7 |
-| n windows | 56472 |
+| median | 763.5 |
+| IQR (25–75%) | 668.9 – 881.7 |
+| 5–95% range | 566.4 – 1037 |
+| mean ± sd | 779.6 ± 146.8 |
+| n windows | 61715 |
 
-_n varies by feature: pooled time/frequency/geometric features use the full nsrdb+nsr2db table (up to n = 56 472); the 13 nonlinear/entropy features are O(N²)/template-matching and are fit on a fixed-seed ≈3000-window subsample instead (`test/tools/collect_extended_features.jl`, seed 20260729); `ulf` uses a long-window NSRDB-only extraction (see its own page)._
+_n varies by feature only through per-window validity over the full pooled nsrdb+nsr2db table (n up to 61 715; e.g. `sampen`/`mse` drop windows where the statistic is undefined). `ulf` is the one exception: a 360-beat (~5 min) window contains no ULF-band power, so it uses a long-window NSRDB-only extraction (see its own page)._
 
 ## Use cases
 
@@ -43,6 +43,8 @@ _n varies by feature: pooled time/frequency/geometric features use the full nsrd
 ## Applications by area
 
 *Evidence is reported at the measure-family level; a specific variant may not be the exact index measured in every cited study.*
+
+The three areas below are the application fields of the consolidated [HRV knowledge base](references.md) (clinical · sports & peak-performance · contemplative practice); the fourth KB field, *methods & foundations*, is this measure's seminal lineage — see [§Citation](#Citation).
 
 ### Clinical
 
@@ -64,7 +66,7 @@ Lower resting HR ("training bradycardia") and faster post-exercise heart-rate re
 
 **Key references:** [bellenger2016](@cite).
 
-### Meditation & contemplation
+### Contemplative practice
 
 **Coverage: statistics** — a large/pooled literature (reviews or meta-analyses exist).
 

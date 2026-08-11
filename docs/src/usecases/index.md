@@ -13,8 +13,9 @@ reconciliation, we say so explicitly and quote the corrected value.
 
 | Use case | Question answered | Headline result |
 |----------|-------------------|-----------------|
-| [Is my data normal?](normative.md) | Where does one HRV window sit relative to a healthy population? | A quantile *z*-equivalent against **56 472** pooled healthy windows, live-overlaid in `default_normative()`. |
-| [Meditation & paced breathing](meditation.md) | What does a vagally-dominant state look like in HRV space? | Meditation cohort: elevated Mean IBI (+1.02σ) & pNN50 (+1.32σ) against 56 472 pooled healthy windows. |
+| [Is my data normal?](normative.md) | Where does one HRV window sit relative to a healthy population? | A quantile *z*-equivalent against **61 715** pooled healthy windows, live-overlaid in `default_normative()`. |
+| [Meditation & paced breathing](meditation.md) | What does a vagally-dominant state look like in HRV space? | Meditation cohort: elevated Mean IBI (+0.99σ) & SDNN (+0.87σ) against 61 715 pooled healthy windows. |
+| [What do reported effects look like?](effect-distributions.md) | Does the harvested HRV applications literature carry publication-bias fingerprints? | p-curve + caliper tests over 153 study records from the [HRV knowledge base](../zoo/references.md) fields; only the clinical cell is individually powered. |
 
 ## How these relate to the rest of the docs
 

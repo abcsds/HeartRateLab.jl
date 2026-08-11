@@ -6,7 +6,7 @@
 |---|---|
 | **Aliases** | `hurst_exponent`, `hurst` |
 | **Domain** | `nonlinear` |
-| **Distribution family** | `Normal` |
+| **Distribution family** | `Beta` |
 | **Equation** | `H from R/S analysis` |
 | **Resource intensity** | ◍◍◌◌◌  low — _Nonlinear subgraph (template matching / embedding — O(N²) worst case)._ (measured, see §Resources) |
 
@@ -16,25 +16,25 @@ Hurst exponent. Formally: `H from R/S analysis`.
 
 ## What does *normal* look like?
 
-Fitted normative prior: **Normal(μ = 0.3214, σ = 0.1497)**  —  KS p = 0.00028, n = 3000.
+Fitted normative prior: **Beta(α = 2.883, β = 6.17)**  —  KS p = 1.2e-21, n = 61715.
 
 Note: `hurst` is theoretically bounded to (0, 1) (`Beta`, as declared in the `Features.jl` docstring), but the observed 360-beat-window values leave that interval (see the 5–95% range below), so the empirical fit shown here is `Normal`.
 
 ![Normative distribution of hurst](figs/hurst.png)
 
-Empirical distribution over the **NSR2DB** normative windows (360-beat windows, 120-beat stride), overlaid with the fitted `Normal` prior density. Vertical lines mark the median and the 5–95% range.
+Empirical distribution over the **pooled nsrdb+nsr2db** normative windows (360-beat windows, 120-beat stride), overlaid with the fitted `Beta` prior density. Vertical lines mark the median and the 5–95% range.
 
-### Normal-range summary (NSR2DB)
+### Normal-range summary (pooled nsrdb+nsr2db)
 
 | statistic | value |
 |---|---|
-| median | 0.332 |
-| IQR (25–75%) | 0.2164 – 0.4367 |
-| 5–95% range | 0.06093 – 0.5471 |
-| mean ± sd | 0.3214 ± 0.1497 |
-| n windows | 3000 |
+| median | 0.3282 |
+| IQR (25–75%) | 0.2131 – 0.4287 |
+| 5–95% range | 0.05781 – 0.546 |
+| mean ± sd | 0.3179 ± 0.1483 |
+| n windows | 61715 |
 
-_n varies by feature: pooled time/frequency/geometric features use the full nsrdb+nsr2db table (up to n = 56 472); the 13 nonlinear/entropy features are O(N²)/template-matching and are fit on a fixed-seed ≈3000-window subsample instead (`test/tools/collect_extended_features.jl`, seed 20260729); `ulf` uses a long-window NSRDB-only extraction (see its own page)._
+_n varies by feature only through per-window validity over the full pooled nsrdb+nsr2db table (n up to 61 715; e.g. `sampen`/`mse` drop windows where the statistic is undefined). `ulf` is the one exception: a 360-beat (~5 min) window contains no ULF-band power, so it uses a long-window NSRDB-only extraction (see its own page)._
 
 ## Use cases
 
@@ -45,6 +45,8 @@ _n varies by feature: pooled time/frequency/geometric features use the full nsrd
 ## Applications by area
 
 *Evidence is reported at the measure-family level; a specific variant may not be the exact index measured in every cited study.*
+
+The three areas below are the application fields of the consolidated [HRV knowledge base](references.md) (clinical · sports & peak-performance · contemplative practice); the fourth KB field, *methods & foundations*, is this measure's seminal lineage — see [§Citation](#Citation).
 
 ### Clinical
 
@@ -66,7 +68,7 @@ Uncommon as "Hurst exponent" per se, but moderately active as the DFA-α1 aerobi
 
 **Key references:** [gronwald2020](@cite); [cassirame2025](@cite); [hoos2025](@cite).
 
-### Meditation & contemplation
+### Contemplative practice
 
 **Coverage: individual papers** — a small, scattered literature (no pooled meta-analysis).
 

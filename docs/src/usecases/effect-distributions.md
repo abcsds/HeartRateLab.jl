@@ -34,8 +34,10 @@ just-significant results at the .05 threshold.
 
 The harvest covered **12 HRV measure families** (heart-rate level, short-term vagal
 RMSSD/pNN50, global SDNN, LF/HF, ULF/VLF, Poincaré, geometric index, CSI/CVI, DFA,
-Hurst, ApEn/SampEn, other entropies) across **three application domains**
-(clinical, sports/peak-performance, meditation/contemplation). For each study it
+Hurst, ApEn/SampEn, other entropies) across the **three application fields** of
+the [HRV knowledge base](../zoo/references.md) — clinical, sports &
+peak-performance, contemplative practice (labeled `clinical` / `sports` /
+`meditation` in the CSV and the tables below). For each study it
 recorded `{variable, population, sample_size, direction, effect_size, p_value, doi,
 citation}`. The flattened table lives at
 [`docs/zoo_gen/effect_stats.csv`](https://github.com/abcsds/HeartRateLab.jl/blob/main/docs/zoo_gen/effect_stats.csv)

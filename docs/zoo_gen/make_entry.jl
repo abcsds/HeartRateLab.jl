@@ -17,9 +17,9 @@
 #     julia --project=. docs/zoo_gen/make_entry.jl rmssd
 #     julia --project=. docs/zoo_gen/make_entry.jl            # -> all plottable features
 #
-# NB: only the 36 features that have BOTH a fitted prior and a column in the
-# windowed NSR2DB table can get a distribution plot; the other 17 emit a
-# stub entry that says so.
+# NB: since the full 53-feature re-extraction (commit 472c970) every feature has
+# a fitted prior + a column in the pooled windowed tables; `ulf` alone falls back
+# to the long-window extended extraction (no ULF-band power in 360-beat windows).
 # ─────────────────────────────────────────────────────────────────────────────
 
 ENV["GKSwstype"] = get(ENV, "GKSwstype", "100")  # headless GR — no window server
@@ -33,7 +33,7 @@ const ZOO_DIR   = joinpath(REPO, "docs", "src", "zoo")
 const FIG_DIR   = joinpath(ZOO_DIR, "figs")
 const NSR2DB    = joinpath(REPO, "test", "testdata", "nsr2db", "windowed_w360_s120_features.csv")
 # The fitted priors for the 36 "pooled" (non-extended) features are fit on BOTH
-# normal-sinus-rhythm cohorts pooled together (n=56 472: 42 647 nsr2db + 13 825
+# normal-sinus-rhythm cohorts pooled together (n=61 715: 47 890 nsr2db + 13 825
 # nsrdb windows, docs/src/usecases/normative.md). The empirical histogram/summary
 # shown on each dex page must match that same population, not nsr2db alone
 # (~42 647) — see docs/zoo_gen/gen_inventory.py / docs/normative_priors.csv.
@@ -43,9 +43,9 @@ function load_pooled_df()
     b = CSV.read(NSRDB_W360, DataFrame)
     vcat(a, b; cols=:union)
 end
-# Extended normative data for the 17 features absent from the original tables
-# (median_hr/range_hr/cvnni + ulf + 13 nonlinear/entropy/fractal). Produced by
-# test/tools/collect_extended_features.jl (nonlinear subsampled, seed 20260729).
+# Extended normative data (test/tools/collect_extended_features.jl). Since the
+# full 53-feature re-extraction this is only the *fallback* for features whose
+# pooled fit is not ok — in practice `ulf` (long-window NSRDB-only extraction).
 const EXTENDED     = joinpath(REPO, "test", "testdata", "nsr2db", "windowed_w360_s120_features_extended.csv")
 const EXT_PRIORS_F = joinpath(REPO, "docs", "normative_priors_extended.csv")
 # Optional cross-dataset comparison (healthy vs. other cohorts)
@@ -158,11 +158,17 @@ function render_citerefs(text::AbstractString)
     return out
 end
 
+# The three *application* fields of the consolidated HRV knowledge base
+# (docs/references.bib). The KB's fourth field, "methods & foundations", is not
+# an application area — it is where each entry's seminal lineage lives, rendered
+# in the "## Citation" section instead. Field names follow the KB labeling
+# scheme (2026-08 citation-expansion run): clinical · sports & peak-performance
+# · contemplative practice · methods & foundations.
 const APPLICATION_DOMAINS = (:clinical, :sports, :meditation)
 const APPLICATION_DOMAIN_TITLE = Dict(
     :clinical   => "Clinical",
     :sports     => "Sports & peak performance",
-    :meditation => "Meditation & contemplation",
+    :meditation => "Contemplative practice",
 )
 const APPLICATION_COVERAGE_LABEL = Dict(
     "statistics"        => "**Coverage: statistics** — a large/pooled literature (reviews or meta-analyses exist)",
@@ -177,7 +183,8 @@ function applications_block(entry)
     io = IOBuffer()
     if info.apps === nothing
         println(io, "No applications literature was harvested for `$(entry.name)` in the 2026-07",
-                    " clinical / sports / meditation literature sweep (`hrv-applications-bibliography`",
+                    " clinical / sports-&-peak-performance / contemplative-practice literature sweep",
+                    " (`hrv-applications-bibliography`",
                     " workflow) — treat this measure as **sparse-or-none** on real-world application",
                     " evidence until a dedicated search is done. Its aliases and closest relatives may",
                     " have their own applications; see the [HRV Variable Zoo](index.md) overview.")
@@ -419,11 +426,11 @@ function write_entry(entry, s, figrel, has_plot; src_label = "pooled nsrdb+nsr2d
         println(io, @sprintf("| mean ± sd | %.4g ± %.4g |", s.mean, s.std))
         println(io, @sprintf("| n windows | %d |", s.n))
         println(io)
-        println(io, "_n varies by feature: pooled time/frequency/geometric features use the full",
-                    " nsrdb+nsr2db table (up to n = 56 472); the 13 nonlinear/entropy features are",
-                    " O(N²)/template-matching and are fit on a fixed-seed ≈3000-window subsample",
-                    " instead (`test/tools/collect_extended_features.jl`, seed 20260729); `ulf` uses a",
-                    " long-window NSRDB-only extraction (see its own page)._")
+        println(io, "_n varies by feature only through per-window validity over the full pooled",
+                    " nsrdb+nsr2db table (n up to 61 715; e.g. `sampen`/`mse` drop windows where the",
+                    " statistic is undefined). `ulf` is the one exception: a 360-beat (~5 min) window",
+                    " contains no ULF-band power, so it uses a long-window NSRDB-only extraction",
+                    " (see its own page)._")
     else
         println(io, "!!! warning \"No normative plot yet\"")
         println(io, "    `$(entry.name)` is declared in `Features.jl` but was **not** included in the")
@@ -442,6 +449,11 @@ function write_entry(entry, s, figrel, has_plot; src_label = "pooled nsrdb+nsr2d
     println(io)
     println(io, "*Evidence is reported at the measure-family level; a specific variant may not be the",
                 " exact index measured in every cited study.*")
+    println(io)
+    println(io, "The three areas below are the application fields of the consolidated",
+                " [HRV knowledge base](references.md) (clinical · sports & peak-performance ·",
+                " contemplative practice); the fourth KB field, *methods & foundations*, is this",
+                " measure's seminal lineage — see [§Citation](#Citation).")
     println(io)
     println(io, applications_block(entry))
 
@@ -504,9 +516,14 @@ function generate(name::AbstractString; df = nothing, extdf = nothing)
     entry = INVENTORY_BY_NAME[name]
     figrel = "figs/$(name).png"
 
-    # ── Extended features: originally absent from the windowed tables, now
-    #    supplied by windowed_w360_s120_features_extended.csv + fitted prior. ──
-    if haskey(EXT_PRIORS, name)
+    # ── Extended-extraction fallback ─────────────────────────────────────────
+    # Since the full 53-feature re-extraction (commit 472c970) the pooled
+    # nsrdb+nsr2db tables + docs/normative_priors.csv cover every feature, so
+    # this branch only fires when the pooled fit is NOT ok — in practice `ulf`,
+    # whose 360-beat (~5 min) windows contain no ULF-band power and which is
+    # therefore fitted from a long-window NSRDB-only extraction
+    # (windowed_w360_s120_features_extended.csv + normative_priors_extended.csv).
+    if haskey(EXT_PRIORS, name) && entry.prior_status != "ok"
         p = EXT_PRIORS[name]
         extdf === nothing && (extdf = CSV.read(EXTENDED, DataFrame))
         v = clean_column(extdf, name)

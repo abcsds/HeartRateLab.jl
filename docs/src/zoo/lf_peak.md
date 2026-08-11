@@ -16,7 +16,7 @@ Peak frequency in LF band. Formally: `argmax(PSD; 0.04; 0.15)`.
 
 ## What does *normal* look like?
 
-Fitted normative prior: **Normal(μ = 0.06436, σ = 0.01821)**  —  KS p < 1e-300, n = 56472.
+Fitted normative prior: **Normal(μ = 0.06419, σ = 0.01828)**  —  KS p = 2.5e-306, n = 61715.
 
 ![Normative distribution of lf_peak](figs/lf_peak.png)
 
@@ -29,10 +29,10 @@ Empirical distribution over the **pooled nsrdb+nsr2db** normative windows (360-b
 | median | 0.05926 |
 | IQR (25–75%) | 0.05 – 0.07143 |
 | 5–95% range | 0.04233 – 0.1 |
-| mean ± sd | 0.06436 ± 0.01821 |
-| n windows | 56472 |
+| mean ± sd | 0.06419 ± 0.01828 |
+| n windows | 61715 |
 
-_n varies by feature: pooled time/frequency/geometric features use the full nsrdb+nsr2db table (up to n = 56 472); the 13 nonlinear/entropy features are O(N²)/template-matching and are fit on a fixed-seed ≈3000-window subsample instead (`test/tools/collect_extended_features.jl`, seed 20260729); `ulf` uses a long-window NSRDB-only extraction (see its own page)._
+_n varies by feature only through per-window validity over the full pooled nsrdb+nsr2db table (n up to 61 715; e.g. `sampen`/`mse` drop windows where the statistic is undefined). `ulf` is the one exception: a 360-beat (~5 min) window contains no ULF-band power, so it uses a long-window NSRDB-only extraction (see its own page)._
 
 ## Use cases
 
@@ -43,6 +43,8 @@ _n varies by feature: pooled time/frequency/geometric features use the full nsrd
 ## Applications by area
 
 *Evidence is reported at the measure-family level; a specific variant may not be the exact index measured in every cited study.*
+
+The three areas below are the application fields of the consolidated [HRV knowledge base](references.md) (clinical · sports & peak-performance · contemplative practice); the fourth KB field, *methods & foundations*, is this measure's seminal lineage — see [§Citation](#Citation).
 
 ### Clinical
 
@@ -64,7 +66,7 @@ Heavily used for training-load/overreaching monitoring, anchored by a 27-study m
 
 **Key references:** [bellenger2016](@cite).
 
-### Meditation & contemplation
+### Contemplative practice
 
 **Coverage: statistics** — a large/pooled literature (reviews or meta-analyses exist).
 

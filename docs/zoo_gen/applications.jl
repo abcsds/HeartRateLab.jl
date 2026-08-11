@@ -20,7 +20,18 @@
 # bibliography-sourced caveats (contested constructs / disputed signs) flagged
 # during review.
 #
-# Consumed by make_entry.jl to render the "## Applications by area" section.
+# Consumed by make_entry.jl to render the "## Applications by area" section,
+# and by make_index.jl for the per-feature field-coverage facet (`C S P M`).
+#
+# 2026-08-11 — KB consolidation & citation-expansion: docs/references.bib was
+# consolidated with the forecasting + published-RACERS bibliographies and
+# citation-expanded via OpenAlex (61 → 543 entries; 89% of the field in one
+# connected citation component). The three application domains here map onto
+# the KB's field-labeling scheme — clinical · sports & peak-performance ·
+# contemplative practice (display name for :meditation) · methods & foundations
+# (the seminal map in citations.jl). All curated summaries/refs below predate
+# the expansion and survived the 2026-07 adversarial review; the expansion adds
+# breadth to the bibliography, it does not alter these verdicts.
 # ─────────────────────────────────────────────────────────────────────────────
 
 # coverage ∈ {"statistics", "individual-papers", "sparse-or-none"}

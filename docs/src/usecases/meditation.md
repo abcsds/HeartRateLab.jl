@@ -9,7 +9,7 @@ and by how much relative to a healthy baseline? Using the
 cohort and reads off its HRV signature as quantile *z*-equivalents.
 
 Features are scored against the pooled healthy prior
-(`nsrdb` + `nsr2db`, 56 472 windows, 360-beat windows / 120-beat stride) using the
+(`nsrdb` + `nsr2db`, 61 715 windows, 360-beat windows / 120-beat stride) using the
 quantile z-equivalent ``z = \Phi^{-1}(F_{\text{prior}}(x))``.
 
 ---
@@ -30,26 +30,32 @@ vagal-tone panel:
 
 | Feature | z-equivalent | Reading |
 |---------|-------------|---------|
-| [`mean`](../zoo/mean.md) (Mean IBI) | **+1.02** | longer inter-beat intervals (slower HR) |
-| [`pnn50`](../zoo/pnn50.md) | **+1.32** | more large beat-to-beat changes |
-| [`rmssd`](../zoo/rmssd.md) | **+0.94** | short-term vagal tone modestly elevated |
-| [`sdnn`](../zoo/sdnn.md) | **+0.90** | overall variability modestly elevated |
+| [`mean`](../zoo/mean.md) (Mean IBI) | **+0.99** | longer inter-beat intervals (slower HR) |
+| [`pnn50`](../zoo/pnn50.md) | **+0.71** | more large beat-to-beat changes |
+| [`rmssd`](../zoo/rmssd.md) | **+0.84** | short-term vagal tone modestly elevated |
+| [`sdnn`](../zoo/sdnn.md) | **+0.87** | overall variability modestly elevated |
 
 The longer Mean IBI together with elevated pNN50 is the expected fingerprint of a
 **vagally-dominant** state — consistent with the slowed, deepened breathing of
 meditation and its respiratory-sinus-arrhythmia coupling [akselrod1981](@cite),
 [taskforce1996](@cite).
 
-!!! warning "Reconciled numbers (2026-07-29)"
+!!! warning "Reconciled numbers (2026-07-29, re-referenced 2026-08-11)"
     These are the **reproducible recompute** from the shipped cohort, not the
-    original accepted-abstract values. A forensic audit found the abstract's
-    **RMSSD +0.62 / SDNN +0.78 do not reproduce** under any aggregation × method:
-    they imply observed medians (~42–45 / ~70–73 ms) *below* what the committed CSV
-    yields (49.98 / 74.68 ms), i.e. they came from an earlier feature extraction not
-    committed to this repo. Mean IBI +1.02 reproduces exactly; pNN50 is +1.32 under
-    the quantile method used here (+1.35 under moment z). The abstract's phrase
-    "reduced pNN50" is also an error — ``z = +1.32`` is an **increase**. Full audit:
+    original accepted-abstract values. A forensic audit (2026-07-29) found the
+    abstract's **RMSSD +0.62 / SDNN +0.78 do not reproduce** under any
+    aggregation × method: they imply observed medians (~42–45 / ~70–73 ms)
+    *below* what the committed CSV yields (49.98 / 74.68 ms), i.e. they came
+    from an earlier feature extraction not committed to this repo. The
+    abstract's phrase "reduced pNN50" is also an error — the pNN50
+    z-equivalent is an **increase** under every method tried. Full audit:
     [z-score reconciliation report](reports/zscore-reconciliation.html).
+
+    The audit itself scored against the earlier 56 472-window prior fit
+    (Mean IBI +1.02, pNN50 +1.32, RMSSD +0.94, SDNN +0.90). The table above
+    re-scores the **same unchanged cohort medians** against the current
+    61 715-window re-extraction and prior re-fit; the qualitative reading —
+    a broad vagal elevation — is unchanged.
 
 ## Takeaway
 

@@ -16,23 +16,23 @@ Calculate the coefficient of variation of the NN intervals (SDNN / mean).
 
 ## What does *normal* look like?
 
-Fitted normative prior: **Normal(μ = 0.06531, σ = 0.0334)**  —  KS p < 1e-300, n = 47890.
+Fitted normative prior: **Normal(μ = 0.06789, σ = 0.03368)**  —  KS p = 5e-115, n = 61715.
 
 ![Normative distribution of cvnni](figs/cvnni.png)
 
-Empirical distribution over the **NSR2DB** normative windows (360-beat windows, 120-beat stride), overlaid with the fitted `Normal` prior density. Vertical lines mark the median and the 5–95% range.
+Empirical distribution over the **pooled nsrdb+nsr2db** normative windows (360-beat windows, 120-beat stride), overlaid with the fitted `Normal` prior density. Vertical lines mark the median and the 5–95% range.
 
-### Normal-range summary (NSR2DB)
+### Normal-range summary (pooled nsrdb+nsr2db)
 
 | statistic | value |
 |---|---|
-| median | 0.05874 |
-| IQR (25–75%) | 0.04196 – 0.08075 |
-| 5–95% range | 0.02547 – 0.1282 |
-| mean ± sd | 0.06531 ± 0.0334 |
-| n windows | 47890 |
+| median | 0.06142 |
+| IQR (25–75%) | 0.04411 – 0.08405 |
+| 5–95% range | 0.02667 – 0.1312 |
+| mean ± sd | 0.06789 ± 0.03368 |
+| n windows | 61715 |
 
-_n varies by feature: pooled time/frequency/geometric features use the full nsrdb+nsr2db table (up to n = 56 472); the 13 nonlinear/entropy features are O(N²)/template-matching and are fit on a fixed-seed ≈3000-window subsample instead (`test/tools/collect_extended_features.jl`, seed 20260729); `ulf` uses a long-window NSRDB-only extraction (see its own page)._
+_n varies by feature only through per-window validity over the full pooled nsrdb+nsr2db table (n up to 61 715; e.g. `sampen`/`mse` drop windows where the statistic is undefined). `ulf` is the one exception: a 360-beat (~5 min) window contains no ULF-band power, so it uses a long-window NSRDB-only extraction (see its own page)._
 
 ## Use cases
 
@@ -43,6 +43,8 @@ _n varies by feature: pooled time/frequency/geometric features use the full nsrd
 ## Applications by area
 
 *Evidence is reported at the measure-family level; a specific variant may not be the exact index measured in every cited study.*
+
+The three areas below are the application fields of the consolidated [HRV knowledge base](references.md) (clinical · sports & peak-performance · contemplative practice); the fourth KB field, *methods & foundations*, is this measure's seminal lineage — see [§Citation](#Citation).
 
 ### Clinical
 
@@ -64,7 +66,7 @@ Comparatively under-used next to RMSSD in sports HRV monitoring — the field's 
 
 **Key references:** [bellenger2016](@cite).
 
-### Meditation & contemplation
+### Contemplative practice
 
 **Coverage: individual papers** — a small, scattered literature (no pooled meta-analysis).
 
