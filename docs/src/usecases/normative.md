@@ -6,7 +6,7 @@ An HRV number in isolation means little. Is an SDNN of 74 ms high, low, or
 unremarkable? The honest answer is *"compared to what?"* This use case builds the
 missing reference frame: a **normative prior** fitted from large open
 normal-sinus-rhythm datasets, against which any new window can be scored as a
-quantile *z*-equivalent — a single, interpretable "how unusual is this?" number
+quantile *z*-equivalent: a single, interpretable "how unusual is this?" number
 per feature.
 
 ## Method
@@ -43,8 +43,8 @@ population, gives the personal z-equivalent `baseline_z` used in the live tool.
 
 Because the prior families are asymmetric where the biology is asymmetric, the
 dispersion bands drawn around each feature are **distribution-aware central
-quantile intervals** — the 68.27 % / 95.45 % / 99.73 % intervals standing in for
-±1σ / ±2σ / ±3σ — rather than naive mean ± σ bands. The frequency-domain features
+quantile intervals**: the 68.27 % / 95.45 % / 99.73 % intervals standing in for
+±1σ / ±2σ / ±3σ, rather than naive mean ± σ bands. The frequency-domain features
 default to a **Welch periodogram** on the resampled RR series
 (`config["freq_method"] == :welch`), with the raw unevenly-sampled **Lomb–Scargle**
 periodogram [lomb1976](@cite), [scargle1982](@cite) available as an alternative
@@ -55,7 +55,7 @@ measurement conventions [taskforce1996](@cite).
 
 Before trusting a pooled prior, the two source datasets are compared directly. The
 between-dataset KDE overlay shows `nsrdb` and `nsr2db` tracing nearly the same
-feature distributions — evidence that "healthy" is a stable reference here and the
+feature distributions: evidence that "healthy" is a stable reference here and the
 pooling is legitimate.
 
 ![Between-dataset KDE: nsrdb vs nsr2db agree](figs/between_dataset_kde.png)
@@ -66,19 +66,17 @@ The scoring is wired into a real-time visualization. `default_normative()` draws
 the standard live HRV panels and overlays, on every panel, the personal-baseline
 percentile band (shaded low–high with a median line) plus, in each panel title,
 the current value's **percentile and z-equivalent**. So as beats stream in, each
-feature is continuously placed against the reference — the operational answer to
+feature is continuously placed against the reference: the operational answer to
 "is my data normal, right now?"
 
 The offline counterpart, `plot_normative_kde_comparison`, renders the same idea as
 a small-multiples grid: one KDE per feature, the fitted prior density overlaid as a
 dashed curve, and the σ-equivalent bands shaded behind it. The
-[meditation & resonant-breathing use case](meditation.md) shows this grid applied
-to two real cohorts.
+[meditation use case](meditation.md) shows this grid applied to a real cohort.
 
-!!! note "Descriptive, not diagnostic"
-    These priors are **descriptive references** from healthy cohorts, not clinical
-    thresholds. A large ``|z|`` means "unusual relative to this reference
-    population," not "abnormal" in any medical sense.
+These priors are descriptive references from healthy cohorts, not clinical
+thresholds. A large ``|z|`` means unusual relative to this reference
+population, not abnormal in any medical sense.
 
 ## Reproduce / where the data lives
 

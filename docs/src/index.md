@@ -6,6 +6,9 @@ CurrentModule = HeartRateLab
 
 A comprehensive Julia package for **Heart Rate Variability (HRV) analysis** combining feature extraction, mechanistic modeling, data-driven methods, and interactive visualization.
 
+!!! note
+    Parts of this documentation (the Variable Zoo entries, inventory, figures, and normative statistics) are generated from the code registry and the shipped datasets by the scripts in `docs/zoo_gen/`.
+
 ## Quick Start
 
 ### Extract HRV Features

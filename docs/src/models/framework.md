@@ -10,13 +10,13 @@ for simulation, parameter fitting, and evaluation.
 ## AbstractHRVModel Interface
 
 Every model must implement `simulate`. The `fit` and `parameter_space` methods are
-optional — only models that support parameter inference implement them.
+optional: only models that support parameter inference implement them.
 
 ```julia
 # Required for all models
 simulate(model::AbstractHRVModel, params::NamedTuple, n_beats::Int) -> Vector{Float64}
 
-# Optional — models that support fitting
+# Optional: models that support fitting
 fit(model::AbstractHRVModel, data::Vector{Float64}; method::Symbol, kwargs...) -> ModelFitResult
 parameter_space(model::AbstractHRVModel) -> NamedTuple
 ```
@@ -53,7 +53,7 @@ true
 ### `:analytical`
 
 Available on `LIF` only. Inverts the closed-form period formula for each measured IBI
-individually, yielding a per-beat current $I$ series. Instantaneous — no simulation or
+individually, yielding a per-beat current $I$ series. Instantaneous: no simulation or
 optimization is needed.
 
 ```julia

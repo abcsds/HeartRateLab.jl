@@ -90,7 +90,7 @@ println("Analyzed $(nrow(window_df)) windows of $window_size beats")
 first(window_df[:, [:window, :beat_start, :rmssd, :sdnn]], 5)
 ```
 
-*(not executed in the docs build — requires a display)*
+*(not executed in the docs build: requires a display)*
 
 ```julia
 # Plot feature evolution
@@ -104,7 +104,7 @@ Learn to fit mechanistic models and evaluate reproduction quality.
 
 ### Fit Multiple Models
 
-*(not executed in the docs build — model fitting is too slow and the figures require a display)*
+*(not executed in the docs build: model fitting is too slow and the figures require a display)*
 
 ```julia
 using HeartRateLab, DifferentialEquations, GLMakie
@@ -199,7 +199,7 @@ Use Dynamic Mode Decomposition for data-driven modeling.
 
 ### Fit and Reconstruct
 
-*(not executed in the docs build — model fitting)*
+*(not executed in the docs build: model fitting)*
 
 ```julia
 using HeartRateLab, LinearAlgebra, GLMakie
@@ -250,7 +250,7 @@ Create figures suitable for research papers.
 
 ### Single Plot
 
-*(not executed in the docs build — requires a display)*
+*(not executed in the docs build: requires a display)*
 
 ```julia
 using HeartRateLab, GLMakie
@@ -329,7 +329,7 @@ save("publication_figure.pdf", fig; pt_per_unit=1)
 
 Process multiple subjects and compute group statistics.
 
-*(not executed in the docs build — requires multi-subject recordings not shipped with the docs)*
+*(not executed in the docs build: requires multi-subject recordings not shipped with the docs)*
 
 ```julia
 using HeartRateLab

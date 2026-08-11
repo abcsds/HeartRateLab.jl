@@ -140,10 +140,6 @@ def write_md(inv):
     c = Counter(x["primary_domain"] for x in inv)
     md = [
         "# HRV Feature Inventory (Pokédex index)", "",
-        '!!! note "Auto-generated"',
-        "    This table is generated from `src/Features.jl` docstrings merged with the fitted",
-        "    normative priors in `docs/normative_priors.csv`. Do not edit by hand -- regenerate",
-        "    with `docs/zoo_gen/gen_inventory.py`.", "",
         "**53 user-facing features** (64 `@register function` declarations minus 11 internal "
         "representations, e.g. `diff`/`pgram`/`px`/`histogram`/`dfa`).",
         f"Domain split: **{c['time']} time**, **{c['frequency']} frequency**, "

@@ -1,10 +1,5 @@
 # HRV Feature Inventory (Pokédex index)
 
-!!! note "Auto-generated"
-    This table is generated from `src/Features.jl` docstrings merged with the fitted
-    normative priors in `docs/normative_priors.csv`. Do not edit by hand -- regenerate
-    with `docs/zoo_gen/gen_inventory.py`.
-
 **53 user-facing features** (64 `@register function` declarations minus 11 internal representations, e.g. `diff`/`pgram`/`px`/`histogram`/`dfa`).
 Domain split: **20 time**, **12 frequency**, **8 geometric**, **13 nonlinear**.
 **52** features have a fitted normative prior *and* a column in the pooled windowed feature tables (`test/testdata/{nsrdb,nsr2db}/windowed_w360_s120_features.csv`, full 53-feature re-extraction).

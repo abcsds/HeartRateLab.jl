@@ -5,10 +5,10 @@
 | | |
 |---|---|
 | **Aliases** | `rRR` |
-| **Domain** | `time` · `statistics` |
+| **Domain** | `time`, `statistics` |
 | **Distribution family** | `Gamma` |
 | **Equation** | `median(euclidean_dist(relRR; mean(relRR)))*100` |
-| **Resource intensity** | ◍◍◌◌◌  low — _Level 1–2 (base statistics over successive differences)._ (measured, see §Resources) |
+| **Resource intensity** | ◍◍◌◌◌  low, _Level 1–2 (base statistics over successive differences)._ (measured, see §Resources) |
 
 ## Definition
 
@@ -16,7 +16,7 @@ Median relative RR interval distance. Formally: `median(euclidean_dist(relRR; me
 
 ## What does *normal* look like?
 
-Fitted normative prior: **Gamma(α = 4.165, θ = 0.8806)**  —  KS p = 3.5e-172, n = 61715.
+Fitted normative prior: **Gamma(α = 4.165, θ = 0.8806)**, KS p = 3.5e-172, n = 61715.
 
 ![Normative distribution of rRR](figs/rRR.png)
 
@@ -44,15 +44,13 @@ _n varies by feature only through per-window validity over the full pooled nsrdb
 
 *Evidence is reported at the measure-family level; a specific variant may not be the exact index measured in every cited study.*
 
-The three areas below are the application fields of the consolidated [HRV knowledge base](references.md) (clinical · sports & peak-performance · contemplative practice); the fourth KB field, *methods & foundations*, is this measure's seminal lineage — see [§Citation](#Citation).
-
-No applications literature was harvested for `rRR` in the 2026-07 clinical / sports-&-peak-performance / contemplative-practice literature sweep (`hrv-applications-bibliography` workflow) — treat this measure as **sparse-or-none** on real-world application evidence until a dedicated search is done. Its aliases and closest relatives may have their own applications; see the [HRV Variable Zoo](index.md) overview.
+No dedicated applications literature was harvested for `rRR`; treat its application evidence as sparse until a dedicated search is done. Its aliases and closest relatives may have their own applications; see the [HRV Variable Zoo](index.md) overview.
 
 See the [effect-distribution meta-analysis](../usecases/effect-distributions.md) page for the harvested per-study effect sizes/p-values behind these domain summaries (`docs/zoo_gen/effect_stats.csv`).
 
 ## Resources
 
-Resource-intensity rank **◍◍◌◌◌  low** is **measured** — median wall-clock time + allocations over a 360-beat window on synthetic realistic RR (`docs/zoo_gen/bench_resources.jl`; full grid in `resource_bench.csv`).
+Resource-intensity rank **◍◍◌◌◌  low** is measured: median wall-clock time and allocations over a 360-beat window on synthetic realistic RR (`docs/zoo_gen/bench_resources.jl`; full grid in `resource_bench.csv`).
 
 | metric (360-beat window) | value |
 |---|---|
@@ -64,7 +62,7 @@ Resource-intensity rank **◍◍◌◌◌  low** is **measured** — median wall
 
 ## Citation
 
-Vollmer (2015) — a robust, simple relative-RR measure of HRV.
+Vollmer (2015): a robust, simple relative-RR measure of HRV.
 
 **Seminal reference(s):** [vollmer2015](@cite).
 

@@ -10,10 +10,10 @@ time series. Two are mechanistic (grounded in physiology or physics), one is cha
 
 | Model | Type | Fit Methods |
 |-------|------|-------------|
-| [LIF](@ref lif-page) | Mechanistic ODE — cardiac pacemaker | `:analytical`, `:gradient`, `:bayesian` |
-| [Van der Pol](@ref vdp-page) | Mechanistic ODE — nonlinear oscillator | `:gradient`, `:bayesian` |
-| [Lorenz](@ref lorenz-page) | Chaotic ODE — butterfly attractor | `:bayesian` |
-| [DMD](@ref dmd-page) | Data-driven — spectral decomposition | SVD (no fitting methods) |
+| [LIF](@ref lif-page) | Mechanistic ODE: cardiac pacemaker | `:analytical`, `:gradient`, `:bayesian` |
+| [Van der Pol](@ref vdp-page) | Mechanistic ODE: nonlinear oscillator | `:gradient`, `:bayesian` |
+| [Lorenz](@ref lorenz-page) | Chaotic ODE: butterfly attractor | `:bayesian` |
+| [DMD](@ref dmd-page) | Data-driven: spectral decomposition | SVD (no fitting methods) |
 
 ## Shared Interface
 

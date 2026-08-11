@@ -201,7 +201,7 @@ CSV.write("output.csv", df)
 ## Troubleshooting
 
 ### Issue: "Module not found"
-**Solution:** Make sure HeartRateLab is installed (from the GitHub URL — the package is not yet in the General registry):
+**Solution:** Make sure HeartRateLab is installed:
 ```julia
 using Pkg
 Pkg.add(url="https://github.com/abcsds/HeartRateLab.jl")

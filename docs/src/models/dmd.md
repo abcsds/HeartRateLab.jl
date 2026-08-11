@@ -19,7 +19,7 @@ The fitting pipeline has five steps:
 ### 1. Mean centering
 
 The temporal mean $\mu$ of the series is subtracted *before* the embedding
-(affine / constant-mode handling) and added back — never rescaled — at
+(affine / constant-mode handling) and added back, never rescaled, at
 reconstruction.
 
 ### 2. Hankel Embedding
@@ -61,7 +61,7 @@ $\lambda_i$ and eigenvectors $W$. The **dynamic modes** are:
 
 Each retained eigenvalue is projected onto the unit circle
 ($\lambda \to \lambda / |\lambda|$), preserving its frequency while making the
-free run marginally stable — oscillations are sustained rather than decaying or
+free run marginally stable: oscillations are sustained rather than decaying or
 exploding.
 
 ### 5. Global least-squares amplitudes and reconstruction
@@ -75,13 +75,13 @@ x(t) \approx \mu + \operatorname{Re}\!\left(\sum_{i=1}^{r} b_i \, \lambda_i^{t-1
 ```
 
 The physiological 300–2000 ms clip is applied only as an **output guard** in
-`simulate` — the mean is always the data mean $\mu$.
+`simulate`: the mean is always the data mean $\mu$.
 
 ## Honest limit
 
 RR tachograms are broadband / aperiodic. A low-rank linear model recovers the
 mean and the dominant LF oscillation, but **cannot reproduce the full broadband
-variance** without over-shooting — the corresponding variance check in the test
+variance** without over-shooting: the corresponding variance check in the test
 suite is an explicit `@test_broken`. DMD is deliberately kept as the *weaker
 baseline* generative model in HeartRateLab; its real strength for RR is
 short-horizon prediction via [`forecast`](@ref).
@@ -94,7 +94,7 @@ short-horizon prediction via [`forecast`](@ref).
 | `d` | 50 | Delay / embedding dimension of the Hankel matrix (clamped to $\lfloor n/2 \rfloor$). Use ≈100 for faster-mean records. |
 | `energy` | 0.99 | SVD energy fraction used to pick the retained rank $r$. |
 
-DMD has no `parameter_space` — it is entirely data-driven and has no priors to
+DMD has no `parameter_space`: it is entirely data-driven and has no priors to
 sample. `rank`, `d`, and `energy` are structural knobs of the decomposition, not
 fitted physiological parameters.
 
