@@ -10,9 +10,135 @@
 
 .center-xy {
   margin: 0;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  -ms-transform: translateY(-50%), translateX(-50%);
-  transform: translateY(-50%), translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;   /* stretch, so the plot fills the width (not shrink to content) */
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Interactive Bokeh co-authorship network: fill the slide. */
+.reveal .slides iframe.coauth-frame {
+  display: block;
+  width: 100%;
+  height: 860px;
+  border: none;
+  background: #ffffff;
+}
+
+/* Optical-sensor photos (Interbeat down-slide): fill the column, rounded. */
+.reveal .slides img.sensor-photo {
+  display: block;
+  margin: 0.3em auto 0;
+  max-height: 660px;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  border-radius: 12px;
+}
+
+/* Thank-you slide: centred ring animation in a FIXED SQUARE box. The source gif
+   is 1100×1100 (a true circle); pinning equal width+height with object-fit keeps
+   it round instead of letting reveal's auto-stretch squash it. */
+.reveal .slides .thanks-wrap { text-align: center; }
+.reveal .slides .thanks-wrap em { color: #6a3fb0; font-size: 0.85em; }
+.reveal .slides .hrl-ring {
+  display: block;
+  margin: 0.1em auto 0.2em;
+  width: 500px !important;
+  height: 500px !important;
+  object-fit: contain;
+}
+
+/* Scientific-agents (Wanderers) figures: fill the slide. */
+.reveal .slides .sci-fig {
+  display: block;
+  margin: 0.3em auto 0;
+  max-width: 100%;
+  max-height: 820px;
+  width: auto;
+  height: auto;
+}
+
+/* Model figures on the Dynamic Systems down-slides: fit the slide height. */
+.reveal .slides img.model-fig {
+  display: block;
+  margin: 0.2em auto 0;
+  max-height: 780px;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+}
+
+/* ---- Make every computed plot fill the slide -------------------------------
+   The plot chunks use `#| output: slide`, so each Makie figure sits on its own
+   output slide. Scale the output image up to use the whole slide instead of
+   floating small. Only targets computed cell outputs — markdown images (logos,
+   model figures, comp-graph) keep their own sizing. */
+.reveal .slides .cell-output,
+.reveal .slides .cell-output-display,
+.reveal .slides .cell-output-display > p {
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  text-align: center;
+}
+/* Two-column plot slides ONLY: when a column actually contains a computed plot,
+   give that column the lion's share and shrink its plain sibling. Scoped with
+   `.columns:has(.cell-output-display)` so plain text/code/image two-column rows
+   (Overview, Introduction, Bayesian, …) are left completely untouched. */
+.reveal .slides .columns:has(> .column .cell-output-display) > .column:has(.cell-output-display) {
+  flex: 0 0 68% !important;
+  max-width: 68% !important;
+  width: 68% !important;
+}
+.reveal .slides .columns:has(> .column .cell-output-display) > .column:not(:has(.cell-output-display)) {
+  flex: 0 0 32% !important;
+  max-width: 32% !important;
+  width: 32% !important;
+}
+.reveal .slides .cell-output-display img,
+.reveal .slides .cell-output-display svg,
+.reveal .slides .cell-output img {
+  display: block;
+  margin: 0.2em auto 0;
+  width: 100% !important;      /* beat Quarto's inline width="960" */
+  max-width: 100%;
+  height: auto !important;
+  max-height: 900px;
+}
+
+/* ---- The HeartRateLab: logo-only slide (no title, no DataFrame) ------------ */
+.reveal .slides section.hrl-logo-slide > h1,
+.reveal .slides section.hrl-logo-slide .quarto-title-block {
+  display: none;
+}
+.reveal .slides .hrl-wordmark {
+  display: block;
+  margin: 0 auto;
+  max-height: 620px;
+  width: auto;
+  max-width: 92%;
+}
+
+/* Bayesian slide: the code fits vertically, so don't let reveal/Quarto add a
+   scrollbar to the code block — show it in full. */
+#bayesian-inference-and-statistical-modeling pre,
+#bayesian-inference-and-statistical-modeling pre code,
+#bayesian-inference-and-statistical-modeling .sourceCode {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* Feature-Extraction computational graph: hard-cap the height so it always
+   fits the slide (reveal's .r-stretch mis-sizes under `center: true`). The
+   graph is generated landscape (ratio=fill), so max-width rarely binds. */
+.reveal .slides img.compgraph {
+  display: block;
+  margin: 0.2em auto 0;
+  max-height: 850px;
+  max-width: 100%;
+  width: auto;
+  height: auto;
 }

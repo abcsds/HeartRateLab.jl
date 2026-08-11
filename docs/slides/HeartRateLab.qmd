@@ -1,5 +1,5 @@
 ---
-title: "Heart Rate Lab"
+title: "The HeartRateLab.jl: a toolkit for heart beats time series"
 author: "Alberto Barradas"
 format: 
   revealjs:
@@ -10,15 +10,18 @@ format:
     history: true
     # transition: 'slide'
     # theme: 'black'
-    theme: 'white'
+    theme: [default, juliacon2026-template/juliacon2026.scss]
     width: 1920
     height: 1080
     margin: 0.1
+    navigation-mode: vertical
     preview-links: auto
-    # logo: img/Neurociencias_Color.png
-    # logo: img/TU_Graz.png
-    logo: img/logos.png
+    # Institutional logos come from the theme's title-slide logo bar,
+    # not a per-slide corner logo:
+    # logo: img/logos.png
     css: styles.css
+    title-slide-attributes:
+      data-background-gradient: "linear-gradient(160deg, #2b0836 0%, #1a0526 52%, #120118 100%)"
     # hash: true
     # separator: '^\n---\n'
     # verticalSeparator: '^\n--\n'
@@ -42,40 +45,48 @@ bibliography: references.bib
 
 ## Overview
 
+<!-- ========================================================================
+     SLIDE-STRUCTURE CHEAT-SHEET   (this deck uses navigation-mode: vertical)
+     NOTE: this comment lives INSIDE the Overview slide on purpose - any content
+     (even a comment) placed BEFORE the first heading becomes a stray empty slide.
+
+     MOVE A SLIDE
+       * to the SIDE (→): give it a `# Title` (starts its own section), or move
+         it above the section's first `##`.
+       * to the BOTTOM (↓) of another: give it `## Title` and place it directly
+         under the `# Section` you want it beneath.
+       (!) A `# Section` CAPTURES every following `##` until the next `#`. So
+         re-leveling one heading can pull the slides under/over it - re-level in
+         pairs and glance at the ↓ tree after.
+
+     HIDE / COMMENT-OUT A SLIDE  (its code still executes)
+       * add `{data-visibility="hidden"}` to the heading, e.g.
+             ## Some slide {data-visibility="hidden"}
+         delete the attribute to turn it back on.
+       * to remove it entirely (and skip its code) wrap it in an HTML comment.
+     ======================================================================== -->
+
 :::: {.columns}
 
 ::: {.column width=50%}
-- Introduction
-- HRV Measurements
-- The HeartRateLab
-    - Preprocessing
-    - Feature Exploration
-    - Dynamic Systems Modeling
-    - Statistical Modeling
-    - Deep Learning
-    - Visualization
-- Problem Solving with the HeartRateLab
-
+- Existing efforts
+- Introduction to HRV
+- Inter-Beat-Intervals
+- HRV Domains and Metrics
 :::
 
 ::: {.column width=50%}
-- What do we do with the HeartRateLab?
-    - Arousal and Relaxation
-    - Cognitive Mental Workload
-    - Attention and Dual-Tasking
-    - Attentional Networks
-    - *Facial Expression Observation
-    - *Ocular Rivalry and Concious Perception
-    - *Cognitive Flexibility
-    - Heart Rate Variability Biofeedback
-    - Mindfulness and Contemplative Practices
-    - Neurodiversity, ADHD, and Autism
-- Future Work
+- The HeartRateLab
+    - Preprocessing
+    - Feature Domains
+    - Modeling
+- Applications
+- Metascience and Agentic tools
 :::
 
 ::::
 
-## Slides with code
+## Slides with code {data-visibility="hidden"}
 :::: {.columns}
 
 ::: {.column width=50%}
@@ -93,10 +104,10 @@ Slides in this presentation are written in [Quarto](https://quarto.org/), a lite
 #| fig-cap: "Installing necessary packages"
 using Pkg;
 # Pkg.add("HypothesisTests")
-Pkg.activate("./docs/slides")
+Pkg.activate(@__DIR__)
 # Pkg.add(url="https://github.com/abcsds/LSL.jl")
 # Pkg.add(url="https://github.com/abcsds/DFA.jl")
-# Pkg.add(path=".")
+# Pkg.add(path=joinpath(@__DIR__, "..", ".."))
 # Pkg.add(["StatsBase", "GLMakie", "SequentialSamplingModels"])
 # Pkg.instantiate();
 # Pkg.precompile();
@@ -113,16 +124,14 @@ using HeartRateLab: HeartRateLab
 
 ---
 
-## Introduction
+## HRV Analysis
 
 :::: {.columns}
 
 ::: {.column width=50%}
-- Cardiac Cycle and Heart Rate
-- Heart Rate Variability (HRV)
-- Factors that influence HRV
-- Correlations found in HRV studies
-- Applications of HRV in research and practice
+- ~~Electro Cardiography (ECG)~~
+- photoplethysmography (PPG)
+- Series of inter-beat-intervals (IBIs)
 :::
 
 ::: {.column width=50%}
@@ -131,17 +140,17 @@ using HeartRateLab: HeartRateLab
     - [PyCardio](https://javierfm27.github.io/)
     - [PyHRV](https://github.com/PGomes92/pyhrv)
     - [PyNeuroKit2](https://github.com/neuropsychology/NeuroKit/tree/master/neurokit2/hrv)
-    - [HeartRateVariablitiy.jl](https://github.com/LiScI-Lab/HeartRateVariability.jl)
+    - [HeartRateVariability.jl](https://github.com/LiScI-Lab/HeartRateVariability.jl)
     - [Kubios](https://www.kubios.com/)
 :::
 :::
 ::::
 
-## Cardiac Cycle and Heart Rate
+## Cardiac Cycle and Heart Rate {data-visibility="hidden"}
 
 ![By Guido4 - Own work http://www.hegasy.de/, CC BY-SA 4.0, https://commons.wikimedia.org/w/index.php?curid=63765394](./img/07_Hegasy_Cardiac_Cycle_Wiki_EN_CCBYSA.png)
 
----
+## Cardiac Cycle and Heart Rate
 
 ![By DrJanaOfficial - Own work: Cardiac Cycle, Wiggers diagram derived from User:Xavax, CC BY-SA 4.0, https://commons.wikimedia.org/w/index.php?curid=54393545](./img/Cardiac-Cycle-Animated.gif)
 
@@ -187,9 +196,9 @@ using HeartRateLab: HeartRateLab
 #| echo: true
 #| output: slide
 #| label: read-txt
-# infile = "./test/testdata/example.txt"
-# infile = "./test/testdata/e1304.txt"
-infile = "./docs/slides/example.xdf"
+# infile = joinpath(@__DIR__, "..", "..", "test", "testdata", "example.txt")
+# infile = joinpath(@__DIR__, "..", "..", "test", "testdata", "e1304.txt")
+infile = joinpath(@__DIR__, "example.xdf")
 data = Float64.(HeartRateLab.read_xdf(infile))
 
 println("Data loaded from: ", infile)
@@ -207,16 +216,24 @@ println("Type of data: ", typeof(data))
 :::
 ::::
 
-## HRV Measurements
+## Optical (PPG) sensors
+
+:::: {.columns}
+::: {.column width=50%}
+![Polar Verity Sense - optical armband](./img/sensors/polar_verity_sense.jpg){.sensor-photo}
+:::
+::: {.column width=50%}
+![COROS Heart Rate Monitor - optical armband](./img/sensors/coros_hrm.jpg){.sensor-photo}
+:::
+::::
+
+## Data Output
 
 :::: {.columns}
 
 ::: {.column width=40%}
 
-- Time and Statistical Domain
-- Frequency Domain
-- Geometric Domain
-- Nonlinear Domain
+Although some heart rate bands have the capability of recording ECG, communicating the **IBIs** is more effective for low energy devices.
 
 :::
 
@@ -312,6 +329,13 @@ hlines!(ax, mean(x[]), label="Mean Heart Rate", linestyle=:dash, color=:coral, l
 f
 ```
 
+# HRV Domains and Features
+
+- **Time & statistics**
+- **Frequency**
+- **Geometric**
+- **Nonlinear**
+
 ## Time Domain
 
 :::: {.columns}
@@ -390,11 +414,15 @@ zero_line = Observable(zeros(length(x[])))
 lines!(ax, t, x, color=:teal)
 # Band above zero
 # band(x, ylower, yupper; kwargs...)
-band!(ax, t, zero_line, x_above_zero, 
+band!(ax, t, zero_line, x_above_zero,
     color=:teal, alpha=0.5)
-band!(ax, t, zero_line, x_below_zero, 
+band!(ax, t, zero_line, x_below_zero,
     color=:coral, alpha=0.5)
-scatter!(ax, t, x, color=:red, markersize=5)
+# The +/-50 ms threshold: successive differences beyond it are the ones counted
+# by pNN50. Paint those beats blue, the rest red.
+hlines!(ax, [50.0, -50.0], color=:gray, linestyle=:dash, linewidth=1)
+pnn50_color = [abs(v) > 50 ? :blue : :red for v in x[]]
+scatter!(ax, t, x, color=pnn50_color, markersize=8)
 f
 ```
 
@@ -584,79 +612,49 @@ f
 #| output: slide
 #| label: dfa
 
-scales, fluc = DFA.dfa(data, boxmin=4, boxmax=64, boxratio=2, overlap=0.0)
-log_scales1 = log10.(scales)
-log_fluc1 = log10.(fluc)
-f = Figure(size=(1200, 600));
-ax1 = Axis(f[1, 1], 
-    title="Log-scale Fluctuation 4-64",
-    xlabel="log10(Scale)",
-    ylabel="log10(Fluctuation)",
-)
-scatter!(ax1, log_scales1, log_fluc1, color=:blue, markersize=5)
-intercept1, α1 = DFA.polyfit(log_scales1, log_fluc1)
-x = range(minimum(log_scales1), maximum(log_scales1), length=100)
-y = intercept1 .+ α1 .* x
-lines!(ax1, x, y, color=:red, linewidth=1, linestyle=:dash)
-# f
+# Congruent with HeartRateLab's DFA defaults (Features.config): an INTEGER box
+# grid, order-1 detrending, non-overlapping windows - α1 over boxes 4-16 and
+# α2 over 16-64.
+ns   = collect(4:64)
+fluc = [DFA.dfa(data, k; order=1, overlap=0.0) for k in ns]
+logn = log10.(Float64.(ns))
+logf = log10.(fluc)
 
-scales, fluc = DFA.dfa(data, boxmin=4, boxmax=16, boxratio=2, overlap=0.0)
-log_scales2 = log10.(scales)
-log_fluc2 = log10.(fluc)
-ax2 = Axis(f[1, 2], 
-    title="Log-scale Fluctuation 4-16",
-    xlabel="log10(Scale)",
-    ylabel="log10(Fluctuation)",
+i1 = findall(n -> 4 <= n <= 16, ns)     # α1 (short-term) boxes
+i2 = findall(n -> 16 <= n <= 64, ns)    # α2 (long-term) boxes
+b1, α1 = DFA.polyfit(logn[i1], logf[i1])
+b2, α2 = DFA.polyfit(logn[i2], logf[i2])
+
+f = Figure(size=(1400, 650));
+ax = Axis(f[1, 1],
+    title="DFA on this recording:  α1 = $(round(α1, digits=3))   |   α2 = $(round(α2, digits=3))",
+    xlabel="log10(box size n)",
+    ylabel="log10 F(n)",
 )
-scatter!(ax2, log10.(scales), log10.(fluc), color=:blue, markersize=5)
-intercept2, α2 = DFA.polyfit(log_scales2, log_fluc2)
-x = range(minimum(log_scales2), maximum(log_scales2), length=100)
-y = intercept2 .+ α2 .* x
-lines!(ax2, x, y, color=:red, linewidth=1, linestyle=:dash)
-linkxaxes!(ax1, ax2)
-linkyaxes!(ax1, ax2)
+scatter!(ax, logn, logf, color=:black, markersize=8)
+x1 = range(minimum(logn[i1]), maximum(logn[i1]), length=50)
+lines!(ax, x1, b1 .+ α1 .* x1, color=:crimson, linewidth=3,
+    label="α1 (4-16) = $(round(α1, digits=3))")
+x2 = range(minimum(logn[i2]), maximum(logn[i2]), length=50)
+lines!(ax, x2, b2 .+ α2 .* x2, color=:royalblue, linewidth=3,
+    label="α2 (16-64) = $(round(α2, digits=3))")
+axislegend(ax; position=:lt)
 f
 ```
 :::
 ::::
 
---- 
+
+# The HeartRateLab {.hrl-logo-slide}
+
+![](./img/hrl-side.gif){.hrl-wordmark}
 
 ```{julia}
-scales, fluc = DFA.dfa(data, boxmin=16, boxmax=64, boxratio=2, overlap=0.0)
-log_scales3 = log10.(scales)
-log_fluc3 = log10.(fluc)
-ax3 = Axis(f[1, 3],
-    title="Log-scale Fluctuation 16-64",
-    xlabel="log10(Scale)",
-    ylabel="log10(Fluctuation)",
-)
-intercept3, α3 = DFA.polyfit(log_scales3, log_fluc3)
-x = range(minimum(log_scales3), maximum(log_scales3), length=100)
-y = intercept3 .+ α3 .* x
-lines!(ax3, x, y, color=:red, linewidth=1, linestyle=:dash)
-linkxaxes!(ax1, ax2)
-linkyaxes!(ax1, ax2)
-linkxaxes!(ax1, ax3)
-linkyaxes!(ax1, ax3)
-f
-```
-
-
-## The HeartRateLab
-
-:::: {.columns}
-::: {.column width=50%}
-![The HeartRateLab (placeholder logo)](./img/HRLLogoPlaceholder.png)
-:::
-::: {.column width=50%}
-```{julia}
+#| include: false
 ds = HeartRateLab.Features.extract_feature_set(
     data, features=["vlf", "rmssd"]
 )
 ```
-:::
-::::
 
 ## Preprocessing
 
@@ -668,7 +666,7 @@ ds = HeartRateLab.Features.extract_feature_set(
 - Input as XDF: sub ms precision, markers
 - Live input from LSL:
   - Synchronized signals and data
-  - Combine with myraid of other devices
+  - Combine with myriad of other devices
 :::
 
 ::: {.column width=30%}
@@ -696,10 +694,8 @@ ds = HeartRateLab.Features.extract_feature_set(
 :::
 ::::
 
----
+## Raw data
 
-:::: {.columns}
-::: {.column width=50%}
 ```{julia}
 #| echo: true
 #| output: slide
@@ -717,9 +713,9 @@ stem!(ax, t, x, color=:red)
 ylims!(ax, (minimum(n) - 20, maximum(n) + 20))
 f
 ```
-:::
 
-::: {.column width=50%}
+## Ectopic-beat removal
+
 ```{julia}
 #| echo: true
 #| output: slide
@@ -743,137 +739,14 @@ scatter!(ax, t, x, color=:blue, markersize=5, label="Ectopic Beats Removed")
 
 f
 ```
-:::
-::::
 
 ## Feature Extraction
 
-```{mermaid}
+![](computational-graph.svg){.compgraph}[^compgraph]
 
-%% {init: {"flowchart": {"curve":"stepBefore"}} }%%
-flowchart TB
-  RawData
-  %% Level 1: Base Statistics & Representations
-  subgraph subGraph0["Level 1: Base Statistics & Representations"]
-    mean((mean))
-    sdnn((sdnn))
-    median((median))
-    max((max))
-    min((min))
-    diff((diff))
-    length((length))
-    duration((duration))
-  end
+[[Open the full vertical graph]{.compgraph-zoomlink}](computational-graph-tall.svg){target="_blank" title="Opens the tall, full-resolution computational graph in a new tab"}
 
-  %% Level 2: HR & Time Domain
-  subgraph subGraph1["Level 2: HR & Time Domain"]
-    mean_hr([mean_hr])
-    std_hr([std_hr])
-    max_hr([max_hr])
-    min_hr([min_hr])
-    sdsd([sdsd])
-    range([range])
-    rmssd([rmssd])
-    sdann([sdann])
-    pnn50([pnn50])
-    pnn20([pnn20])
-    cvsd([cvsd])
-    rRR([rRR])
-  end
-
-  %% Frequency
-  subgraph subGraph2["Frequency Domain"]
-    pgram((Frequency Periodogram))
-    max_t([max_t])
-    ulf([ulf])
-    vlf([vlf])
-    lf([lf])
-    hf([hf])
-    tp([tp])
-    lf_peak([lf_peak])
-    hf_peak([hf_peak])
-    lf_hf_ratio([lf_hf_ratio])
-    lf_relative([lf_relative])
-    hf_relative([hf_relative])
-    lf_percentage([lf_percentage])
-    hf_percentage([hf_percentage])
-  end
-
-    %% Geometric
-    subgraph subGraph3["Geometric Features"]
-        px((px))
-        py((py))
-        histogram((histogram))
-        sd1([sd1])
-        sd2([sd2])
-        sd2_sd1([sd2/sd1])
-        sd1_sd2_area([sd1_sd2_area])
-        cvi([cvi])
-        ccsi([ccsi])
-        triangular_index([triangular_index])
-        tinn([tinn])
-    end
-
-    %% Nonlinear
-    subgraph subGraph4["Nonlinear Features"]
-        apen((apen))
-        sampen((sampen))
-        hurst((hurst))
-        renyi((renyi))
-        renyi0([renyi0])
-        renyi1([renyi1])
-        renyi2([renyi2])
-        dfa((dfa))
-        dfa1([dfa1])
-        dfa2([dfa2])
-    end
-
-    %% Node linkages 
-    RawData --> median & mean & sdnn & max & min & diff & length & duration & pgram & px & py & renyi & dfa & hurst & apen & sampen & histogram
-    mean --> mean_hr & sdann & cvsd
-    sdnn --> std_hr & sdsd
-    max --> max_hr & range
-    min --> min_hr & range
-    diff --> sdsd & rmssd & pnn50 & pnn20 & rRR
-    length --> pnn50 & pnn20 & triangular_index
-    sdsd --> cvsd
-    duration --> max_t
-    max_t --> ulf
-    pgram --> ulf & vlf & lf & hf & tp & lf_peak & hf_peak
-    lf --> lf_hf_ratio & lf_relative
-    hf --> lf_hf_ratio & hf_relative
-    tp --> lf_relative & hf_relative
-    lf_relative --> lf_percentage
-    hf_relative --> hf_percentage
-    px --> sd1 & sd2
-    py --> sd1 & sd2
-    sd1 --> sd2_sd1 & sd1_sd2_area & cvi & ccsi
-    sd2 --> sd2_sd1 & sd1_sd2_area & cvi & ccsi
-    histogram --> triangular_index & tinn
-    renyi --> renyi0 & renyi1 & renyi2
-    dfa --> dfa1 & dfa2
-
-  %% Color themes by class
-  classDef basic fill:#cde4f7,stroke:#333,stroke-width:2px;
-  classDef time fill:#efe7fa,stroke:#888,stroke-width:2px;
-  classDef freq fill:#ecf3e6,stroke:#888,stroke-width:2px;
-  classDef geom fill:#fdf4e3,stroke:#888,stroke-width:2px;
-  classDef nl fill:#e3f7f3,stroke:#888,stroke-width:2px;
-  classDef leaf fill:#f2f2f2,stroke:#bbb,stroke-width:1px,stroke-dasharray: 3 2;
-
-  class mean,sdnn,median,max,min,diff,length,duration basic;
-  class mean_hr,std_hr,max_hr,min_hr,sdsd,range,rmssd,sdann,pnn50,pnn20,cvsd,rRR time;
-  class pgram,max_t,ulf,vlf,lf,hf,tp,lf_peak,hf_peak,lf_hf_ratio,lf_relative,hf_relative,lf_percentage,hf_percentage freq;
-  class px,py,histogram,sd1,sd2,sd2_sd1,sd1_sd2_area,cvi,ccsi,triangular_index,tinn geom;
-  class apen,sampen,hurst,renyi,renyi0,renyi1,renyi2,dfa,dfa1,dfa2 nl;
-  class n1,n2 leaf;
-
-  %% Bolder title
-  linkStyle default stroke-width:1.3px,opacity:0.85;
-```
-[^mermaid]
-
-[^mermaid]: This diagram was created using [Mermaid](https://www.mermaidchart.com/app/projects/6610a32b-227b-43a9-b1fa-b89efed43c9a/diagrams/dcfcaeb2-4ede-4954-afd6-3518e25ddb14/version/v0.1/edit)
+[^compgraph]: Graph laid out with Graphviz from the live `Features.jl` registry (`gen_compgraph_dot.py`): every parent-to-child dependency, the domain of each node, the representation/feature split and the distribution families are taken directly from the registered docstrings.
 
 
 ## Rolling Window Features
@@ -1041,36 +914,39 @@ f
 ::::
 
 
-## Dynamic Systems
+# Dynamic Systems
 
-:::: {.columns}
-::: {.column width=50%}
-- LIF
-- VanDerPol
-- Lorenz
-- Dynamic Mode Decomposition
-- Delayed Differential Analysis
-:::
-::: {.column width=50%}
+Generative models of the IBI series.
 
+- **Dynamic Mode Decomposition** - data-driven modal reconstruction
+- **VanDerPol** - nonlinear relaxation oscillator
+- **Lorenz** - deterministic chaos
+- **LIF** - leaky integrate-and-fire pacemaker
 
-![Van der Pol Oscillator, By Ashraful - Own work using Matlab program., CC BY-SA 3.0, https://commons.wikimedia.org/w/index.php?curid=116710259
-](./img/Phase_portrait_(Van_der_Pol_oscillator).jpg)
+## Dynamic Mode Decomposition
 
-:::
-::::
+![DMD on our IBI series - mode spectrum (top) and reconstruction against the real data (bottom). A low-rank linear model recovers the mean and the dominant low-frequency oscillation.](./img/model_dmd.png){.model-fig}
+
+## Van der Pol
+
+![Van der Pol phase portrait - vector field with trajectories converging to the limit cycle (red); mu = 0.63 fitted to our IBI data.](./img/model_vanderpol_quiver.png){.model-fig}
+
+## Van der Pol - animated
+
+![Van der Pol relaxation oscillator - the trajectory (red dot) spirals onto the limit cycle in phase space, with X(t), Y(t) and the resulting inter-beat intervals read out over time.](./img/model_vanderpol_anim.gif){.model-fig}
+
+## Lorenz
+
+![Lorenz system (x-z): the trajectory wanders the two wings; every peak in z (red) is read out as a heartbeat, and the peak-to-peak gaps become inter-beat intervals (right). σ=10, ρ=28, β=8/3.](./img/model_lorenz_anim.gif){.model-fig}
 
 ## Leaky Integrate-and-Fire Model (LIF)
 
-![Leaky Integrate and Fire time plot @gerstner2014](./img/LIFEPFL.png)
-
----
+![Artificial LIF example - sub-threshold membrane integration to threshold, then reset (`plot_lif`, our Visualization stack).](./img/model_lif_membrane.png){.lif-artificial}
 
 ```{julia}
 #| echo: true
-#| output: slide
 #| label: lif
-#| code-fold: false
+#| code-fold: true
 using DifferentialEquations
 using Random
 
@@ -1115,13 +991,17 @@ fire_callback = DiscreteCallback(fire_condition, hrv_fire!)
 hrv_problem = ODEProblem(hrv_dynamics, V0, tspan, params)
 ```
 
+## LIF Input Current
+
+![The LIF driven by our IBI series: the input current reconstructed from the recording feeds the leaky integrator, whose threshold crossings become beats.](./img/model_lif_current.png){.model-fig}
+
 ## Solving ODEs
 
 ```{julia}
 #| echo: true
 #| output: slide
 #| label: lif-solution
-#| code-fold: false
+#| code-fold: true
 hrv_solution = solve(hrv_problem, Tsit5(); callback=fire_callback)
 
 # Interbeat intervals (IBIs) in milliseconds
@@ -1129,7 +1009,7 @@ IBIs = diff(spike_times) * 1000.0
 IBIs = HeartRateLab.replace_bio_outliers(IBIs)
 
 # Plot the results
-f = Figure(size=(1600, 800));
+f = Figure(size=(1600, 430));
 ax = Axis(f[1, 1],
     title="Simulated Heart Rate",
     xlabel="Time (s)",
@@ -1149,12 +1029,10 @@ f
 ::: {.column width=50%}
 ![Pictorial proof of Bayes' theorem By Cmglee - Own work, CC BY-SA 4.0, https://commons.wikimedia.org/w/index.php?curid=143581610](./img/VisualBayes.png)
 
-Parameter Estimation:
-
-    τ=0.6,        # Integration time constant
-    I_base=1.1,   # Baseline input to the integrator
-    threshold=0.9, # Firing threshold
-    noise_amp=0.15,  # Amplitude of stochastic noise
+Where we actually use it: fitting a **Bayesian AR model** to the RR-interval
+series for forecasting. Unlike the LIF (which has a closed-form inter-spike
+interval), the AR coefficients have no analytical solution, so we estimate a
+posterior over the mean level, the innovation scale, and the AR weights.
 :::
 
 ::: {.column width=50%}
@@ -1165,32 +1043,36 @@ Parameter Estimation:
 #| label: bayesian-inference
 #| code-fold: false
 using Turing
-using SequentialSamplingModels: LBA
 
-# Generate synthetic data
-Random.seed!(42)
-dist = LBA(ν=[3.0], A=.8, k=.2, τ=.3)
-n_trials = 100
-data = rand(dist, n_trials)
-
-@model function lba(data; min_rt=minimum(data.rt))
-    ν ~ MvNormal(fill(2.0, 2), I * 3)
-    A ~ truncated(Normal(0.8, 0.8), 0.0, Inf)
-    k ~ truncated(Normal(0.2, 0.2), 0.0, Inf)
-    τ ~ Uniform(0.0, min_rt)
-    data ~ LBA(; ν, A, k, τ)
+# Bayesian AR(p) model of the RR-interval series, used for RR forecasting.
+@model function bayes_ar(y, p)
+    n = length(y)
+    mu    ~ Normal(mean(y), 200)         # mean RR level (ms)
+    sigma ~ Exponential(50)              # innovation scale (ms)
+    phi   ~ filldist(Normal(0, 0.5), p)  # AR coefficients
+    for t in (p + 1):n
+        m = mu
+        for j in 1:p
+            m += phi[j] * (y[t - j] - mu)
+        end
+        y[t] ~ Normal(m, sigma)
+    end
 end
 
-# # Run inference
-chain = sample(lba(data), NUTS(), 50)
-
-using StatsPlots
-StatsPlots.plot(chain)
+# Fit to a recording's RR series, then draw the posterior predictive band
+chain = sample(bayes_ar(rr, 8), NUTS(0.65), 250)
 ```
 :::
 ::::
 
-## Deep Learning
+## AR forecast of the RR series
+
+![AR(8) forecasts of the same RR series at beats 133, 230, 326 (120-beat train, 10-beat forecast); the 90% predictive band is what we score for calibration.](./img/model_ar_forecast.png){.model-fig}
+
+## Deep Learning {data-visibility="hidden"}
+
+<!-- Hidden: the VAE below is an illustrative Flux sketch (`eval: false`),
+     never actually trained, so the slide stays out of the deck. -->
 
 :::: {.columns}
 ::: {.column width=50%}
@@ -1206,7 +1088,7 @@ StatsPlots.plot(chain)
 #| eval: false
 #| output: slide
 #| label: vae
-#| code-fold: false
+#| code-fold: true
 using Flux
 using Statistics
 using Random
@@ -1339,27 +1221,30 @@ fig
 **DEMO**
 
 
-## Problem Solving with the HeartRateLab
+# Problem Solving with the HeartRateLab
 
 What have we used the HeartRateLab for?
 
+<!-- The 3-column body lives on a ## down-slide (below) rather than on this #
+     divider: a level-1 slide centres its big title over tall multi-column
+     content and they collide. Divider stays light; content flows from the top. -->
+
+## Teaching, priors, and modeling
+
 :::: {.columns}
 ::: {.column width=33%}
-:::{.fragment}
 ### Teaching and Learning
 
 - Communication and Visualization
 - Test-driven feature definition
 - Ranges and normal values of features are part of our tests
 - Open source encourages student engagement
-- Material belongs to the students
-- Students can run the code and see the results
+- Online tools help us debug live during our experiments
 - Online demos aid visual understanding
-:::
+- Personal Biofeedback practice
 :::
 
 ::: {.column width=33%}
-::: {.fragment}
 ### Managing Expectations and Priors
 
 - Open Data Sets become the basis for our Normative Datasets
@@ -1367,18 +1252,14 @@ What have we used the HeartRateLab for?
 - Given similar studies, we can design experiments with quantified expectations (Bayesian priors).
 - We can identify outliers in different populations, and under different conditions.
 :::
-:::
 
 ::: {.column width=33%}
-::: {.fragment}
 ### Modeling and Predicting
 
 - Models can be tested against normative datasets.
 - Their accuracy and precision can be quantified.
 - Artificial models encourage model-thinking: no true model, but useful models.
-- The Dao that can be named is not the eternal Dao.
 
-:::
 :::
 ::::
 
@@ -1393,7 +1274,7 @@ What have we used the HeartRateLab for?
 :::
 ::: {.column width=33%}
 - Facial Expression Observation
-- Ocular Rivalry and Concious Perception
+- Ocular Rivalry and Conscious Perception
 - Cognitive Flexibility
 :::
 ::: {.column width=33%}
@@ -1403,14 +1284,49 @@ What have we used the HeartRateLab for?
 :::
 :::: 
 
-## Structured and Formal Management of Cognitive Tools and Resources.
 
+# Scientific Infrastructure behind HeartRateLab
 
+## Heterogenous Distributed Computing
 
-## Tools and Resources
-![ResearchRabbit](https://images.squarespace-cdn.com/content/v1/5dee82c56fcd7b0290640db5/1628479532521-VKCC2DKYPJ7W20MN3W0C/Picture3.png)
+The HeartRateLab was developed and is currently used under a self-designed research infrastructure that enables metascientific evaluation of the research field:
 
----
+- The **Wanderers Science-OS**: A custom made NixOS system for a fleet of heterogenous devices that includes diferent forms of computing in diverse environments.
+- The **Science Agents** agentic science framework: A sistem that includes research field mapping, bibliography and bibilometry, researcher and topic tracikng, conference and CfP monitor, project management, and general scientific supervision. 
+- Explicit **Knowledge Management** systems over three shared memory layers on [**memvault**](https://git.plan.ai/plan-ai/memvault), running on the Wanderers fleet.
+
+## Science Agents on the Wanderers
+
+![The Wanderers Research-OS: four repos (ScienceAgents, Supervision, ScienceMap, Bibliometry) over three memory layers (Identity in git; Episodic and Semantic-graph on memvault)](./img/sci/wanderers_research_os.png){.sci-fig}
+
+## The four systems
+
+- **ScienceAgents** - agent infrastructure: shared identity and methodology.
+- **Supervision** - the AI research supervisor: critical-path tracking and weekly / Sunday / CFP / SWOT reports, currently driving the TU Graz PhD.
+- **ScienceMap** - the world model: a Scientific Entity Graph (researchers, venues, topics, opportunities) on semantic memory, with crawlers, tracking and visualization.
+- **Bibliometry** - Zotero ingest + Scholar enrichment; emits entity/edge tuples into ScienceMap. Uses **AutoResearchClaw** for literature search and 4-layer citation verification.
+
+Three memory layers on memvault - **Identity** (git), **Episodic**, and the **Semantic** graph - replicated across the fleet.
+
+On the Wanderers fleet: the agents run on **Saturn**; **Moon** and **Phobos** host the services (git, memvault, entity graph); **Neptune** and **Jupiter** provide GPU inference and fast builds.
+
+## AutoResearchClaw (ARC)
+
+![AutoResearchClaw's 23-stage pipeline, which Bibliometry uses for literature search (OpenAlex, Semantic Scholar, arXiv) and 4-layer citation verification. Its broad search pulls thousands of candidates that the screening gate narrows to a confirmed shortlist; runs as Slurm jobs against a local models on available GPUs.](./img/sci/wanderers_arc_architecture.png){.sci-fig}
+
+## The HRV field over time
+
+![The HeartRateLab knowledge base as a field: 554 HRV papers (154 confirmed references plus the HRV papers they cite), by publication year and coloured by research field - clinical, sports & peak-performance, contemplative practice, and methods & foundations. Seminal signal-processing and physiology work (Shannon 1948, Welch 1967, Akselrod 1981) anchors the early years.](./img/sci/hrv_timeline.png){.sci-fig}
+
+## Research field networks
+
+```{=html}
+<iframe class="coauth-frame" src="./img/sci/hrv_coauthors.html" title="Interactive HRV citation network" loading="eager"></iframe>
+```
+
+554 papers and 3,841 citations - **89% sit in one connected component**, so the field is a single citation web, not scattered groups. Colour = research field; node size = how often a paper is cited within the set (the largest nodes are the shared foundations - Task Force 1996, Akselrod 1981, Peng/DFA 1995).
+
+# Tools and Resources
 
 ![The cynefin framework @snowden2007](./img/cynefin.png)
 
@@ -1436,7 +1352,7 @@ What have we used the HeartRateLab for?
 :::
 ::::
 
-## Analysis
+## Analysis {data-visibility="hidden"}
 
 ::: {.columns}
 
@@ -1470,4 +1386,14 @@ What have we used the HeartRateLab for?
 
 ## References
 ::: {#refs}
+:::
+
+# Thank you {.hrl-thanks .jc-center}
+
+::: {.thanks-wrap}
+![](./img/hrl-ring.gif){.hrl-ring fig-alt="HeartRateLab ring logo"}
+
+[github.com/abcsds/HeartRateLab.jl](https://github.com/abcsds/HeartRateLab.jl)
+
+Alberto Barradas, JuliaCon 2026, Mainz, Germany
 :::
