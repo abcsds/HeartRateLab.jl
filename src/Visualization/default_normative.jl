@@ -1,6 +1,7 @@
 using GLMakie
 using LSL
 using StatsBase
+using HeartRateLab: HeartRateLab
 using HeartRateLab.Frequency: lomb_scargle, get_power
 using HeartRateLab.Visualization: getellipsepoints
 using HeartRateLab.Visualization: load_personal_baseline, baseline_band,
