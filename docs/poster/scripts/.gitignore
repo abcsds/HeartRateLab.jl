@@ -1,0 +1,3 @@
+# P1's derived per-window HRV features + recording dates (personal data).
+# Regenerated locally by regen_participant_figs.jl; never commit to the public repo.
+pdf_all_cache.csv

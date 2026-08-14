@@ -11,8 +11,17 @@ grounded in the committed data in this repository.
 | Use case | Question answered | Headline result |
 |----------|-------------------|-----------------|
 | [Is my data normal?](normative.md) | Where does one HRV window sit relative to a healthy population? | A quantile *z*-equivalent against 61 715 pooled healthy windows, live-overlaid in `default_normative()`. |
-| [Meditation & paced breathing](meditation.md) | What does a vagally dominant state look like in HRV space? | Meditation cohort: elevated mean IBI (+0.99σ) and SDNN (+0.87σ) against the pooled healthy windows. |
+| [Meditation & resonant breathing](meditation.md) | What does a vagally dominant or resonance state look like in HRV space? | Meditation cohort: broad vagal elevation (mean IBI +0.99σ, SDNN +0.87σ). A longitudinal resonant-breathing participant: a selective LF-band boost (LF/HF +2.62σ) with typical RMSSD. |
 | [What do reported effects look like?](effect-distributions.md) | Does the harvested HRV applications literature carry publication-bias fingerprints? | p-curve and funnel/Egger tests over the [HRV knowledge base](../zoo/references.md) fields; bias indicated in the one well-powered cell. |
+
+## The JuliaCon 2026 poster
+
+![JuliaCon 2026 poster, normative evaluation of HRV from open datasets](figs/poster-full.png)
+
+The normative-evaluation and breathing use cases were assembled into a JuliaCon
+Global 2026 poster, "Using HeartRateLab.jl for Normative Evaluation of Heart
+Rate Variability from Open Datasets". The poster sources, figures, and data
+live under `docs/poster/`.
 
 ## How these relate to the rest of the docs
 

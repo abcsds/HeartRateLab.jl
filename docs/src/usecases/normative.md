@@ -72,7 +72,8 @@ feature is continuously placed against the reference: the operational answer to
 The offline counterpart, `plot_normative_kde_comparison`, renders the same idea as
 a small-multiples grid: one KDE per feature, the fitted prior density overlaid as a
 dashed curve, and the σ-equivalent bands shaded behind it. The
-[meditation use case](meditation.md) shows this grid applied to a real cohort.
+[meditation and resonant-breathing use case](meditation.md) shows this grid
+applied to a real cohort and a longitudinal participant.
 
 These priors are descriptive references from healthy cohorts, not clinical
 thresholds. A large ``|z|`` means unusual relative to this reference
