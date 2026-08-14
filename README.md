@@ -55,7 +55,7 @@ plot_ibi_series(ibis; backend=:plots)
 
 ```julia
 julia> using Pkg
-julia> Pkg.add(url="https://github.com/abcsds/HeartRateLab.jl")
+julia> Pkg.add("HeartRateLab")
 ```
 
 

@@ -12,7 +12,7 @@ Open the Julia REPL and type:
 
 ```julia
 julia> using Pkg
-julia> Pkg.add(url="https://github.com/abcsds/HeartRateLab.jl")
+julia> Pkg.add("HeartRateLab")
 ```
 
 ### Step 3: Install Optional Dependencies
@@ -201,7 +201,7 @@ CSV.write("output.csv", df)
 **Solution:** Make sure HeartRateLab is installed:
 ```julia
 using Pkg
-Pkg.add(url="https://github.com/abcsds/HeartRateLab.jl")
+Pkg.add("HeartRateLab")
 ```
 
 ### Issue: Features return NaN

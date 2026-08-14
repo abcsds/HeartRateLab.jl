@@ -78,7 +78,7 @@ plot_lorenz_3d(ibis)
 
 ```julia
 julia> using Pkg
-julia> Pkg.add(url="https://github.com/abcsds/HeartRateLab.jl")
+julia> Pkg.add("HeartRateLab")
 ```
 
 
