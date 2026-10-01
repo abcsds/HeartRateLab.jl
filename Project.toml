@@ -1,7 +1,7 @@
 name = "HeartRateLab"
 uuid = "ac0e5f2a-24d1-4b35-a8b3-775c05ea78ca"
-authors = ["Alberto Barradas <abcsds@gmail.com> and contributors"]
 version = "0.1.0"
+authors = ["Alberto Barradas <abcsds@gmail.com> and contributors"]
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
@@ -38,7 +38,7 @@ HeartRateLabLSLExt = ["LSL"]
 HeartRateLabVisualizationExt = ["GLMakie"]
 
 [compat]
-CSV = "0.10"
+CSV = "0.10, 1"
 DSP = "0.6"
 DataFrames = "1"
 DataInterpolations = "4"
